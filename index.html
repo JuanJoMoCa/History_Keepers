@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>History Keepers — Tienda de coleccionistas deportivos</title>
+  <meta name="description" content="Coleccionables deportivos: jerseys retro, balones firmados y tarjetas históricas.">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container wrap">
+      <!-- Logo centrado y tamaño editable con --logo-size -->
+      <img src="assets/logo.png" alt="Logo History Keepers" class="logo" />
+      <!-- Acciones a la derecha -->
+      <div class="actions">
+        <button class="btn top-btn" data-open="login">Loggin</button>
+        <button class="btn top-btn" data-open="register">Registrarse</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="slider">
+        <div class="slides"></div>
+        <button class="ctrl prev" aria-label="Anterior">‹</button>
+        <button class="ctrl next" aria-label="Siguiente">›</button>
+        <div class="dots"></div>
+      </div>
+    </section>
+
+    <!-- Menú centrado (sin loggin/registro) -->
+    <nav class="menu"></nav>
+
+    <section class="content"></section>
+  </main>
+
+  <footer>
+    <div class="container small">© <span id="y"></span> History Keepers. Proyecto demo de tienda en línea.</div>
+  </footer>
+
+  <!-- LOGIN -->
+  <dialog id="dlg-login" class="modal">
+    <form method="dialog" class="card modal-card">
+      <div class="modal-head">
+        <h3>Iniciar sesión</h3>
+        <button class="icon-btn" type="button" data-close="dlg-login" aria-label="Cerrar">✕</button>
+      </div>
+      <label>Correo
+        <input class="input" type="email" placeholder="tucorreo@ejemplo.com" required>
+      </label>
+      <label>Contraseña
+        <input class="input" type="password" placeholder="••••••••" required>
+      </label>
+      <div class="modal-actions">
+        <button class="btn" type="button" data-close="dlg-login">Cancelar</button>
+        <button class="btn" type="submit" value="login">Entrar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- REGISTRO -->
+  <dialog id="dlg-register" class="modal">
+    <form method="dialog" class="card modal-card">
+      <div class="modal-head">
+        <h3>Crear cuenta</h3>
+        <button class="icon-btn" type="button" data-close="dlg-register" aria-label="Cerrar">✕</button>
+      </div>
+      <label>Nombre
+        <input class="input" type="text" placeholder="Tu nombre" required>
+      </label>
+      <label>Correo
+        <input class="input" type="email" placeholder="tucorreo@ejemplo.com" required>
+      </label>
+      <label>Contraseña
+        <input class="input" type="password" placeholder="••••••••" required>
+      </label>
+      <div class="modal-actions">
+        <button class="btn" type="button" data-close="dlg-register">Cancelar</button>
+        <button class="btn" type="submit" value="register">Registrarme</button>
+      </div>
+    </form>
+</dialog>
+
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+  <script src="app.js"></script>
+</body>
+</html>
