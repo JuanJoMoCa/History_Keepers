@@ -203,6 +203,104 @@ function wireTopbarModals(){
   });
 }
 
+/* === LÓGICA DE AUTENTICACIÓN MEJORADA CON TOASTS === */
+
+// Función reutilizable para mostrar notificaciones toast
+let toastTimer;
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast-notification');
+    if (!toast) return;
+
+    // Limpiar cualquier timer anterior para evitar que se oculte prematuramente
+    clearTimeout(toastTimer);
+
+    toast.textContent = message;
+    // Resetea las clases para aplicar el estilo correcto
+    toast.className = 'toast'; 
+    toast.classList.add(type); // 'success' o 'error'
+    
+    // Muestra el toast
+    toast.classList.add('show');
+
+    // Oculta el toast después de 3 segundos
+    toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+
+// 1. Seleccionamos los formularios
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
+
+// 2. Manejador para el formulario de REGISTRO
+registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); 
+    
+    const nombre = registerForm.querySelector('input[type="text"]').value;
+    const email = registerForm.querySelector('input[type="email"]').value;
+    const password = registerForm.querySelector('input[type="password"]').value;
+
+    try {
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, email, password })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            showToast(result.message, 'success'); // <-- REEMPLAZO DE ALERT
+            document.getElementById('dlg-register').close();
+            document.getElementById('dlg-login').showModal();
+        } else {
+            showToast(result.message, 'error'); // <-- REEMPLAZO DE ALERT
+        }
+    } catch (error) {
+        showToast('No se pudo conectar con el servidor.', 'error'); // <-- REEMPLAZO DE ALERT
+    }
+});
+
+
+// 3. Manejador para el formulario de LOGIN
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = loginForm.querySelector('input[type="email"]').value;
+    const password = loginForm.querySelector('input[type="password"]').value;
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const result = await response.json();
+
+        if (result.success) {
+            showToast(result.message, 'success'); // <-- REEMPLAZO DE ALERT
+            console.log('Usuario autenticado:', result.user);
+            document.getElementById('dlg-login').close();
+        } else {
+            showToast(result.message, 'error'); // <-- REEMPLAZO DE ALERT
+        }
+    } catch (error) {
+        showToast('No se pudo conectar con el servidor.', 'error'); // <-- REEMPLAZO DE ALERT
+    }
+});
+
+// Añadir al final de app.js
+document.querySelectorAll('[data-switch]').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = link.dataset.switch;
+    // Cerrar todos los modales abiertos
+    document.querySelectorAll('dialog[open]').forEach(d => d.close());
+    // Abrir el modal objetivo
+    document.getElementById(`dlg-${target}`).showModal();
+  });
+});
+
 
 function closeAnyModal(){
   document.querySelectorAll('dialog[open]').forEach(d=>d.close('cancel'));

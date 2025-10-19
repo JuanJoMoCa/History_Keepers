@@ -11,9 +11,7 @@
 <body>
   <header class="topbar">
     <div class="container wrap">
-      <!-- Logo centrado y tamaño editable con --logo-size -->
       <img src="assets/logo.png" alt="Logo History Keepers" class="logo" />
-      <!-- Acciones a la derecha -->
       <div class="actions">
         <button class="btn top-btn" data-open="login">Loggin</button>
         <button class="btn top-btn" data-open="register">Registrarse</button>
@@ -31,7 +29,6 @@
       </div>
     </section>
 
-    <!-- Menú centrado (sin loggin/registro) -->
     <nav class="menu"></nav>
 
     <section class="content"></section>
@@ -41,48 +38,46 @@
     <div class="container small">© <span id="y"></span> History Keepers. Proyecto demo de tienda en línea.</div>
   </footer>
 
-  <!-- LOGIN -->
-  <dialog id="dlg-login" class="modal">
-    <form method="dialog" class="card modal-card">
-      <div class="modal-head">
-        <h3>Iniciar sesión</h3>
-        <button class="icon-btn" type="button" data-close="dlg-login" aria-label="Cerrar">✕</button>
-      </div>
-      <label>Correo
-        <input class="input" type="email" placeholder="tucorreo@ejemplo.com" required>
-      </label>
-      <label>Contraseña
-        <input class="input" type="password" placeholder="••••••••" required>
-      </label>
-      <div class="modal-actions">
-        <button class="btn" type="button" data-close="dlg-login">Cancelar</button>
-        <button class="btn" type="submit" value="login">Entrar</button>
-      </div>
-    </form>
-  </dialog>
-
-  <!-- REGISTRO -->
   <dialog id="dlg-register" class="modal">
-    <form method="dialog" class="card modal-card">
-      <div class="modal-head">
-        <h3>Crear cuenta</h3>
-        <button class="icon-btn" type="button" data-close="dlg-register" aria-label="Cerrar">✕</button>
-      </div>
-      <label>Nombre
-        <input class="input" type="text" placeholder="Tu nombre" required>
-      </label>
-      <label>Correo
-        <input class="input" type="email" placeholder="tucorreo@ejemplo.com" required>
-      </label>
-      <label>Contraseña
-        <input class="input" type="password" placeholder="••••••••" required>
-      </label>
-      <div class="modal-actions">
-        <button class="btn" type="button" data-close="dlg-register">Cancelar</button>
-        <button class="btn" type="submit" value="register">Registrarme</button>
-      </div>
-    </form>
+  <form method="dialog" class="card modal-card modal-card-dark" id="register-form">
+    <img src="assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
+    <h2>Crea tu cuenta</h2>
+    <p class="modal-subtitle">Regístrate para acceder a todas las funciones.</p>
+    
+    <label>Nombre Completo</label>
+    <input class="input" type="text" placeholder="" required>
+    
+    <label>Correo Electrónico</label>
+    <input class="input" type="email" placeholder="" required>
+    
+    <label>Contraseña</label>
+    <input class="input" type="password" placeholder="" required>
+    
+    <button type="submit" class="btn btn-primary-dark">Crear Cuenta</button>
+    
+    <p class="modal-link">¿Ya tienes una cuenta? <a href="#" data-switch="login">Inicia sesión</a></p>
+  </form>
 </dialog>
+
+<dialog id="dlg-login" class="modal">
+  <form method="dialog" class="card modal-card modal-card-dark" id="login-form">
+    <img src="assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
+    <h2>Bienvenido</h2>
+    <p class="modal-subtitle">Inicia sesión para continuar.</p>
+    
+    <label>Correo Electrónico</label>
+    <input class="input" type="email" placeholder="" required>
+    
+    <label>Contraseña</label>
+    <input class="input" type="password" placeholder="" required>
+    
+    <button type="submit" class="btn btn-primary-dark">Entrar</button>
+    
+    <p class="modal-link">¿No tienes cuenta? <a href="#" data-switch="register">Regístrate aquí</a></p>
+  </form>
+</dialog>
+
+<div id="toast-notification" class="toast"></div>
 
   <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
   <script src="app.js"></script>
