@@ -278,14 +278,36 @@ loginForm.addEventListener('submit', async (e) => {
         const result = await response.json();
 
         if (result.success) {
-            showToast(result.message, 'success'); // <-- REEMPLAZO DE ALERT
-            console.log('Usuario autenticado:', result.user);
-            document.getElementById('dlg-login').close();
+            showToast(result.message, 'success'); // Muestra la bienvenida
+            
+            // Espera un momento para que el usuario vea el toast
+            // y luego redirige según el rol.
+            setTimeout(() => {
+                const userRole = result.user.rol;
+                switch (userRole) {
+                    case 'usuario comprador':
+                        window.location.href = 'comprador.html';
+                        break;
+                    case 'trabajador':
+                        window.location.href = 'trabajador.html';
+                        break;
+                    case 'gerente':
+                        window.location.href = 'gerente.html';
+                        break;
+                    case 'administrador':
+                        window.location.href = 'admin.html';
+                        break;
+                    default:
+                        // Si el rol no se reconoce, lo dejamos en la página principal
+                        window.location.href = 'index.html';
+                }
+            }, 1000); // 1 segundo de espera
+
         } else {
-            showToast(result.message, 'error'); // <-- REEMPLAZO DE ALERT
+            showToast(result.message, 'error');
         }
     } catch (error) {
-        showToast('No se pudo conectar con el servidor.', 'error'); // <-- REEMPLAZO DE ALERT
+        showToast('No se pudo conectar con el servidor.', 'error');
     }
 });
 
