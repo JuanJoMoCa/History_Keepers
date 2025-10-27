@@ -362,3 +362,62 @@ footer { border-top: 1px solid var(--border); padding: 18px 0; color: var(--mute
 .modal-card-dark .modal-link a:hover {
   text-decoration: underline;
 }
+
+/* --- ESTILOS PARA EL DASHBOARD DEL COMPRADOR (PRODUCTOS) --- */
+
+/* Enlace que envuelve la tarjeta del producto.
+  Lo hacemos un bloque para que ocupe todo el espacio 
+  y quitamos la decoración de texto.
+*/
+.product-link {
+  display: block;
+  text-decoration: none;
+  color: var(--text);
+  border-radius: 16px; /* Coincide con el .card */
+}
+
+/* La tarjeta del producto.
+  Le quitamos el padding original para que la imagen pegue a los bordes.
+  Añadimos overflow: hidden para que la imagen respete los bordes redondeados.
+  Añadimos transición para el efecto hover.
+*/
+.card.product-card {
+  padding: 0;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efecto hover: La tarjeta se "levanta" y la sombra se hace más pronunciada
+  para indicar que es un elemento interactivo.
+*/
+.product-link:hover .card.product-card {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+
+/* Imagen del producto */
+.product-card img {
+  width: 100%;
+  height: 200px; /* Altura fija para que todas las tarjetas se vean uniformes */
+  object-fit: cover; /* Evita que la imagen se deforme */
+  border-bottom: 1px solid var(--border); /* Línea divisoria sutil */
+  display: block;
+}
+
+/* Contenedor para la información (título y precio) */
+.product-card .product-info {
+  padding: 14px 18px; /* Añadimos el padding de vuelta, pero solo para el texto */
+}
+
+.product-card h3 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.product-card .product-price {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--muted); /* Usamos el color "apagado" para el precio */
+}
