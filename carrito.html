@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Carrito de Compras | History Keepers</title>
+    <meta name="description" content="Revisa y gestiona los productos que has agregado a tu carrito de compras.">
+    <link rel="icon" href="assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    </head>
+<body>
+    <header class="topbar">
+        <div class="container wrap">
+            <img src="assets/logo.png" alt="Logo History Keepers" class="logo" />
+            <div class="actions">
+                <a href="#" class="cart-icon" aria-label="Carrito de compras (página actual)">🛒</a>
+                
+                <button class="btn top-btn" data-open="login">Loggin</button>
+                <button class="btn top-btn" data-open="register">Registrarse</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <section class="cart-page" style="padding: 20px 0 50px;">
+            <h2>🛒 Tu Carrito de Compras</h2>
+            
+            <div class="cart-layout" style="display: flex; gap: 30px; margin-top: 20px;">
+                
+                <div class="cart-items" style="flex: 2; min-width: 60%;">
+                    
+                    <div class="card cart-item" style="display: flex; gap: 20px; align-items: center; margin-bottom: 15px; padding: 15px;">
+                        <img src="assets/placeholder-jersey.jpg" alt="Producto de ejemplo" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
+                        
+                        <div class="item-details" style="flex-grow: 1;">
+                            <strong style="display: block; font-size: 1.1em;">Jersey Retro 1998</strong>
+                            <p class="small" style="margin: 5px 0 0;">SKU: JRSY98 | Talla L</p>
+                        </div>
+                        
+                        <div class="item-quantity" style="display: flex; gap: 10px; align-items: center;">
+                            <button class="btn small" style="padding: 5px 10px;">-</button>
+                            <span style="font-weight: bold; min-width: 20px; text-align: center;">1</span>
+                            <button class="btn small" style="padding: 5px 10px;">+</button>
+                        </div>
+                        
+                        <div class="item-price" style="text-align: right;">
+                             <strong style="color: var(--accent);">$3,500 MXN</strong>
+                        </div>
+
+                        <button class="btn small ghost" style="color: var(--muted); border: none; padding: 5px;">✕</button>
+                    </div>
+                    
+                    <div class="card cart-item" style="display: flex; gap: 20px; align-items: center; margin-bottom: 15px; padding: 15px;">
+                        <img src="assets/placeholder-ball.jpg" alt="Producto de ejemplo" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
+                        <div class="item-details" style="flex-grow: 1;">
+                            <strong style="display: block; font-size: 1.1em;">Balón Firmado 2000s</strong>
+                            <p class="small" style="margin: 5px 0 0;">SKU: BALL00 | Certificado</p>
+                        </div>
+                        <div class="item-quantity" style="display: flex; gap: 10px; align-items: center;">
+                            <button class="btn small" style="padding: 5px 10px;">-</button>
+                            <span style="font-weight: bold; min-width: 20px; text-align: center;">2</span>
+                            <button class="btn small" style="padding: 5px 10px;">+</button>
+                        </div>
+                        <div class="item-price" style="text-align: right;">
+                             <strong style="color: var(--accent);">$13,600 MXN</strong>
+                        </div>
+                        <button class="btn small ghost" style="color: var(--muted); border: none; padding: 5px;">✕</button>
+                    </div>
+                    
+                    <p style="margin-top: 30px;"><a href="index.html" style="color: var(--accent); text-decoration: none;">← Continuar comprando</a></p>
+
+                </div>
+
+                <div class="cart-summary" style="flex: 1; min-width: 30%;">
+                    <div class="card">
+                        <h3>Resumen del Pedido</h3>
+                        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                            <span>Subtotal (3 artículos)</span>
+                            <strong>$17,100 MXN</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+                            <span>Envío (Estándar)</span>
+                            <strong>$150 MXN</strong>
+                        </div>
+                        <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 15px; display: flex; justify-content: space-between; font-size: 1.2em; font-weight: 700; color: var(--text);">
+                            <span>Total</span>
+                            <span>$17,250 MXN</span>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 30px;">Finalizar Compra</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container small">© <span id="y"></span> History Keepers. Proyecto demo de tienda en línea.</div>
+    </footer>
+    
+    <dialog id="dlg-register" class="modal">
+        <form method="dialog" class="card modal-card" id="register-form"> 
+            <img src="assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
+            <h2>Crea tu cuenta</h2>
+            <p class="modal-subtitle">Regístrate para acceder a todas las funciones.</p>
+            
+            <label>Nombre Completo</label>
+            <input class="input" type="text" name="nombre" placeholder="" required> 
+            
+            <label>Correo Electrónico</label>
+            <input class="input" type="email" name="email" placeholder="" required> 
+            
+            <label>Contraseña</label>
+            <input class="input" type="password" name="password" placeholder="" required> 
+            
+            <button type="submit" class="btn btn-primary">Crear Cuenta</button> 
+            
+            <p class="modal-link">¿Ya tienes una cuenta? <a href="#" data-switch="login">Inicia sesión</a></p>
+        </form>
+    </dialog>
+
+    <dialog id="dlg-login" class="modal">
+        <form method="dialog" class="card modal-card" id="login-form">
+            <img src="assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
+            <h2>Bienvenido</h2>
+            <p class="modal-subtitle">Inicia sesión para continuar.</p>
+            
+            <label>Correo Electrónico</label>
+            <input class="input" type="email" name="email" placeholder="" required> 
+            
+            <label>Contraseña</label>
+            <input class="input" type="password" name="password" placeholder="" required> 
+            
+            <button type="submit" class="btn btn-primary">Entrar</button> 
+            
+            <p class="modal-link">¿No tienes cuenta? <a href="#" data-switch="register">Regístrate aquí</a></p>
+        </form>
+    </dialog>
+
+    <div id="toast-notification" class="toast"></div>
+
+    <script>
+        // Inicialización del año en el footer
+        document.getElementById('y').textContent = new Date().getFullYear();
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
