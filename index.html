@@ -1,28 +1,30 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>History Keepers — Tienda de coleccionistas deportivos</title>
-  <meta name="description" content="Coleccionables deportivos: jerseys retro, balones firmados y tarjetas históricas.">
-  <link rel="icon" href="assets/logo.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <meta name="description" content="Coleccionables deportivos: jerseys retro, balones firmados y tarjetas históricas." />
+  <link rel="icon" href="assets/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="container wrap">
       <img src="assets/logo.png" alt="Logo History Keepers" class="logo" />
       <div class="actions">
-        <button class="btn top-btn" data-open="login">Loggin</button>
+        <a href="carrito.html" class="cart-icon" aria-label="Ir al carrito de compras">🛒</a>
+        <button class="btn top-btn" data-open="login">Login</button>
         <button class="btn top-btn" data-open="register">Registrarse</button>
       </div>
     </div>
   </header>
 
   <main class="container">
+    <!-- Hero / Slider -->
     <section class="hero">
       <div class="slider">
         <div class="slides"></div>
@@ -32,8 +34,8 @@
       </div>
     </section>
 
+    <!-- Menú SPA (Home / Catálogo / Buscar) -->
     <nav class="menu"></nav>
-
     <section class="content"></section>
   </main>
 
@@ -41,48 +43,52 @@
     <div class="container small">© <span id="y"></span> History Keepers. Proyecto demo de tienda en línea.</div>
   </footer>
 
+  <!-- MODAL: Registro -->
   <dialog id="dlg-register" class="modal">
-  <form method="dialog" class="card modal-card modal-card-dark" id="register-form">
-    <img src="assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
-    <h2>Crea tu cuenta</h2>
-    <p class="modal-subtitle">Regístrate para acceder a todas las funciones.</p>
-    
-    <label>Nombre Completo</label>
-    <input class="input" type="text" placeholder="" required>
-    
-    <label>Correo Electrónico</label>
-    <input class="input" type="email" placeholder="" required>
-    
-    <label>Contraseña</label>
-    <input class="input" type="password" placeholder="" required>
-    
-    <button type="submit" class="btn btn-primary-dark">Crear Cuenta</button>
-    
-    <p class="modal-link">¿Ya tienes una cuenta? <a href="#" data-switch="login">Inicia sesión</a></p>
-  </form>
-</dialog>
+    <form method="dialog" class="card modal-card modal-card-dark" id="register-form">
+      <img src="assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
+      <h2>Crea tu cuenta</h2>
+      <p class="modal-subtitle">Regístrate para acceder a todas las funciones.</p>
 
-<dialog id="dlg-login" class="modal">
-  <form method="dialog" class="card modal-card modal-card-dark" id="login-form">
-    <img src="assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
-    <h2>Bienvenido</h2>
-    <p class="modal-subtitle">Inicia sesión para continuar.</p>
-    
-    <label>Correo Electrónico</label>
-    <input class="input" type="email" placeholder="" required>
-    
-    <label>Contraseña</label>
-    <input class="input" type="password" placeholder="" required>
-    
-    <button type="submit" class="btn btn-primary-dark">Entrar</button>
-    
-    <p class="modal-link">¿No tienes cuenta? <a href="#" data-switch="register">Regístrate aquí</a></p>
-  </form>
-</dialog>
+      <label for="reg-nombre">Nombre Completo</label>
+      <input class="input" type="text" id="reg-nombre" name="nombre" placeholder="" required />
 
-<div id="toast-notification" class="toast"></div>
+      <label for="reg-email">Correo Electrónico</label>
+      <input class="input" type="email" id="reg-email" name="email" placeholder="" required />
+
+      <label for="reg-password">Contraseña</label>
+      <input class="input" type="password" id="reg-password" name="password" placeholder="" required />
+
+      <button type="submit" class="btn btn-primary">Crear Cuenta</button>
+
+      <p class="modal-link">¿Ya tienes una cuenta? <a href="#" data-switch="login">Inicia sesión</a></p>
+    </form>
+  </dialog>
+
+  <!-- MODAL: Login -->
+  <dialog id="dlg-login" class="modal">
+    <form method="dialog" class="card modal-card modal-card-dark" id="login-form">
+      <img src="assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
+      <h2>Bienvenido</h2>
+      <p class="modal-subtitle">Inicia sesión para continuar.</p>
+
+      <label for="log-email">Correo Electrónico</label>
+      <input class="input" type="email" id="log-email" name="email" placeholder="" required />
+
+      <label for="log-password">Contraseña</label>
+      <input class="input" type="password" id="log-password" name="password" placeholder="" required />
+
+      <button type="submit" class="btn btn-primary">Entrar</button>
+
+      <p class="modal-link">¿No tienes cuenta? <a href="#" data-switch="register">Regístrate aquí</a></p>
+    </form>
+  </dialog>
+
+  <!-- Toast -->
+  <div id="toast-notification" class="toast"></div>
 
   <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+  <!-- Datos y lógica de la app (Catálogo -> enlaza a producto.html?id=...) -->
   <script src="app.js"></script>
 </body>
 </html>

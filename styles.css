@@ -1,319 +1,524 @@
+/* =========================================================
+   History Keepers — styles.css (tema dorado/café)
+   ========================================================= */
+
+/* ---------- Variables de tema ---------- */
 :root {
-    /* Paleta de colores original */
-    --bg: #f5efe6;
-    --text: #2b1d1a;
-    --panel: #fffaf2;
-    --accent: #b7882f;
-    --muted: #6d5a45;
-    --border: rgba(183, 136, 47, 0.35);
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  /* Paleta base */
+  --bg: #f5efe6;
+  --text: #2b1d1a;
+  --panel: #fffaf2;
+  --accent: #b7882f;
+  --muted: #6d5a45;
+  --border: rgba(183, 136, 47, 0.35);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 
-    /* --- VARIABLES DE COLOR NUEVAS (AÑADIDAS) --- */
-    --color-cafe-oscuro: #2b1d1a;
-    --color-cafe-medio: #6d5a45;
-    --color-beige-claro: #e0d5c4;
-    --color-beige-extra-claro: #f8f5f0;
-    --color-dorado: #d4ac0d;
-    --color-dorado-oscuro: #b8950e;
-    --color-dorado-rgb: 212, 172, 13; /* Para la sombra con opacidad */
-    --color-cafe-medio-transparente: rgba(109, 90, 69, 0.6);
+  /* Extras */
+  --color-cafe-oscuro: #2b1d1a;
+  --color-cafe-medio: #6d5a45;
+  --color-beige-claro: #e0d5c4;
+  --color-beige-extra-claro: #f8f5f0;
+  --color-dorado: #d4ac0d;
+  --color-dorado-oscuro: #b8950e;
+  --color-dorado-rgb: 212, 172, 13;
+  --color-cafe-medio-transparente: rgba(109, 90, 69, 0.6);
 
-    /* Tamaño editable del logo */
-    --logo-size: 56px;
+  /* Tamaño editable del logo */
+  --logo-size: 56px;
 }
 
+/* ---------- Reset básico ---------- */
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body {
-    margin: 0;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; }
+
+/* ---------- Contenedor ---------- */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
 }
 
-.container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
-
+/* =========================================================
+   Topbar
+   ========================================================= */
 header.topbar {
-    position: sticky; top: 0; z-index: 50;
-    background-color: #3a2622;
-    border-bottom: 1px solid rgba(212, 180, 118, 0.35);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: #3a2622;
+  border-bottom: 1px solid rgba(212, 180, 118, 0.35);
 }
 .topbar .wrap {
-    position: relative;
-    display: block;
-    padding: 10px 0;
-    text-align: center;
+  position: relative;
+  display: block;
+  padding: 10px 0;
+  text-align: center;
 }
 .topbar img.logo {
-    height: var(--logo-size);
-    width: auto;
-    display: inline-block;
+  height: var(--logo-size);
+  width: auto;
+  display: inline-block;
 }
 
-/* === ESTILOS PARA LA BARRA SUPERIOR (TOPBAR) === */
-.actions {
-    position: absolute; 
-    right: 16px; 
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex; 
-    gap: 10px;
-    align-items: center; 
+/* Solo la 'actions' del topbar (antes era global) */
+.topbar .actions {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
-/* --- ESTILOS FINALES PARA BOTONES LOGGIN/REGISTRARSE (FONDO BLANCO) --- */
-.top-btn{
-    padding: 8px 12px; 
-    border-radius: 10px; 
-    
-    /* FONDO BLANCO Y BORDE DORADO */
-    background: #FFFFFF !important; 
-    border: 1px solid var(--accent); 
-    
-    /* TEXTO DORADO */
-    color: var(--accent); 
-    
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+/* Botones de la barra superior */
+.top-btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #ffffff !important;  /* fondo blanco */
+  border: 1px solid var(--accent); /* borde dorado */
+  color: var(--accent);            /* texto dorado */
+  cursor: pointer;
+  transition: background-color .2s, color .2s, border-color .2s, opacity .2s;
+}
+.top-btn:hover {
+  background: var(--accent) !important;
+  color: #ffffff;
+  border-color: var(--accent);
+}
+.top-btn.ghost {
+  background: transparent !important;
+  color: #ffffff;
+  border-color: rgba(255,255,255,.25);
+}
+.top-btn.ghost:hover {
+  background: rgba(255,255,255,.1) !important;
+  border-color: rgba(255,255,255,.35);
 }
 
-.top-btn:hover { 
-    /* Efecto hover: Invertimos a fondo dorado con texto blanco */
-    background: var(--accent) !important; 
-    color: #FFFFFF; 
-    border-color: var(--accent);
-}
-/* ------------------------------------------------------------------------- */
-
-/* Estilo para el icono del carrito */
+/* Icono carrito y saludo */
 .cart-icon {
-    font-size: 1.6rem; 
-    text-decoration: none;
-    color: #fff; 
-    transition: color 0.2s ease;
-    padding: 0 5px; 
+  font-size: 1.6rem;
+  text-decoration: none;
+  color: #fff;
+  transition: color .2s ease;
+  padding: 0 5px;
 }
+.cart-icon:hover { color: var(--accent); }
+.welcome-message { color: #fff; font-size: 1em; font-weight: 500; }
 
-.cart-icon:hover {
-    color: var(--accent); 
-}
-
-/* Estilo para el mensaje de bienvenida cuando el usuario está logueado */
-.welcome-message {
-    color: #fff;
-    font-size: 1em;
-    font-weight: 500;
-}
-/* ============================================================= */
-
-
+/* =========================================================
+   Hero / Slider
+   ========================================================= */
 .hero { padding: 18px 0 8px; }
+
 .slider {
-    position: relative;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    background: #efe7d9;
-    height: clamp(260px, 40vw, 420px);
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  background: #efe7d9;
+  height: clamp(260px, 40vw, 420px);
 }
-.slides { display: flex; height: 100%; transform: translateX(0); transition: transform 0.6s ease; }
-.slide { min-width: 100%; height: 100%; background-size: cover; background-position: center; position: relative; }
-.slide::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.05)); }
+.slides {
+  display: flex;
+  height: 100%;
+  transform: translateX(0);
+  transition: transform .6s ease;
+}
+.slide {
+  min-width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+.slide::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.35), rgba(0,0,0,.05));
+}
 .caption {
-    position: absolute; left: 18px; right: 18px; bottom: 14px;
-    background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(0, 0, 0, 0.15);
-    color: #fff; border-radius: 14px; padding: 12px 14px;
-    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 14px;
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(0,0,0,.15);
+  color: #fff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
-.caption h3 { margin: 0; font-size: clamp(1rem, 1.2rem + 0.5vw, 1.4rem); }
-.caption p { margin: 0; color: #e6d9c2; font-size: 0.95rem; }
+.caption h3 { margin: 0; font-size: clamp(1rem, 1.2rem + .5vw, 1.4rem); }
+.caption p { margin: 0; color: #e6d9c2; font-size: .95rem; }
 
 .ctrl {
-    position: absolute; top: 50%; transform: translateY(-50%);
-    border: none; background: rgba(0, 0, 0, 0.35); color: #fff;
-    width: 42px; height: 42px; border-radius: 50%;
-    display: grid; place-items: center; cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: rgba(0,0,0,.35);
+  color: #fff;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,.35);
 }
-.ctrl:hover { background: rgba(0, 0, 0, 0.5); }
+.ctrl:hover { background: rgba(0,0,0,.5); }
 .ctrl.prev { left: 10px; }
 .ctrl.next { right: 10px; }
 
-.dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; gap: 8px; justify-content: center; }
-.dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0, 0, 0, 0.2); cursor: pointer; }
+.dots {
+  position: absolute;
+  bottom: 10px; left: 0; right: 0;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.6);
+  border: 1px solid rgba(0,0,0,.2);
+  cursor: pointer;
+}
 .dot.active { background: var(--accent); }
 
-nav.menu { margin: 18px 0 4px; border-bottom: 1px solid var(--border); }
+/* =========================================================
+   Menú y secciones
+   ========================================================= */
+nav.menu {
+  margin: 18px 0 4px;
+  border-bottom: 1px solid var(--border);
+}
 nav.menu ul {
-    display: flex; gap: 12px; list-style: none; padding: 0; margin: 0; flex-wrap: wrap;
-    justify-content: center;
+  display: flex;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 nav.menu a {
-    display: inline-block; padding: 10px 14px; border-radius: 10px 10px 0 0;
-    color: var(--text); text-decoration: none;
-    border: 1px solid transparent;
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 10px 10px 0 0;
+  color: var(--text);
+  text-decoration: none;
+  border: 1px solid transparent;
 }
-nav.menu a.active, nav.menu a:hover {
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
-    border-color: var(--border);
+nav.menu a.active,
+nav.menu a:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: var(--border);
 }
 
 section.content { padding: 14px 0 50px; }
 
-/* Tarjetas / inputs / botones (tema claro) */
-.card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
-.input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: #fff; color: var(--text); outline: none; }
-.btn { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--text); cursor: pointer; }
-.btn:hover { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+/* =========================================================
+   Componentes base: card, grid, inputs, botones
+   ========================================================= */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  outline: none;
+}
+.btn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+.btn:hover {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { filter: brightness(0.95); }
 
-footer { border-top: 1px solid var(--border); padding: 18px 0; color: var(--muted); }
-.small { font-size: 0.9rem; }
+.small { font-size: .9rem; }
+.muted { color: var(--muted); }
 
-
-/* --- ESTILOS PARA EL MODAL (TEMA CLARO) --- */
+/* =========================================================
+   Modales
+   ========================================================= */
 .modal::backdrop {
-    background: rgba(26, 20, 19, 0.5);
-    backdrop-filter: blur(4px);
+  background: rgba(26, 20, 19, 0.5);
+  backdrop-filter: blur(4px);
 }
 .modal {
-    border: none;
-    padding: 0;
-    background: transparent;
-    max-width: 420px;
-    width: 90%;
-    margin: auto;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-    border-radius: 16px;
-    overflow: hidden;
+  border: none;
+  padding: 0;
+  background: transparent;
+  max-width: 420px;
+  width: 90%;
+  margin: auto;
+  box-shadow: 0 8px 30px rgba(0,0,0,.3);
+  border-radius: 16px;
+  overflow: hidden;
 }
-.modal .card {
-    border-radius: 16px;
-    padding: 24px;
-}
+.modal .card { border-radius: 16px; padding: 24px; }
 .modal-card label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--color-cafe-oscuro);
-    font-weight: 600;
-    font-size: 0.95em;
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-cafe-oscuro);
+  font-weight: 600;
+  font-size: .95em;
 }
-/* Estilos de inputs para el TEMA CLARO del modal */
+/* Inputs dentro de modales (tema claro) */
 .modal-card input[type="text"],
 .modal-card input[type="email"],
 .modal-card input[type="password"] {
-    width: 100%; 
-    padding: 12px 10px;
-    margin-bottom: 20px;
-    border: 1px solid var(--color-beige-claro);
-    border-radius: 8px;
-    background-color: var(--color-beige-extra-claro);
-    color: var(--color-cafe-oscuro);
-    font-size: 1em;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  width: 100%;
+  padding: 12px 10px;
+  margin-bottom: 20px;
+  border: 1px solid var(--color-beige-claro);
+  border-radius: 8px;
+  background-color: var(--color-beige-extra-claro);
+  color: var(--color-cafe-oscuro);
+  font-size: 1em;
+  transition: border-color .3s ease, box-shadow .3s ease;
 }
 .modal-card input[type="text"]:focus,
 .modal-card input[type="email"]:focus,
 .modal-card input[type="password"]:focus {
-    border-color: var(--color-dorado);
-    box-shadow: 0 0 0 3px rgba(var(--color-dorado-rgb), 0.2);
-    outline: none;
+  border-color: var(--color-dorado);
+  box-shadow: 0 0 0 3px rgba(var(--color-dorado-rgb), .2);
+  outline: none;
 }
-.modal-card input::placeholder {
-    color: var(--color-cafe-medio-transparente);
-}
-
-/* ESTILO DEL BOTÓN PRIMARIO (ALTO CONTRASTE MODAL) */
-.modal-card .btn-primary {
-    background-color: var(--text); 
-    color: var(--bg); 
-    border: 1px solid var(--accent);
-    
-    font-weight: 600;
-    padding: 15px;
-    font-size: 1.1em;
-    border-radius: 8px;
-    width: 100%;
-    margin-top: 15px;
-    transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
-}
-
-.modal-card .btn-primary:hover {
-    background-color: var(--accent);
-    color: var(--text); 
-    border-color: var(--accent);
-    transform: translateY(-2px);
-}
-
+.modal-card input::placeholder { color: var(--color-cafe-medio-transparente); }
 .modal-card .modal-link {
-    text-align: center;
-    font-size: 0.9em;
-    color: var(--color-cafe-medio);
-    margin-top: 15px;
+  text-align: center;
+  font-size: .9em;
+  color: var(--color-cafe-medio);
+  margin-top: 15px;
 }
-
 .modal-card .modal-link a {
-    color: var(--accent); 
-    text-decoration: none;
-    font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
 }
+.modal-card .modal-link a:hover { text-decoration: underline; }
 
-.modal-card .modal-link a:hover {
-    text-decoration: underline;
-}
-
-
-/* --- ESTILOS PARA LA NOTIFICACIÓN TOAST (SIN CAMBIOS) --- */
-
+/* =========================================================
+   Toast
+   ========================================================= */
 .toast {
-    position: fixed; 
-    top: 20px;
-    right: 20px;
-    padding: 15px 20px;
-    border-radius: 10px;
-    color: #fff;
-    font-size: 0.95em;
-    font-weight: 500;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    z-index: 1000; 
-
-    opacity: 0;
-    transform: translateY(-30px);
-    visibility: hidden;
-    
-    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+  position: fixed;
+  top: 20px; right: 20px;
+  padding: 15px 20px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: .95em;
+  font-weight: 500;
+  box-shadow: 0 5px 15px rgba(0,0,0, .2);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-30px);
+  visibility: hidden;
+  transition: opacity .3s ease, transform .3s ease, visibility .3s;
 }
+.toast.show { opacity: 1; transform: translateY(0); visibility: visible; }
+.toast.success { background-color: #28a745; }
+.toast.error { background-color: #dc3545; }
 
-.toast.show {
-    opacity: 1;
-    transform: translateY(0);
-    visibility: visible;
-}
-
-.toast.success {
-    background-color: #28a745; 
-}
-
-.toast.error {
-    background-color: #dc3545; 
+/* =========================================================
+   Página de producto (detalle)
+   ========================================================= */
+.product-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 10px;
 }
 
-/* --- ESTILOS DE PÁGINA CARRITO (ESTRUCTURA) --- */
-.cart-layout {
-    display: flex;
-    gap: 30px;
-    margin-top: 20px;
+/* Galería */
+.product-gallery {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: var(--shadow);
 }
-@media (max-width: 768px) {
-    .cart-layout {
-        flex-direction: column;
-    }
+.thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  padding-right: 4px;
 }
+.thumbs .thumb {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 10px;
+  padding: 4px;
+  cursor: pointer;
+}
+.thumbs .thumb.active { outline: 2px solid var(--accent); }
+.thumbs img { width: 100%; height: auto; border-radius: 8px; }
+
+.product-gallery .main {
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+}
+.product-gallery .main img {
+  max-width: 100%;
+  max-height: 520px;
+  object-fit: contain;
+}
+
+/* Aside de información */
+.product-info .title { margin: 0 0 6px; line-height: 1.2; }
+.product-info .price {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 10px 0 6px;
+  color: var(--text);
+}
+.product-info .qty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+}
+.product-info .qty input {
+  width: 90px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+.product-info .sep {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 16px 0;
+}
+
+/* Botones dentro del aside (debajo de la descripción) */
+.product-info .actions {
+  position: static;
+  top: auto;
+  right: auto;
+  transform: none;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.actions-bottom {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+
+/* Cards de producto (catálogo) */
+.product-card strong { display: block; margin-bottom: 6px; }
+
+/* =========================================================
+   Carrito (estructura base por si lo usas después)
+   ========================================================= */
+.cart-layout { display: flex; gap: 30px; margin-top: 20px; }
+@media (max-width: 768px) { .cart-layout { flex-direction: column; } }
 .cart-item {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    margin-bottom: 15px;
-    padding: 15px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 15px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+/* =========================================================
+   Footer
+   ========================================================= */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 18px 0;
+  color: var(--muted);
+}
+
+/* Comentarios */
+.comments { margin-top: 20px; }
+.comments-list .empty { color: var(--muted); }
+.comment-item {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+.comment-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.comment-name { font-weight: 600; }
+.comment-date { color: var(--muted); font-size: .85rem; }
+.stars { letter-spacing: 2px; font-size: .95rem; }
+
+.comment-form .row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.comment-form .row.end { justify-content: flex-end; }
+.comment-form .field { flex: 1 1 240px; }
+.comment-form textarea.input { resize: vertical; }
+
+/* =========================================================
+   Responsivo
+   ========================================================= */
+@media (max-width: 960px) {
+  .product-layout { grid-template-columns: 1fr; }
+  .product-gallery { grid-template-columns: 1fr; }
+  .thumbs { flex-direction: row; }
+  .product-gallery .main img { max-height: 360px; }
 }
