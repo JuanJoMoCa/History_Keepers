@@ -653,3 +653,143 @@ footer {
   color: var(--muted);
   line-height: 1.6;
 }
+
+/* =========================================================
+   Página de Carrito y Checkout
+   ========================================================= */
+
+.cart-page h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.cart-layout {
+  display: flex;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.cart-items {
+  flex: 2;
+  min-width: 60%;
+}
+
+.cart-summary {
+  flex: 1;
+  min-width: 30%;
+}
+
+/* Manejo responsivo del layout */
+@media (max-width: 860px) {
+  .cart-layout {
+    flex-direction: column;
+  }
+  .cart-summary {
+    /* En móvil, el resumen ya no es pegajoso */
+    position: static;
+  }
+}
+
+/* --- Estilos para CADA item en el carrito --- */
+.cart-item {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 15px;
+  /* (Estos estilos ya los tenías en .card) */
+}
+
+.cart-item img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.cart-item .item-details {
+  flex-grow: 1; /* Ocupa el espacio disponible */
+}
+.cart-item .item-details strong {
+  display: block;
+  font-size: 1.1em;
+}
+.cart-item .item-details p {
+  margin: 5px 0 0;
+}
+
+.cart-item .item-quantity {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.cart-item .item-quantity span {
+  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+}
+.cart-item .item-quantity .btn {
+  padding: 5px 10px; /* Botones +/- más pequeños */
+}
+
+.cart-item .item-price {
+  text-align: right;
+  min-width: 100px;
+}
+.cart-item .item-price strong {
+  color: var(--accent);
+}
+
+.cart-item-remove {
+  color: var(--muted);
+  border: none;
+  padding: 5px;
+  line-height: 1;
+}
+.cart-item-remove:hover {
+  color: var(--text);
+  background: transparent !important;
+}
+
+/* --- Estilos para el Resumen y Stepper --- */
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+  font-size: 0.95rem;
+}
+.summary-row span {
+  color: var(--muted);
+}
+
+.summary-total {
+  border-top: 1px solid var(--border);
+  padding-top: 15px;
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.2em;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* --- Estilos para los formularios del checkout --- */
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Espacio entre inputs */
+}
+.checkout-form label {
+  font-weight: 600;
+  margin-bottom: -10px; /* Pega la etiqueta al input de abajo */
+}
+
+/* Grid para inputs (ej. Ciudad y CP) */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}

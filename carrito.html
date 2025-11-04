@@ -10,17 +10,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    </head>
+</head>
 <body>
     <header class="topbar">
         <div class="container wrap">
-            <img src="assets/logo.png" alt="Logo History Keepers" class="logo" />
+            <a href="index.html" style="line-height: 0;">
+              <img src="assets/logo.png" alt="Logo History Keepers" class="logo" />
+            </a>
             <div class="actions">
-                <a href="#" class="cart-icon" aria-label="Carrito de compras (página actual)">🛒</a>
-                
-                <button class="btn top-btn" data-open="login">Loggin</button>
-                <button class="btn top-btn" data-open="register">Registrarse</button>
-            </div>
+                <a href="carrito.html" class="cart-icon" aria-label="Carrito de compras (página actual)">🛒</a>
+                </div>
         </div>
     </header>
 
@@ -29,68 +28,97 @@
         <section class="cart-page" style="padding: 20px 0 50px;">
             <h2>🛒 Tu Carrito de Compras</h2>
             
-            <div class="cart-layout" style="display: flex; gap: 30px; margin-top: 20px;">
+            <div id="cart-empty" class="card" style="margin-top: 20px;" hidden>
+                <p>Tu carrito está vacío.</p>
+                <p style="margin-top: 15px;"><a href="index.html" class="btn">← Continuar comprando</a></p>
+            </div>
+
+            <div class="cart-layout">
                 
-                <div class="cart-items" style="flex: 2; min-width: 60%;">
-                    
-                    <div class="card cart-item" style="display: flex; gap: 20px; align-items: center; margin-bottom: 15px; padding: 15px;">
-                        <img src="assets/placeholder-jersey.jpg" alt="Producto de ejemplo" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
-                        
-                        <div class="item-details" style="flex-grow: 1;">
-                            <strong style="display: block; font-size: 1.1em;">Jersey Retro 1998</strong>
-                            <p class="small" style="margin: 5px 0 0;">SKU: JRSY98 | Talla L</p>
-                        </div>
-                        
-                        <div class="item-quantity" style="display: flex; gap: 10px; align-items: center;">
-                            <button class="btn small" style="padding: 5px 10px;">-</button>
-                            <span style="font-weight: bold; min-width: 20px; text-align: center;">1</span>
-                            <button class="btn small" style="padding: 5px 10px;">+</button>
-                        </div>
-                        
-                        <div class="item-price" style="text-align: right;">
-                             <strong style="color: var(--accent);">$3,500 MXN</strong>
-                        </div>
-
-                        <button class="btn small ghost" style="color: var(--muted); border: none; padding: 5px;">✕</button>
+                <div id="cart-items-container" class="cart-items">
                     </div>
-                    
-                    <div class="card cart-item" style="display: flex; gap: 20px; align-items: center; margin-bottom: 15px; padding: 15px;">
-                        <img src="assets/placeholder-ball.jpg" alt="Producto de ejemplo" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
-                        <div class="item-details" style="flex-grow: 1;">
-                            <strong style="display: block; font-size: 1.1em;">Balón Firmado 2000s</strong>
-                            <p class="small" style="margin: 5px 0 0;">SKU: BALL00 | Certificado</p>
-                        </div>
-                        <div class="item-quantity" style="display: flex; gap: 10px; align-items: center;">
-                            <button class="btn small" style="padding: 5px 10px;">-</button>
-                            <span style="font-weight: bold; min-width: 20px; text-align: center;">2</span>
-                            <button class="btn small" style="padding: 5px 10px;">+</button>
-                        </div>
-                        <div class="item-price" style="text-align: right;">
-                             <strong style="color: var(--accent);">$13,600 MXN</strong>
-                        </div>
-                        <button class="btn small ghost" style="color: var(--muted); border: none; padding: 5px;">✕</button>
-                    </div>
-                    
-                    <p style="margin-top: 30px;"><a href="index.html" style="color: var(--accent); text-decoration: none;">← Continuar comprando</a></p>
 
-                </div>
+                <div id="cart-summary" class="cart-summary">
+                    <div class="card" style="position: sticky; top: 90px;">
+                        
+                        <h3 id="summary-title">Resumen del Pedido</h3>
 
-                <div class="cart-summary" style="flex: 1; min-width: 30%;">
-                    <div class="card">
-                        <h3>Resumen del Pedido</h3>
-                        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
-                            <span>Subtotal (3 artículos)</span>
-                            <strong>$17,100 MXN</strong>
+                        <div id="step-summary" class="checkout-step">
+                            <div class="summary-row">
+                                <span>Subtotal <span id="summary-count">(0 artículos)</span></span>
+                                <strong id="summary-subtotal">$0 MXN</strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>Envío (Estándar)</span>
+                                <strong id="summary-shipping">$150 MXN</strong>
+                            </div>
+                            <div class="summary-total">
+                                <span>Total</span>
+                                <span id="summary-total">$150 MXN</span>
+                            </div>
+                            <button id="btn-to-address" class="btn btn-primary" style="width: 100%; margin-top: 30px;">
+                                Continuar a Dirección
+                            </button>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin: 10px 0;">
-                            <span>Envío (Estándar)</span>
-                            <strong>$150 MXN</strong>
+
+                        <div id="step-address" class="checkout-step" hidden>
+                            <form id="address-form" class="checkout-form" novalidate>
+                                <label for="addr-calle">Dirección de Envío</label>
+                                <input id="addr-calle" class="input" type="text" placeholder="Calle y Número" required>
+                                
+                                <label for="addr-colonia">Colonia</label>
+                                <input id="addr-colonia" class="input" type="text" placeholder="Colonia, Delegación o Municipio" required>
+                                
+                                <div class="form-grid">
+                                    <div>
+                                        <label for="addr-ciudad">Ciudad</label>
+                                        <input id="addr-ciudad" class="input" type="text" placeholder="Ciudad" required>
+                                    </div>
+                                    <div>
+                                        <label for="addr-cp">C.P.</label>
+                                        <input id="addr-cp" class="input" type="text" placeholder="C.P." required
+                                               maxlength="5" inputmode="numeric">
+                                    </div>
+                                </div>
+                                <button id="btn-to-payment" type="button" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+                                    Continuar a Pago
+                                </button>
+                            </form>
                         </div>
-                        <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 15px; display: flex; justify-content: space-between; font-size: 1.2em; font-weight: 700; color: var(--text);">
-                            <span>Total</span>
-                            <span>$17,250 MXN</span>
+
+                        <div id="step-payment" class="checkout-step" hidden>
+                            <form id="payment-form" class="checkout-form" novalidate>
+                                <label for="pay-nombre">Método de Pago</label>
+                                <input id="pay-nombre" class="input" type="text" placeholder="Nombre en la tarjeta" required>
+                                
+                                <label for="pay-tarjeta">Número de tarjeta</label>
+                                <input id="pay-tarjeta" class="input" type="text" placeholder="0000 0000 0000 0000" required
+                                       maxlength="19" inputmode="numeric">
+                                
+                                <div class="form-grid">
+                                    <div>
+                                        <label for="pay-fecha">Vencimiento</label>
+                                        <input id="pay-fecha" class="input" type="text" placeholder="MM/AA" required
+                                               maxlength="5" inputmode="numeric">
+                                    </div>
+                                    <div>
+                                        <label for="pay-cvv">CVV</label>
+                                        <input id="pay-cvv" class="input" type="text" placeholder="123" required
+                                               maxlength="4" inputmode="numeric">
+                                    </div>
+                                </div>
+                                <button id="btn-pay" type="button" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+                                    Pagar Ahora
+                                </button>
+                            </form>
                         </div>
-                        <button class="btn btn-primary" style="width: 100%; margin-top: 30px;">Finalizar Compra</button>
+                        
+                        <div id="step-confirmation" class="checkout-step" hidden>
+                            <p>¡Gracias por tu compra!</p>
+                            <p class="small" style="line-height: 1.5;">Tu pedido ha sido confirmado. Recibirás un correo con los detalles de tu orden (ID: #HK-12345).</p>
+                            <a href="index.html" class="btn" style="width: 100%; margin-top: 20px;">Volver a la tienda</a>
+                        </div>
+
                     </div>
                 </div>
 
@@ -107,18 +135,13 @@
             <img src="assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
             <h2>Crea tu cuenta</h2>
             <p class="modal-subtitle">Regístrate para acceder a todas las funciones.</p>
-            
             <label>Nombre Completo</label>
-            <input class="input" type="text" name="nombre" placeholder="" required> 
-            
+            <input class="input" type="text" name="nombre" required> 
             <label>Correo Electrónico</label>
-            <input class="input" type="email" name="email" placeholder="" required> 
-            
+            <input class="input" type="email" name="email" required> 
             <label>Contraseña</label>
-            <input class="input" type="password" name="password" placeholder="" required> 
-            
+            <input class="input" type="password" name="password" required> 
             <button type="submit" class="btn btn-primary">Crear Cuenta</button> 
-            
             <p class="modal-link">¿Ya tienes una cuenta? <a href="#" data-switch="login">Inicia sesión</a></p>
         </form>
     </dialog>
@@ -128,25 +151,17 @@
             <img src="assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
             <h2>Bienvenido</h2>
             <p class="modal-subtitle">Inicia sesión para continuar.</p>
-            
             <label>Correo Electrónico</label>
-            <input class="input" type="email" name="email" placeholder="" required> 
-            
+            <input class="input" type="email" name="email" required> 
             <label>Contraseña</label>
-            <input class="input" type="password" name="password" placeholder="" required> 
-            
+            <input class="input" type="password" name="password" required> 
             <button type="submit" class="btn btn-primary">Entrar</button> 
-            
             <p class="modal-link">¿No tienes cuenta? <a href="#" data-switch="register">Regístrate aquí</a></p>
         </form>
     </dialog>
 
     <div id="toast-notification" class="toast"></div>
 
-    <script>
-        // Inicialización del año en el footer
-        document.getElementById('y').textContent = new Date().getFullYear();
-    </script>
-    <script src="app.js"></script>
+    <script src="carrito.js"></script>
 </body>
 </html>
