@@ -224,10 +224,18 @@ nav.menu a {
   text-decoration: none;
   border: 1px solid transparent;
 }
-nav.menu a.active,
 nav.menu a:hover {
+  /* Mantenemos el hover sutil */
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   border-color: var(--border);
+}
+
+nav.menu a.active {
+  /* Hacemos el estado ACTIVO mucho más fuerte */
+  background: color-mix(in srgb, var(--accent) 20%, var(--panel));
+  border-color: var(--border);
+  color: var(--accent);  /* Cambia el color del texto al dorado */
+  font-weight: 700;     /* Lo pone en negrita */
 }
 
 section.content { padding: 14px 0 50px; }
@@ -574,4 +582,74 @@ footer {
 .category-card:hover::before {
   /* Al pasar el mouse, el overlay se aclara un poco */
   background: linear-gradient(180deg, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.5) 100%);
+}
+
+/* Estilos para el Footer Link */
+
+#footer-container {
+  display: flex;
+  justify-content: space-between; /* Alinea los elementos */
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px; /* Espacio por si se amontonan */
+}
+
+.footer-link {
+  color: var(--accent); /* Color dorado */
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
+/* Estilos para Preguntas Frecuentes (FAQ) */
+
+.faq-item {
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+}
+.faq-item:last-child {
+  border-bottom: none;
+}
+
+.faq-item summary {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none; /* Oculta el marcador por defecto */
+  position: relative;
+  padding-right: 25px; /* Espacio para el ícono */
+}
+
+/* Oculta marcador en Firefox */
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Ícono de flecha (▼) */
+.faq-item summary::after {
+  content: '▼';
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8em;
+  color: var(--accent);
+  transition: transform 0.2s ease;
+}
+
+/* Gira la flecha cuando está abierto */
+.faq-item[open] summary::after {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.faq-item p {
+  margin: 12px 0 0;
+  padding-left: 10px;
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.6;
 }

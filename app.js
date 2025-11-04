@@ -100,11 +100,13 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.querySelector(".slider")) {
     initSlider().then(() => {
       buildMenu();
+      wireFooterLinks();
       setActive("home");
       wireSliderControls();
     });
   } else {
     buildMenu();
+    wireFooterLinks();
     setActive("home");
   }
 
@@ -244,6 +246,36 @@ home: `
         </div>
       </div>
     </div>
+  `,
+preguntas: `
+    <div class="card">
+      <h2>Preguntas Frecuentes (FAQ)</h2>
+      <p class="small">Encuentra respuestas a las dudas más comunes sobre nuestros productos y servicios.</p>
+      
+      <div class="faq-container" style="margin-top: 20px;">
+        
+        <details class="faq-item">
+          <summary>¿Los productos son originales?</summary>
+          <p>Sí, todos nuestros artículos son 100% originales y certificados. Nos especializamos en memorabilia auténtica y trabajamos directamente con proveedores verificados.</p>
+        </details>
+        
+        <details class="faq-item">
+          <summary>¿Cómo funciona el envío?</summary>
+          <p>Realizamos envíos a todo el país. El costo y tiempo de entrega dependen de tu ubicación y se calculan al finalizar la compra. Todos los artículos se envían con protección especial para coleccionistas.</p>
+        </details>
+        
+        <details class="faq-item">
+          <summary>¿Puedo devolver un producto?</summary>
+          <p>Aceptamos devoluciones hasta 30 días después de la compra, siempre y cuando el producto se encuentre en el mismo estado en que fue enviado y conserve sus etiquetas y certificados.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>¿Tienen tienda física?</summary>
+          <p>Por el momento operamos 100% en línea para poder ofrecerte el mejor catálogo de coleccionables de todo el mundo.</p>
+        </details>
+
+      </div>
+    </div>
   `
 };
 
@@ -265,6 +297,17 @@ function buildMenu() {
     a.addEventListener("click", e => {
       e.preventDefault();
       setActive(a.dataset.key);
+    });
+  });
+}
+
+function wireFooterLinks() {
+  // Busca cualquier enlace con 'data-key' DENTRO del footer
+  document.querySelectorAll('footer [data-key]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      setActive(a.dataset.key); // Llama a la misma función que el menú
+      window.scrollTo(0, 0); // Sube al inicio de la página
     });
   });
 }
