@@ -522,3 +522,56 @@ footer {
   .thumbs { flex-direction: row; }
   .product-gallery .main img { max-height: 360px; }
 }
+
+/* Estilos para las nuevas tarjetas de categoría con imagen */
+
+.category-card {
+  position: relative; /* Necesario para la superposición */
+  min-height: 160px; /* Damos una altura mínima */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* Alinea el texto abajo */
+  padding: 14px;
+  
+  /* Configuración de la imagen de fondo */
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: multiply; /* Clave para el overlay */
+  
+  color: #ffffff; /* Texto blanco */
+  text-shadow: 0 1px 3px rgba(0,0,0,.5); /* Sombra para legibilidad */
+  
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  overflow: hidden; /* Para bordes redondeados */
+}
+
+/* Superposición oscura. Usamos un 'pseudo-elemento' */
+.category-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Overlay oscuro (de negro a negro) */
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+/* El texto debe estar sobre la superposición */
+.category-card h3,
+.category-card p {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+}
+
+/* Efecto Hover: Aclara la imagen y la mueve */
+.category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+}
+
+.category-card:hover::before {
+  /* Al pasar el mouse, el overlay se aclara un poco */
+  background: linear-gradient(180deg, rgba(0,0,0,0.0) 0%, rgba(0,0,0,0.5) 100%);
+}

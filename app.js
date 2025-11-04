@@ -15,6 +15,8 @@ const state = {
       name: "Jersey Retro 1998",
       price: 3500,
       stock: 5,
+      // Categoria
+      category: "Fútbol",
       images: [
         "assets/products/jersey1998-1.jpg",
         "assets/products/jersey1998-2.jpg",
@@ -28,6 +30,8 @@ const state = {
       name: "Balón Firmado",
       price: 6800,
       stock: 3,
+      // Categoria
+      category: "Fútbol",
       images: [
         "assets/products/balon-1.jpg",
         "assets/products/balon-2.jpg"
@@ -40,6 +44,8 @@ const state = {
       name: "Tarjeta Rookie 1986",
       price: 4200,
       stock: 2,
+      // Categoria
+      category: "Básquetbol",
       images: [
         "assets/products/rookie1986-1.jpg",
         "assets/products/rookie1986-2.jpg"
@@ -52,6 +58,8 @@ const state = {
       name: "Guantes de Portero 2005",
       price: 2100,
       stock: 8,
+      // Categoria
+      category: "Fútbol",
       images: [
         "assets/products/guantes2005-1.jpg"
       ],
@@ -214,15 +222,26 @@ function restartAuto() { stopAuto(); startAuto(); }
 // Menú + Secciones
 // ================================================================
 const sections = {
-  home: `
+home: `
     <div class="card">
-      <h2>Bienvenido a History Keepers</h2>
-      <p class="small">Coleccionistas de artículos deportivos — jerseys, balones, tarjetas y memorabilia certificada.</p>
-      <p>Explora el catálogo, busca piezas específicas o crea tu cuenta para recibir alertas de nuevas adquisiciones.</p>
-      <div class="grid" style="margin-top:10px">
-        <div class="card"><h3>Jerseys retro</h3><p class="small">Ediciones históricas en excelente estado.</p></div>
-        <div class="card"><h3>Balones firmados</h3><p class="small">Con certificado de autenticidad.</p></div>
-        <div class="card"><h3>Trading cards</h3><p class="small">Rookies, series especiales y más.</p></div>
+      <h2>Explora por Deporte</h2>
+      <p class="small">Selecciona tu disciplina para ver los artículos de colección correspondientes.</p>
+      <div class="grid" style="margin-top:10px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+        <div class="card category-card" data-category="Fútbol" 
+             style="background-image: url('assets/Categorias/futbol.jpg');">
+          <h3>Fútbol</h3>
+          <p class="small">Jerseys, balones y guantes históricos.</p>
+        </div>
+        <div class="card category-card" data-category="Básquetbol" 
+             style="background-image: url('assets/Categorias/basket.jpg');">
+          <h3>Básquetbol</h3>
+          <p class="small">Tarjetas rookie y memorabilia.</p>
+        </div>
+        <div class="card category-card" data-category="Béisbol" 
+             style="background-image: url('assets/Categorias/beisbol.jpg');">
+          <h3>Béisbol</h3>
+          <p class="small">(Próximamente)</p>
+        </div>
       </div>
     </div>
   `
@@ -233,7 +252,7 @@ function buildMenu() {
   if (!nav) return;
 
   const items = [
-    { key: "home", label: "Home" },
+    { key: "home", label: "Deportes" },
     { key: "catalogo", label: "Catálogo" },
     { key: "buscar", label: "Buscar" }
   ];
@@ -258,8 +277,28 @@ function setActive(key) {
   const content = document.querySelector("section.content");
   if (!content) return;
 
+  if (key === "home") {
+    content.innerHTML = sections[key] || "";
+    
+    // AÑADIMOS LOS LISTENERS A LAS TARJETAS DE CATEGORÍA
+    content.querySelectorAll('.category-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const category = card.dataset.category;
+        
+        // 1. Llamamos al catálogo filtrado
+        renderCatalog(category);
+
+        // 2. Marcamos "Catálogo" como activo en el menú
+        document.querySelectorAll("nav.menu a").forEach(a => {
+          a.classList.toggle("active", a.dataset.key === 'catalogo');
+        });
+      });
+    });
+    return; // Importante
+  }
+
   if (key === "catalogo") {
-    renderCatalog();
+    renderCatalog(); // Llama sin filtro (muestra todo)
     return;
   }
   if (key === "buscar") {
@@ -267,6 +306,7 @@ function setActive(key) {
     return;
   }
 
+  // Fallback (si "home" no era la sección)
   content.innerHTML = sections[key] || "";
 }
 
@@ -280,17 +320,38 @@ function createProductCard(p) {
   `;
 }
 
-function renderCatalog() {
+function renderCatalog(filterCategory = null) {
   const content = document.querySelector("section.content");
   if (!content) return;
 
+  // 1. Filtrar productos si se pasó una categoría
+  const productsToShow = filterCategory
+    ? state.products.filter(p => p.category === filterCategory)
+    : state.products;
+
+  // 2. Títulos dinámicos
+  const title = filterCategory ? `Catálogo: ${filterCategory}` : "Catálogo";
+  const subtitle = filterCategory
+    ? `Mostrando artículos de ${filterCategory}.`
+    : "Explora todos nuestros artículos destacados.";
+
+  let productGrid = '';
+
+  if (productsToShow.length > 0) {
+    productGrid = `
+      <div class="grid" style="margin-top:10px">
+        ${productsToShow.map(createProductCard).join("")}
+      </div>
+    `;
+  } else {
+    productGrid = `<p class="small" style="margin-top:10px;">No se encontraron productos para "${filterCategory}".</p>`;
+  }
+
   content.innerHTML = `
     <div class="card">
-      <h2>Catálogo</h2>
-      <p class="small">Explora algunos artículos destacados.</p>
-      <div class="grid" style="margin-top:10px">
-        ${state.products.map(createProductCard).join("")}
-      </div>
+      <h2>${title}</h2>
+      <p class="small">${subtitle}</p>
+      ${productGrid}
     </div>
   `;
 }
