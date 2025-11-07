@@ -1,0 +1,376 @@
+/* =========================================================
+   History Keepers — carrito.css (Autocontenido)
+   ========================================================= */
+
+/* ---------- Variables de tema ---------- */
+:root {
+  /* Paleta base */
+  --bg: #f5efe6;
+  --text: #2b1d1a;
+  --panel: #fffaf2;
+  --accent: #b7882f;
+  --accent-rgb: 183, 136, 47; /* NUEVA: para usar rgba sin color-mix */
+  --muted: #6d5a45;
+  --border: rgba(183, 136, 47, 0.35);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+
+  /* Extras */
+  --color-cafe-oscuro: #2b1d1a;
+  --color-cafe-medio: #6d5a45;
+  --color-beige-claro: #e0d5c4;
+  --color-beige-extra-claro: #f8f5f0;
+  --color-dorado: #d4ac0d;
+  --color-dorado-oscuro: #b8950e;
+  --color-dorado-rgb: 212, 172, 13;
+  --color-cafe-medio-transparente: rgba(109, 90, 69, 0.6);
+
+  /* Tamaño editable del logo */
+  --logo-size: 56px;
+}
+
+/* ---------- Reset básico ---------- */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; }
+
+/* ---------- Contenedor ---------- */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* =========================================================
+   Topbar (Global)
+   ========================================================= */
+header.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: #3a2622;
+  border-bottom: 1px solid rgba(212, 180, 118, 0.35);
+}
+.topbar .wrap {
+  position: relative;
+  display: block;
+  padding: 10px 0;
+  text-align: center;
+}
+.topbar img.logo {
+  height: var(--logo-size);
+  width: auto;
+  display: inline-block;
+}
+.topbar .actions {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Botones de la barra superior (Top-bar) */
+.top-btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #ffffff !important;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  cursor: pointer;
+  transition: background-color .2s, color .2s, border-color .2s, opacity .2s;
+}
+.top-btn:hover {
+  background: var(--accent) !important;
+  color: #ffffff;
+  border-color: var(--accent);
+}
+.top-btn.ghost {
+  background: transparent !important;
+  color: #ffffff;
+  border-color: rgba(255,255,255,.25);
+}
+.top-btn.ghost:hover {
+  background: rgba(255,255,255,.1) !important;
+  border-color: rgba(255,255,255,.35);
+}
+
+/* Icono carrito y saludo */
+.cart-icon {
+  font-size: 1.6rem;
+  text-decoration: none;
+  color: #fff;
+  transition: color .2s ease;
+  padding: 0 5px;
+}
+.cart-icon:hover { color: var(--accent); }
+.welcome-message { color: #fff; font-size: 1em; font-weight: 500; }
+
+/* =========================================================
+   Componentes base: card, inputs, botones (Global)
+   ========================================================= */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  outline: none;
+}
+.btn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  /* SIN color-mix: fallback universal */
+  background: rgba(var(--accent-rgb), .15);
+  color: var(--text);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+/* Si el navegador soporta color-mix, úsalo */
+@supports (background: color-mix(in srgb, #000 0%, #fff 0%)) {
+  .btn { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+}
+.btn:hover {
+  background: rgba(var(--accent-rgb), .25);
+}
+@supports (background: color-mix(in srgb, #000 0%, #fff 0%)) {
+  .btn:hover { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { filter: brightness(0.95); }
+
+.small { font-size: .9rem; }
+
+/* =========================================================
+   Modales (Global)
+   ========================================================= */
+/* Si usas <dialog class="modal">, aplica el backdrop nativo */
+dialog.modal::backdrop,
+.modal::backdrop {
+  background: rgba(26, 20, 19, 0.5);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.modal {
+  border: none;
+  padding: 0;
+  background: transparent;
+  max-width: 420px;
+  width: 90%;
+  margin: auto;
+  box-shadow: 0 8px 30px rgba(0,0,0,.3);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.modal .card { border-radius: 16px; padding: 24px; }
+.modal-card label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-cafe-oscuro);
+  font-weight: 600;
+  font-size: .95em;
+}
+.modal-card input[type="text"],
+.modal-card input[type="email"],
+.modal-card input[type="password"] {
+  width: 100%;
+  padding: 12px 10px;
+  margin-bottom: 20px;
+  border: 1px solid var(--color-beige-claro);
+  border-radius: 8px;
+  background-color: var(--color-beige-extra-claro);
+  color: var(--color-cafe-oscuro);
+  font-size: 1em;
+  transition: border-color .3s ease, box-shadow .3s ease;
+}
+.modal-card input[type="text"]:focus,
+.modal-card input[type="email"]:focus,
+.modal-card input[type="password"]:focus {
+  border-color: var(--color-dorado);
+  box-shadow: 0 0 0 3px rgba(var(--color-dorado-rgb), .2);
+  outline: none;
+}
+.modal-card input::placeholder { color: var(--color-cafe-medio-transparente); }
+.modal-card .modal-link {
+  text-align: center;
+  font-size: .9em;
+  color: var(--color-cafe-medio);
+  margin-top: 15px;
+}
+.modal-card .modal-link a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+.modal-card .modal-link a:hover { text-decoration: underline; }
+
+/* =========================================================
+   Toast (Global)
+   ========================================================= */
+.toast {
+  position: fixed;
+  top: 20px; right: 20px;
+  padding: 15px 20px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: .95em;
+  font-weight: 500;
+  box-shadow: 0 5px 15px rgba(0,0,0, .2);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-30px);
+  visibility: hidden;
+  transition: opacity .3s ease, transform .3s ease, visibility .3s;
+}
+.toast.show { opacity: 1; transform: translateY(0); visibility: visible; }
+.toast.success { background-color: #28a745; }
+.toast.error { background-color: #dc3545; }
+
+/* =========================================================
+   Footer (Global)
+   ========================================================= */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 18px 0;
+  color: var(--muted);
+}
+
+/* =========================================================
+   Página de Carrito y Checkout (Específico)
+   ========================================================= */
+.cart-page h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+.cart-layout {
+  display: flex;
+  gap: 30px;
+  margin-top: 20px;
+}
+.cart-items {
+  flex: 2;
+  min-width: 60%;
+}
+.cart-summary {
+  flex: 1;
+  min-width: 30%;
+}
+
+/* --- Estilos para CADA item en el carrito --- */
+.cart-item {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 15px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.cart-item img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.cart-item .item-details { flex-grow: 1; }
+.cart-item .item-details strong {
+  display: block;
+  font-size: 1.1em;
+}
+.cart-item .item-details p { margin: 5px 0 0; }
+.cart-item .item-quantity {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.cart-item .item-quantity span {
+  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+}
+.cart-item .item-quantity .btn { padding: 5px 10px; }
+.cart-item .item-price {
+  text-align: right;
+  min-width: 100px;
+}
+.cart-item .item-price strong { color: var(--accent); }
+.cart-item-remove {
+  background: none;
+  color: var(--muted);
+  border: none;
+  padding: 5px;
+  line-height: 1;
+  cursor: pointer;
+}
+.cart-item-remove:hover {
+  color: var(--text);
+  background: transparent !important;
+}
+
+/* --- Estilos para el Resumen y Stepper --- */
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+  font-size: 0.95rem;
+}
+.summary-row span { color: var(--muted); }
+.summary-total {
+  border-top: 1px solid var(--border);
+  padding-top: 15px;
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.2em;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* --- Estilos para los formularios del checkout --- */
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.checkout-form label {
+  font-weight: 600;
+  margin-bottom: -10px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+/* --- Responsivo --- */
+@media (max-width: 860px) {
+  .cart-layout { flex-direction: column; }
+  .cart-summary { position: static; }
+}

@@ -1,0 +1,44 @@
+/* =========================================================
+   History Keepers — admin.css (Página de Admin)
+   ========================================================= */
+
+/* Variables del tema usadas en esta página */
+:root {
+  --bg: #f5efe6;
+  --text: #2b1d1a;
+  --panel: #fffaf2;
+  --accent: #b7882f;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Reseteo básico */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+/* Estilos específicos de la página de Admin */
+body {
+  font-family: system-ui, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  margin: 0;
+}
+
+.container {
+  text-align: center;
+  background: var(--panel);
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+a {
+  color: var(--accent);
+}

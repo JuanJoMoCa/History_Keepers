@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Cuenta - History Keepers</title>
+  
+    <link rel="stylesheet" href="comprador.css">
+  
+  <link rel="icon" href="assets/logo.png">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container wrap">
+      <a href="index.html" style="line-height: 0;">
+        <img src="assets/logo.png" alt="Logo History Keepers" class="logo" />
+      </a>
+      <div class="actions">
+        <button class="btn top-btn" disabled>Mi Perfil</button>
+        <a href="index.html" class="btn top-btn" style="text-decoration: none;">Cerrar Sesión</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="content" style="padding-top: 30px;">
+      
+      <div style="margin-bottom: 30px;">
+        <h1>Bienvenido de nuevo, Comprador</h1>
+        <p>Aquí tienes un vistazo a las piezas más buscadas de nuestra colección.</p>
+      </div>
+
+      <section class="popular-products">
+        <h2>Productos Destacados</h2>
+        <p class="small" style="color: var(--muted); margin-top: -10px; margin-bottom: 20px;">
+          Explora los artículos más populares entre nuestros coleccionistas.
+        </p>
+
+        <div class="grid">
+
+          <a href="producto.html?id=jersey-1998" class="product-link" aria-label="Ver detalles de Jersey Retro 1998">
+            <div class="card product-card">
+              <img src="https://placehold.co/400x300/e0d5c4/2b1d1a?text=Jersey+Retro" alt="Jersey Retro 1998">
+              <div class="product-info">
+                <h3>Jersey Retro 1998</h3>
+                <p class="product-price">$3,500 MXN</p>
+              </div>
+            </div>
+          </a>
+
+          <a href="producto.html?id=balon-firmado" class="product-link" aria-label="Ver detalles de Balón Firmado Leyenda">
+            <div class="card product-card">
+              <img src="https://placehold.co/400x300/e0d5c4/2b1d1a?text=Balón+Firmado" alt="Balón Firmado Leyenda">
+              <div class="product-info">
+                <h3>Balón Firmado Leyenda</h3>
+                <p class="product-price">$12,800 MXN</p>
+ax             </div>
+            </div>
+          </a>
+
+          <a href="producto.html?id=tarjeta-1986" class="product-link" aria-label="Ver detalles de Tarjeta Rookie 1986">
+            <div class="card product-card">
+              <img src="https://placehold.co/400x300/e0d5c4/2b1d1a?text=Tarjeta+Rookie" alt="Tarjeta Rookie 1986">
+              <div class="product-info">
+                <h3>Tarjeta Rookie 1986</h3>
+                <p class="product-price">$4,200 MXN</p>
+              </div>
+            </div>
+          </a>
+
+          <a href="producto.html?id=gorra-especial" class="product-link" aria-label="Ver detalles de Gorra Edición Especial">
+            <div class="card product-card">
+              <img src="https://placehold.co/400x300/e0d5c4/2b1d1a?text=Gorra+Especial" alt="Gorra Edición Especial">
+              <div class="product-info">
+                <h3>Gorra Edición Especial</h3>
+                <p class="product-price">$1,900 MXN</p>
+              </div>
+            </div>
+          </a>
+
+        </div>
+      </section>
+
+    </section>
+  </main>
+
+  <footer>
+    <div class="container small">© <span id="y"></span> History Keepers. Proyecto demo de tienda en línea.</div>
+  </footer>
+
+    <script src="comprador.js"></script>
+
+</body>
+</html>

@@ -9,16 +9,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    
+    <link rel="stylesheet" href="/carrito/carrito.css">
+
 </head>
 <body>
     <header class="topbar">
         <div class="container wrap">
             <a href="index.html" style="line-height: 0;">
-              <img src="assets/logo.png" alt="Logo History Keepers" class="logo" />
+                <img src="assets/logo.png" alt="Logo History Keepers" class="logo" />
             </a>
             <div class="actions">
-                <a href="carrito.html" class="cart-icon" aria-label="Carrito de compras (página actual)">🛒</a>
                 </div>
         </div>
     </header>
@@ -36,7 +37,7 @@
             <div class="cart-layout">
                 
                 <div id="cart-items-container" class="cart-items">
-                    </div>
+                </div>
 
                 <div id="cart-summary" class="cart-summary">
                     <div class="card" style="position: sticky; top: 90px;">
@@ -92,76 +93,4 @@
                                 <input id="pay-nombre" class="input" type="text" placeholder="Nombre en la tarjeta" required>
                                 
                                 <label for="pay-tarjeta">Número de tarjeta</label>
-                                <input id="pay-tarjeta" class="input" type="text" placeholder="0000 0000 0000 0000" required
-                                       maxlength="19" inputmode="numeric">
-                                
-                                <div class="form-grid">
-                                    <div>
-                                        <label for="pay-fecha">Vencimiento</label>
-                                        <input id="pay-fecha" class="input" type="text" placeholder="MM/AA" required
-                                               maxlength="5" inputmode="numeric">
-                                    </div>
-                                    <div>
-                                        <label for="pay-cvv">CVV</label>
-                                        <input id="pay-cvv" class="input" type="text" placeholder="123" required
-                                               maxlength="4" inputmode="numeric">
-                                    </div>
-                                </div>
-                                <button id="btn-pay" type="button" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
-                                    Pagar Ahora
-                                </button>
-                            </form>
-                        </div>
-                        
-                        <div id="step-confirmation" class="checkout-step" hidden>
-                            <p>¡Gracias por tu compra!</p>
-                            <p class="small" style="line-height: 1.5;">Tu pedido ha sido confirmado. Recibirás un correo con los detalles de tu orden (ID: #HK-12345).</p>
-                            <a href="index.html" class="btn" style="width: 100%; margin-top: 20px;">Volver a la tienda</a>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="container small">© <span id="y"></span> History Keepers. Proyecto demo de tienda en línea.</div>
-    </footer>
-    
-    <dialog id="dlg-register" class="modal">
-        <form method="dialog" class="card modal-card" id="register-form"> 
-            <img src="assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
-            <h2>Crea tu cuenta</h2>
-            <p class="modal-subtitle">Regístrate para acceder a todas las funciones.</p>
-            <label>Nombre Completo</label>
-            <input class="input" type="text" name="nombre" required> 
-            <label>Correo Electrónico</label>
-            <input class="input" type="email" name="email" required> 
-            <label>Contraseña</label>
-            <input class="input" type="password" name="password" required> 
-            <button type="submit" class="btn btn-primary">Crear Cuenta</button> 
-            <p class="modal-link">¿Ya tienes una cuenta? <a href="#" data-switch="login">Inicia sesión</a></p>
-        </form>
-    </dialog>
-
-    <dialog id="dlg-login" class="modal">
-        <form method="dialog" class="card modal-card" id="login-form">
-            <img src="assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
-            <h2>Bienvenido</h2>
-            <p class="modal-subtitle">Inicia sesión para continuar.</p>
-            <label>Correo Electrónico</label>
-            <input class="input" type="email" name="email" required> 
-            <label>Contraseña</label>
-            <input class="input" type="password" name="password" required> 
-            <button type="submit" class="btn btn-primary">Entrar</button> 
-            <p class="modal-link">¿No tienes cuenta? <a href="#" data-switch="register">Regístrate aquí</a></p>
-        </form>
-    </dialog>
-
-    <div id="toast-notification" class="toast"></div>
-
-    <script src="carrito.js"></script>
-</body>
-</html>
+                                <input id="pay-tarjeta" class="input" type="text"

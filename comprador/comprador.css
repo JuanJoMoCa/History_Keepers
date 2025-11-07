@@ -1,0 +1,207 @@
+/* =========================================================
+   History Keepers — comprador.css (Autocontenido)
+   ========================================================= */
+
+/* ---------- Variables de tema ---------- */
+:root {
+  /* Paleta base */
+  --bg: #f5efe6;
+  --text: #2b1d1a;
+  --panel: #fffaf2;
+  --accent: #b7882f;
+  --muted: #6d5a45;
+  --border: rgba(183, 136, 47, 0.35);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+
+  /* Extras */
+  --color-cafe-oscuro: #2b1d1a;
+  --color-cafe-medio: #6d5a45;
+
+  /* Tamaño editable del logo */
+  --logo-size: 56px;
+}
+
+/* ---------- Reset básico ---------- */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: inherit;
+}
+
+/* ---------- Contenedor ---------- */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* =========================================================
+   Topbar (Global)
+   ========================================================= */
+header.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: #3a2622;
+  border-bottom: 1px solid rgba(212, 180, 118, 0.35);
+}
+
+.topbar .wrap {
+  position: relative;
+  display: block;
+  padding: 10px 0;
+  text-align: center;
+}
+
+.topbar img.logo {
+  height: var(--logo-size);
+  width: auto;
+  display: inline-block;
+}
+
+.topbar .actions {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Botones de la barra superior (Top-bar) */
+.top-btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #ffffff !important;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  cursor: pointer;
+  transition: background-color .2s, color .2s, border-color .2s, opacity .2s;
+}
+
+.top-btn:hover {
+  background: var(--accent) !important;
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+/* =========================================================
+   Componentes base: card, grid, botones (Global)
+   ========================================================= */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.btn {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn:hover {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.small {
+  font-size: .9rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* =========================================================
+   Footer (Global)
+   ========================================================= */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 18px 0;
+  color: var(--muted);
+}
+
+/* =========================================================
+   Estilos Específicos de 'comprador.html'
+   ========================================================= */
+
+/* Estilos para las nuevas tarjetas de producto */
+.product-link {
+  text-decoration: none;
+  color: var(--text);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: block;
+  /* Para que la tarjeta entera sea un bloque */
+}
+
+.product-link:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+}
+
+.product-link .card {
+  padding: 12px;
+  /* Menos padding para que la imagen luzca */
+}
+
+.product-card img {
+  width: 100%;
+  border-radius: 10px;
+  /* Bordes redondeados para la imagen */
+  border: 1px solid var(--border);
+  background-color: var(--bg);
+  /* Color de fondo por si tarda en cargar */
+}
+
+.product-info {
+  padding: 12px 4px 4px;
+  /* Espacio para el texto debajo de la imagen */
+}
+
+.product-info h3 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  line-height: 1.3;
+}
+
+.product-price {
+  margin: 0;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
