@@ -17,6 +17,7 @@ const state = {
       id: "jersey-1998",
       name: "Jersey Retro 1998",
       price: 3500,
+      discountPercent: 20,
       stock: 5,
       category: "Fútbol",
       images: ["assets/products/jersey1998-1.jpg","assets/products/jersey1998-2.jpg","assets/products/jersey1998-3.jpg"],
@@ -37,6 +38,7 @@ const state = {
       id: "tarjeta-1986",
       name: "Tarjeta Rookie 1986",
       price: 4200,
+      discountPercent: 20,
       stock: 2,
       category: "Básquetbol",
       images: ["assets/products/rookie1986-1.jpg","assets/products/rookie1986-2.jpg"],
@@ -57,6 +59,7 @@ const state = {
       id: "gorra pokemon",
       name: "Gorra Pokemon",
       price: 9100,
+      discountPercent: 20,
       stock: 10,
       category: "Anime",
       images: [""],
@@ -108,6 +111,21 @@ function buildSuggestionLexicon() {
   state._lexicon = Array.from(base).sort();
   return state._lexicon;
 }
+
+function getImages(p) {
+  const imgs = (p.images || []).filter(src => !!src && src.trim() !== "");
+  return imgs.length ? imgs : [ph(p.name)];
+}
+
+// Devuelve {oldPrice, discountPct} si hay oferta; soporta oldPrice o discountPercent
+function getOffer(p) {
+  const oldPrice = (p.oldPrice && p.oldPrice > p.price) ? p.oldPrice : null;
+  const discountPct = p.discountPercent != null
+    ? Math.round(p.discountPercent)
+    : (oldPrice ? Math.round(100 - (p.price / oldPrice) * 100) : null);
+  return { oldPrice, discountPct };
+}
+
 
 // ================================================================
 // Toast (global)
@@ -349,14 +367,30 @@ function setActive(key) {
 }
 
 function createProductCard(p) {
+  const imgs = getImages(p);
+  const { oldPrice, discountPct } = getOffer(p);
+  const primary = imgs[0];
+
   return `
-    <div class="card product-card">
-      <strong>${p.name}</strong>
-      <p class="small">Precio: ${formatPrice(p.price)}</p>
-      <a class="btn" href="/producto/producto.html?id=${encodeURIComponent(p.id)}">Ver</a>
+    <div class="card product-card" data-id="${p.id}" tabindex="0">
+      <div class="pc-media">
+        <img class="pc-img" src="${primary}" alt="${p.name}">
+        ${discountPct ? `<span class="pc-badge">${discountPct}% OFF</span>` : ``}
+      </div>
+
+      <div class="pc-body">
+        <div class="pc-title">${p.name}</div>
+        <div class="pc-price">
+          <span class="pc-current">${formatPrice(p.price)}</span>
+          ${oldPrice ? `<span class="pc-old">${formatPrice(oldPrice)}</span>` : ``}
+          ${discountPct ? `<span class="pc-off">${discountPct}% OFF</span>` : ``}
+        </div>
+        <a class="btn" href="/producto/producto.html?id=${encodeURIComponent(p.id)}">Ver</a>
+      </div>
     </div>
   `;
 }
+
 function renderCatalog(filterCategory = null) {
   const content = document.querySelector("section.content");
   if (!content) return;
@@ -390,15 +424,19 @@ function renderCatalog(filterCategory = null) {
       </div>
 
       ${has
-        ? renderProductsHTML(productsToShow, mode, { center: mode === "grid" }) /* grid centrado; lista no */
+        ? renderProductsHTML(productsToShow, mode, { center: mode === "grid" })
         : `<p class="small" style="margin-top:10px;">No se encontraron productos.</p>`}
     </div>
   `;
 
+  // Toggle vista
   document.getElementById("toggle-catalogo")?.addEventListener("click", () => {
     state.viewModes.catalogo = (state.viewModes.catalogo === "grid") ? "list" : "grid";
     renderCatalog(state.lastCatalogFilter);
   });
+
+  // Hover: ciclado de imágenes
+  wireProductCardHover(content);
 }
 
 function renderBuscar() {
@@ -455,6 +493,7 @@ function renderBuscar() {
 
   function renderResultsFromState() {
     const mode = state.viewModes.buscar || "list";
+
     // Actualiza icono del botón
     const tbtn = document.getElementById("toggle-buscar");
     if (tbtn) tbtn.innerHTML = (mode === "grid") ? "≡" : "▦";
@@ -463,7 +502,11 @@ function renderBuscar() {
       res.innerHTML = `<p class="small">Escribe algo para buscar.</p>`;
       return;
     }
+
     res.innerHTML = renderProductsHTML(state.lastSearch, mode, { center: false });
+
+    // Hover: ciclado de imágenes en resultados
+    wireProductCardHover(res);
   }
 
   function doSearch() {
@@ -608,6 +651,40 @@ function redirectByRole(rol = "") {
   }
   window.location.href = "/index.html";
 }
+
+function wireProductCardHover(scopeEl) {
+  const cards = scopeEl.querySelectorAll('.product-card');
+  cards.forEach(card => {
+    const id = card.dataset.id;
+    const p = state.products.find(x => x.id === id);
+    const imgs = getImages(p);
+    if (imgs.length <= 1) return;          // si no hay más de una, no ciclamos
+
+    const imgEl = card.querySelector('.pc-img');
+    let i = 0, t = null;
+
+    const start = () => {
+      if (t) return;
+      t = setInterval(() => {
+        i = (i + 1) % imgs.length;
+        imgEl.src = imgs[i];
+      }, 1200); // cambia cada 1.2s mientras el puntero está encima
+    };
+    const stop = () => {
+      if (t) clearInterval(t);
+      t = null;
+      i = 0;
+      imgEl.src = imgs[0];                 // regresar a la primera
+    };
+
+    card.addEventListener('mouseenter', start);
+    card.addEventListener('mouseleave', stop);
+    // accesible con teclado
+    card.addEventListener('focusin', start);
+    card.addEventListener('focusout', stop);
+  });
+}
+
 
 function updateUIForAuthState() {
   const actionsContainer = document.querySelector(".actions");
