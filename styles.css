@@ -364,3 +364,76 @@ section.content { padding: 14px 0 50px; }
   color: var(--muted);
   line-height: 1.6;
 }
+
+/* ----- Helpers de centrado para secciones específicas ----- */
+.section-center {                 /* centra títulos y textos dentro de la card */
+  text-align: center;
+}
+
+/* centra la rejilla y evita que se “estire” a todo el ancho */
+.grid-center {
+  justify-content: center;        /* centra la grilla dentro del contenedor */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 300px)) !important;
+}
+
+/* ---- Resultados en lista vertical (no centrados) ---- */
+.list-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---- Autocompletado ---- */
+.autocomplete { position: relative; }
+.suggestions {
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(100% + 6px);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  max-height: 220px;
+  overflow: auto;
+  padding: 6px;
+  z-index: 30;
+}
+.suggestion {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.suggestion:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.hidden { display: none; }
+
+/* Cabecera de cada sección (título + acciones a la derecha) */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* Botón de icono (cuadrícula/lista) */
+.icon-btn {
+  padding: 8px 10px;
+  border-radius: 10px;
+  min-width: 44px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+/* Ya lo tenías; por si acaso: lista vertical */
+.list-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

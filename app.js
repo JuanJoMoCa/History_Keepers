@@ -4,6 +4,9 @@
 
 // ---- Estado y datos base (catálogo mínimo para home/buscar/slider)
 const state = {
+  viewModes: { catalogo: "grid", buscar: "list" }, // defaults
+  lastSearch: [],
+  lastCatalogFilter: null,
   index: 0,
   timer: null,
   slides: [],
@@ -80,6 +83,31 @@ function ph(title = "Producto") {
   );
   return `data:image/svg+xml;utf8,${svg}`;
 }
+// Normaliza texto (minúsculas y sin acentos)
+function normalizeStr(s) {
+  return (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+// Crea un léxico simple para autocompletar (una sola vez)
+function buildSuggestionLexicon() {
+  if (state._lexicon) return state._lexicon;
+
+  const base = new Set();
+  const add = (txt = "") =>
+    txt.split(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]+/).forEach(w => {
+      if (w && w.length >= 3) base.add(w.toLowerCase());
+    });
+
+  state.products.forEach(p => { add(p.name); add(p.category); add(p.description); });
+
+  // Unos términos genéricos útiles
+  ["jersey","balón","balones","gorra","gorras","gorro","tarjeta","rookie",
+   "guantes","portero","retro","firmado","anime","fútbol","basquetbol",
+   "básquetbol","béisbol","beisbol"].forEach(add);
+
+  state._lexicon = Array.from(base).sort();
+  return state._lexicon;
+}
 
 // ================================================================
 // Toast (global)
@@ -136,6 +164,16 @@ async function initSlider() {
   buildSlider();
   startAuto();
 }
+
+function renderProductsHTML(products, mode = "grid", { center = false } = {}) {
+  const wrapperClass = mode === "grid"
+    ? `grid ${center ? "grid-center" : ""}`  // centrado sólo si quieres
+    : "list-vertical";                       // lista vertical (no centrada)
+  return `<div class="${wrapperClass}" style="margin-top:10px;">
+    ${products.map(createProductCard).join("")}
+  </div>`;
+}
+
 
 // ================================================================
 // Slider (index)
@@ -207,10 +245,10 @@ function restartAuto() { stopAuto(); startAuto(); }
 // Menú + Secciones (index)
 const sections = {
   home: `
-    <div class="card">
+    <div class="card section-center">
       <h2>Explora por Deporte</h2>
       <p class="small">Selecciona tu disciplina para ver los artículos de colección correspondientes.</p>
-      <div class="grid" style="margin-top:10px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+      <div class="grid grid-center" style="margin-top:10px;">
         <div class="card category-card" data-category="Fútbol" style="background-image: url('/assets/Categorias/futbol.jpg');">
           <h3>Fútbol</h3>
           <p class="small">Jerseys, balones y guantes históricos.</p>
@@ -323,6 +361,8 @@ function renderCatalog(filterCategory = null) {
   const content = document.querySelector("section.content");
   if (!content) return;
 
+  state.lastCatalogFilter = filterCategory ?? null;
+
   const productsToShow = filterCategory
     ? state.products.filter(p => p.category === filterCategory)
     : state.products;
@@ -332,64 +372,129 @@ function renderCatalog(filterCategory = null) {
     ? `Mostrando artículos de ${filterCategory}.`
     : "Explora todos nuestros artículos destacados.";
 
-  let productGrid = '';
-  if (productsToShow.length > 0) {
-    productGrid = `<div class="grid" style="margin-top:10px">${productsToShow.map(createProductCard).join("")}</div>`;
-  } else {
-    productGrid = `<p class="small" style="margin-top:10px;">No se encontraron productos para "${filterCategory}".</p>`;
-  }
+  const mode = state.viewModes.catalogo || "grid";
+  const has = productsToShow.length > 0;
 
   content.innerHTML = `
     <div class="card">
-      <h2>${title}</h2>
-      <p class="small">${subtitle}</p>
-      ${productGrid}
+      <div class="section-head">
+        <div>
+          <h2>${title}</h2>
+          <p class="small">${subtitle}</p>
+        </div>
+        <button class="btn icon-btn" id="toggle-catalogo"
+          title="Cambiar a vista ${mode === "grid" ? "lista" : "cuadrícula"}"
+          aria-label="Cambiar vista">
+          ${mode === "grid" ? "≡" : "▦"}
+        </button>
+      </div>
+
+      ${has
+        ? renderProductsHTML(productsToShow, mode, { center: mode === "grid" }) /* grid centrado; lista no */
+        : `<p class="small" style="margin-top:10px;">No se encontraron productos.</p>`}
     </div>
   `;
+
+  document.getElementById("toggle-catalogo")?.addEventListener("click", () => {
+    state.viewModes.catalogo = (state.viewModes.catalogo === "grid") ? "list" : "grid";
+    renderCatalog(state.lastCatalogFilter);
+  });
 }
+
 function renderBuscar() {
   const content = document.querySelector("section.content");
   if (!content) return;
 
+  const mode = state.viewModes.buscar || "list";
+
   content.innerHTML = `
     <div class="card">
-      <h2>Buscar</h2>
-      <div style="display:flex; gap:8px; margin-top:8px">
-        <input id="q" class="input" placeholder="Ej. jersey, balón, tarjeta..." />
+      <div class="section-head">
+        <h2>Buscar</h2>
+        <button class="btn icon-btn" id="toggle-buscar"
+          title="Cambiar a vista ${mode === "grid" ? "lista" : "cuadrícula"}"
+          aria-label="Cambiar vista">
+          ${mode === "grid" ? "≡" : "▦"}
+        </button>
+      </div>
+
+      <div style="display:flex; gap:8px;">
+        <div class="autocomplete" style="flex:1;">
+          <input id="q" class="input" placeholder="Ej. jersey, balón, tarjeta..." autocomplete="off" />
+          <div id="suggestions" class="suggestions hidden"></div>
+        </div>
         <button class="btn" id="btn-search">Buscar</button>
       </div>
-      <div id="results" style="margin-top:12px" class="small"></div>
+
+      <div id="results" style="margin-top:12px"></div>
     </div>
   `;
 
-  const btn = content.querySelector("#btn-search");
-  const q = content.querySelector("#q");
-  const res = content.querySelector("#results");
+  const btn   = content.querySelector("#btn-search");
+  const q     = content.querySelector("#q");
+  const res   = content.querySelector("#results");
+  const sBox  = content.querySelector("#suggestions");
+  const words = buildSuggestionLexicon();
 
-  function doSearch() {
-    const term = (q.value || "").trim().toLowerCase();
-    if (!term) { res.textContent = "Escribe algo para buscar."; return; }
+  function renderSuggestions(prefix) {
+    const p = normalizeStr(prefix.trim());
+    if (p.length < 2) { sBox.classList.add("hidden"); sBox.innerHTML = ""; return; }
+    const matches = words.filter(w => normalizeStr(w).startsWith(p)).slice(0, 8);
+    if (matches.length === 0) { sBox.classList.add("hidden"); sBox.innerHTML = ""; return; }
+    sBox.innerHTML = matches.map(m => `<button type="button" class="suggestion" data-term="${m}">${m}</button>`).join("");
+    sBox.classList.remove("hidden");
+    sBox.querySelectorAll(".suggestion").forEach(b => {
+      b.addEventListener("click", () => {
+        q.value = b.dataset.term;
+        sBox.classList.add("hidden");
+        doSearch();
+        q.focus();
+      });
+    });
+  }
 
-    const found = state.products.filter(p =>
-      `${p.name} ${p.description ?? ""}`.toLowerCase().includes(term)
-    );
+  function renderResultsFromState() {
+    const mode = state.viewModes.buscar || "list";
+    // Actualiza icono del botón
+    const tbtn = document.getElementById("toggle-buscar");
+    if (tbtn) tbtn.innerHTML = (mode === "grid") ? "≡" : "▦";
 
-    if (found.length === 0) {
-      res.innerHTML = `Sin resultados para "${term}".`;
+    if (!state.lastSearch || state.lastSearch.length === 0) {
+      res.innerHTML = `<p class="small">Escribe algo para buscar.</p>`;
       return;
     }
+    res.innerHTML = renderProductsHTML(state.lastSearch, mode, { center: false });
+  }
 
-    res.innerHTML = `
-      <strong>Resultados:</strong>
-      <ul>
-        ${found.map(f => `<li><a href="/producto/producto.html?id=${encodeURIComponent(f.id)}">${f.name}</a> — ${formatPrice(f.price)}</li>`).join("")}
-      </ul>
-    `;
+  function doSearch() {
+    const term = (q.value || "").trim();
+    if (!term) { state.lastSearch = []; renderResultsFromState(); return; }
+
+    const needle = normalizeStr(term);
+    state.lastSearch = state.products.filter(p =>
+      normalizeStr(`${p.name} ${p.description ?? ""} ${p.category ?? ""}`).includes(needle)
+    );
+    renderResultsFromState();
   }
 
   btn.addEventListener("click", doSearch);
-  q.addEventListener("keydown", (e) => { if (e.key === "Enter") doSearch(); });
+  q.addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+  q.addEventListener("input", () => renderSuggestions(q.value));
+  document.addEventListener("click", (e) => {
+    if (!sBox.contains(e.target) && e.target !== q) sBox.classList.add("hidden");
+  });
+
+  // Toggle de vista en Buscar
+  document.getElementById("toggle-buscar")?.addEventListener("click", () => {
+    state.viewModes.buscar = (state.viewModes.buscar === "grid") ? "list" : "grid";
+    renderResultsFromState();
+  });
+
+  // Estado inicial
+  renderResultsFromState();
 }
+
+
 
 // ================================================================
 // Modales + Auth (solo lo que existe en index.html)
