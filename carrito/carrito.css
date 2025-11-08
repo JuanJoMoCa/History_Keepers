@@ -114,6 +114,22 @@ header.topbar {
 .cart-icon:hover { color: var(--accent); }
 .welcome-message { color: #fff; font-size: 1em; font-weight: 500; }
 
+.small { font-size: .9rem; }
+.muted { color: var(--muted); }
+
+/* =========================================================
+   Breadcrumb + back
+   ========================================================= */
+.breadcrumb {
+  margin: 12px 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+.back-link { text-decoration: none; opacity: .9; }
+.back-link:hover { text-decoration: underline; opacity: 1; }
+
 /* =========================================================
    Componentes base: card, inputs, botones (Global)
    ========================================================= */
@@ -162,12 +178,9 @@ header.topbar {
 }
 .btn-primary:hover { filter: brightness(0.95); }
 
-.small { font-size: .9rem; }
-
 /* =========================================================
    Modales (Global)
    ========================================================= */
-/* Si usas <dialog class="modal">, aplica el backdrop nativo */
 dialog.modal::backdrop,
 .modal::backdrop {
   background: rgba(26, 20, 19, 0.5);

@@ -49,6 +49,16 @@ const state = {
       images: ["assets/products/guantes2005-1.jpg"],
       description: "Modelo profesional de archivo 2005.",
       highlights: ["Pieza de archivo","Material original"]
+    },
+    {
+      id: "gorra pokemon",
+      name: "Gorra Pokemon",
+      price: 9100,
+      stock: 10,
+      category: "Anime",
+      images: [""],
+      description: "Modelo profesional de archivo 2005.",
+      highlights: ["Pieza de archivo","Material original"]
     }
   ]
 };
@@ -68,12 +78,24 @@ function ph(title = "Producto") {
       <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-family='Inter,Arial' font-size='24'>${title}</text>
     </svg>`
   );
-  return data:image/svg+xml;utf8,${svg};
+  return `data:image/svg+xml;utf8,${svg}`;
+}
+
+// ================================================================
+// Toast (global)
+let toastTimer;
+function showToast(message, type = "success") {
+  const toast = document.getElementById("toast-notification");
+  if (!toast) return;
+  clearTimeout(toastTimer);
+  toast.textContent = message;
+  toast.className = "toast";
+  toast.classList.add(type, "show");
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
 }
 
 // ================================================================
 // Inicialización (solo elementos presentes en index.html)
-// ================================================================
 document.addEventListener("DOMContentLoaded", () => {
   wireTopbarModals();
   wireAuthForms();
@@ -99,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function initSlider() {
   try {
-    const res = await fetch("data/slides.json", { cache: "no-store" });
+    const res = await fetch("/data/slides.json", { cache: "no-store" });
     if (res.ok) state.slides = await res.json();
   } catch (_) { /* fallback */ }
 
@@ -117,7 +139,6 @@ async function initSlider() {
 
 // ================================================================
 // Slider (index)
-// ================================================================
 function buildSlider() {
   const slidesWrap = document.querySelector(".slides");
   if (!slidesWrap) return;
@@ -126,7 +147,7 @@ function buildSlider() {
   state.slides.forEach(s => {
     const el = document.createElement("div");
     el.className = "slide";
-    el.style.backgroundImage = url("${s.src}");
+    el.style.backgroundImage = `url("${s.src}")`;
     el.innerHTML = `
       <div class="caption">
         <h3>${s.title ?? ""}</h3>
@@ -146,7 +167,7 @@ function buildDots() {
   state.slides.forEach((_, i) => {
     const d = document.createElement("button");
     d.className = "dot";
-    d.setAttribute("aria-label", Ir a slide ${i + 1});
+    d.setAttribute("aria-label", `Ir a slide ${i + 1}`);
     d.addEventListener("click", () => go(i));
     dots.appendChild(d);
   });
@@ -171,7 +192,7 @@ function go(i) {
 function updateSlider() {
   const slidesWrap = document.querySelector(".slides");
   if (!slidesWrap) return;
-  slidesWrap.style.transform = translateX(-${state.index * 100}%);
+  slidesWrap.style.transform = `translateX(-${state.index * 100}%)`;
   document.querySelectorAll(".dot").forEach((d, idx) => {
     d.classList.toggle("active", idx === state.index);
   });
@@ -184,22 +205,21 @@ function restartAuto() { stopAuto(); startAuto(); }
 
 // ================================================================
 // Menú + Secciones (index)
-// ================================================================
 const sections = {
   home: `
     <div class="card">
       <h2>Explora por Deporte</h2>
       <p class="small">Selecciona tu disciplina para ver los artículos de colección correspondientes.</p>
       <div class="grid" style="margin-top:10px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
-        <div class="card category-card" data-category="Fútbol" style="background-image: url('assets/Categorias/futbol.jpg');">
+        <div class="card category-card" data-category="Fútbol" style="background-image: url('/assets/Categorias/futbol.jpg');">
           <h3>Fútbol</h3>
           <p class="small">Jerseys, balones y guantes históricos.</p>
         </div>
-        <div class="card category-card" data-category="Básquetbol" style="background-image: url('assets/Categorias/basket.jpg');">
+        <div class="card category-card" data-category="Básquetbol" style="background-image: url('/assets/Categorias/basket.jpg');">
           <h3>Básquetbol</h3>
           <p class="small">Tarjetas rookie y memorabilia.</p>
         </div>
-        <div class="card category-card" data-category="Béisbol" style="background-image: url('assets/Categorias/beisbol.jpg');">
+        <div class="card category-card" data-category="Béisbol" style="background-image: url('/assets/Categorias/beisbol.jpg');">
           <h3>Béisbol</h3>
           <p class="small">(Próximamente)</p>
         </div>
@@ -243,7 +263,7 @@ function buildMenu() {
   ];
 
   nav.innerHTML = `<ul>
-    ${items.map(i => <li><a href="#" data-key="${i.key}">${i.label}</a></li>).join("")}
+    ${items.map(i => `<li><a href="#" data-key="${i.key}">${i.label}</a></li>`).join("")}
   </ul>`;
 
   nav.querySelectorAll("a").forEach(a => {
@@ -295,7 +315,7 @@ function createProductCard(p) {
     <div class="card product-card">
       <strong>${p.name}</strong>
       <p class="small">Precio: ${formatPrice(p.price)}</p>
-      <a class="btn" href="producto.html?id=${encodeURIComponent(p.id)}">Ver</a>
+      <a class="btn" href="/producto/producto.html?id=${encodeURIComponent(p.id)}">Ver</a>
     </div>
   `;
 }
@@ -307,16 +327,16 @@ function renderCatalog(filterCategory = null) {
     ? state.products.filter(p => p.category === filterCategory)
     : state.products;
 
-  const title = filterCategory ? Catálogo: ${filterCategory} : "Catálogo";
+  const title = filterCategory ? `Catálogo: ${filterCategory}` : "Catálogo";
   const subtitle = filterCategory
-    ? Mostrando artículos de ${filterCategory}.
+    ? `Mostrando artículos de ${filterCategory}.`
     : "Explora todos nuestros artículos destacados.";
 
   let productGrid = '';
   if (productsToShow.length > 0) {
-    productGrid = <div class="grid" style="margin-top:10px">${productsToShow.map(createProductCard).join("")}</div>;
+    productGrid = `<div class="grid" style="margin-top:10px">${productsToShow.map(createProductCard).join("")}</div>`;
   } else {
-    productGrid = <p class="small" style="margin-top:10px;">No se encontraron productos para "${filterCategory}".</p>;
+    productGrid = `<p class="small" style="margin-top:10px;">No se encontraron productos para "${filterCategory}".</p>`;
   }
 
   content.innerHTML = `
@@ -351,18 +371,18 @@ function renderBuscar() {
     if (!term) { res.textContent = "Escribe algo para buscar."; return; }
 
     const found = state.products.filter(p =>
-      ${p.name} ${p.description ?? ""}.toLowerCase().includes(term)
+      `${p.name} ${p.description ?? ""}`.toLowerCase().includes(term)
     );
 
     if (found.length === 0) {
-      res.innerHTML = Sin resultados para "${term}".;
+      res.innerHTML = `Sin resultados para "${term}".`;
       return;
     }
 
     res.innerHTML = `
       <strong>Resultados:</strong>
       <ul>
-        ${found.map(f => <li><a href="producto.html?id=${encodeURIComponent(f.id)}">${f.name}</a> — ${formatPrice(f.price)}</li>).join("")}
+        ${found.map(f => `<li><a href="/producto/producto.html?id=${encodeURIComponent(f.id)}">${f.name}</a> — ${formatPrice(f.price)}</li>`).join("")}
       </ul>
     `;
   }
@@ -372,22 +392,7 @@ function renderBuscar() {
 }
 
 // ================================================================
-// Toast (index + global UI mínima)
-// ================================================================
-let toastTimer;
-function showToast(message, type = "success") {
-  const toast = document.getElementById("toast-notification");
-  if (!toast) return;
-  clearTimeout(toastTimer);
-  toast.textContent = message;
-  toast.className = "toast";
-  toast.classList.add(type, "show");
-  toastTimer = setTimeout(() => toast.classList.remove("show"), 3000);
-}
-
-// ================================================================
 // Modales + Auth (solo lo que existe en index.html)
-// ================================================================
 function closeAnyModal() {
   document.querySelectorAll("dialog[open]").forEach(d => d.close("cancel"));
 }
@@ -403,7 +408,6 @@ function wireTopbarModals() {
     });
   });
 
-  // Cerrar al clickear fuera (sin .modal-card)
   [dlgLogin, dlgRegister].forEach(dlg => {
     if (!dlg) return;
     dlg.addEventListener("click", (e) => {
@@ -416,41 +420,109 @@ function wireTopbarModals() {
       e.preventDefault();
       const target = link.dataset.switch;
       closeAnyModal();
-      document.getElementById(dlg-${target})?.showModal();
+      document.getElementById(`dlg-${target}`)?.showModal();
     });
   });
 }
+
 function wireAuthForms() {
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
 
+  // Registro (opcional; usa tu backend)
   registerForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    showToast("Registro simulado (sin backend). Ahora inicia sesión.", "success");
-    closeAnyModal();
-    document.getElementById("dlg-login")?.showModal();
+    const fd = new FormData(registerForm);
+    const payload = {
+      nombre: fd.get("nombre"),
+      email: fd.get("email"),
+      password: fd.get("password"),
+    };
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        showToast(data.message || "No se pudo registrar.", "error");
+        return;
+      }
+      showToast("Registro exitoso. Inicia sesión.", "success");
+      document.getElementById("dlg-register")?.close();
+      document.getElementById("dlg-login")?.showModal();
+    } catch {
+      showToast("Error de red al registrar.", "error");
+    }
   });
 
+  // Login real + redirect por rol
   loginForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = new FormData(loginForm).get("email") || "Usuario";
-    closeAnyModal();
-    state.isAuthenticated = true;
-    state.user = { rol: "usuario", nombre: email };
-    updateUIForAuthState();
-    showToast(Bienvenido(a), ${state.user.nombre.split(" ")[0]}!, "success");
+    const fd = new FormData(loginForm);
+    const email = fd.get("email");
+    const password = fd.get("password");
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        showToast(data.message || "No se pudo iniciar sesión.", "error");
+        return;
+      }
+
+      state.isAuthenticated = true;
+      state.user = { ...data.user }; // { nombre, email, rol }
+      // Persistencia opcional:
+      // localStorage.setItem("hk_user", JSON.stringify(state.user));
+
+      document.getElementById("dlg-login")?.close();
+      updateUIForAuthState();
+      showToast(`¡Bienvenido(a), ${state.user.nombre.split(" ")[0]}!`, "success");
+
+      redirectByRole(state.user.rol);
+    } catch {
+      showToast("Error de red al iniciar sesión.", "error");
+    }
   });
 }
+
+function redirectByRole(rol = "") {
+  const r = (rol || "").toLowerCase();
+  if (r.includes("admin"))     { window.location.href = "/assets/admin/admin.html"; return; }
+  if (r.includes("gerente"))   { window.location.href = "/gerente/gerente.html";   return; }
+  if (r.includes("trabajador")){ window.location.href = "/trabajador/trabajador.html"; return; }
+  if (r.includes("comprador") || r.includes("usuario")) {
+    window.location.href = "/comprador/comprador.html"; return;
+  }
+  window.location.href = "/index.html";
+}
+
 function updateUIForAuthState() {
   const actionsContainer = document.querySelector(".actions");
   if (!actionsContainer) return;
 
-  const cartIcon = <a href="carrito.html" class="cart-icon" aria-label="Ir al carrito de compras">🛒</a>;
+  const cartIcon = `<a href="/carrito/carrito.html" class="cart-icon" aria-label="Ir al carrito de compras">🛒</a>`;
 
   if (state.isAuthenticated) {
-    const userName = state.user.nombre.split(" ")[0] || state.user.rol;
+    const userName = state.user?.nombre?.split(" ")[0] || state.user?.rol || "Usuario";
+
+    let panelHref = "/index.html";
+    const r = (state.user?.rol || "").toLowerCase();
+    if (r.includes("admin")) panelHref = "/assets/admin/admin.html";
+    else if (r.includes("gerente")) panelHref = "/gerente/gerente.html";
+    else if (r.includes("trabajador")) panelHref = "/trabajador/trabajador.html";
+    else if (r.includes("comprador") || r.includes("usuario")) panelHref = "/comprador/comprador.html";
+
     actionsContainer.innerHTML = `
       ${cartIcon}
+      <a class="btn top-btn ghost" href="${panelHref}">Mi panel</a>
       <span class="welcome-message">Hola, ${userName}!</span>
       <button class="btn top-btn ghost" data-action="logout">Cerrar Sesión</button>
     `;
@@ -464,6 +536,7 @@ function updateUIForAuthState() {
     wireTopbarModals();
   }
 }
+
 function handleLogout() {
   state.isAuthenticated = false;
   state.user = { rol: "invitado", nombre: "Invitado" };

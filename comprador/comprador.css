@@ -9,6 +9,7 @@
   --text: #2b1d1a;
   --panel: #fffaf2;
   --accent: #b7882f;
+  --accent-rgb: 183,136,47; /* para fallback sin color-mix */
   --muted: #6d5a45;
   --border: rgba(183, 136, 47, 0.35);
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -22,31 +23,16 @@
 }
 
 /* ---------- Reset básico ---------- */
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  height: 100%;
-}
-
+* { box-sizing: border-box; }
+html, body { height: 100%; }
 body {
   margin: 0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
 }
-
-img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
-
-a {
-  color: inherit;
-}
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; }
 
 /* ---------- Contenedor ---------- */
 .container {
@@ -65,20 +51,17 @@ header.topbar {
   background-color: #3a2622;
   border-bottom: 1px solid rgba(212, 180, 118, 0.35);
 }
-
 .topbar .wrap {
   position: relative;
   display: block;
   padding: 10px 0;
   text-align: center;
 }
-
 .topbar img.logo {
   height: var(--logo-size);
   width: auto;
   display: inline-block;
 }
-
 .topbar .actions {
   position: absolute;
   right: 16px;
@@ -99,7 +82,6 @@ header.topbar {
   cursor: pointer;
   transition: background-color .2s, color .2s, border-color .2s, opacity .2s;
 }
-
 .top-btn:hover {
   background: var(--accent) !important;
   color: #ffffff;
@@ -116,36 +98,35 @@ header.topbar {
   padding: 18px;
   box-shadow: var(--shadow);
 }
-
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 14px;
 }
-
 .btn {
   padding: 10px 14px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  /* Fallback universal sin color-mix */
+  background: rgba(var(--accent-rgb), .15);
   color: var(--text);
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
   text-align: center;
 }
-
+@supports (background: color-mix(in srgb, #000 0%, #fff 0%)) {
+  .btn { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+}
 .btn:hover {
-  background: color-mix(in srgb, var(--accent) 25%, transparent);
+  background: rgba(var(--accent-rgb), .25);
+}
+@supports (background: color-mix(in srgb, #000 0%, #fff 0%)) {
+  .btn:hover { background: color-mix(in srgb, var(--accent) 25%, transparent); }
 }
 
-.small {
-  font-size: .9rem;
-}
-
-.muted {
-  color: var(--muted);
-}
+.small { font-size: .9rem; }
+.muted { color: var(--muted); }
 
 /* =========================================================
    Footer (Global)
@@ -159,46 +140,29 @@ footer {
 /* =========================================================
    Estilos Específicos de 'comprador.html'
    ========================================================= */
-
-/* Estilos para las nuevas tarjetas de producto */
 .product-link {
   text-decoration: none;
   color: var(--text);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: block;
-  /* Para que la tarjeta entera sea un bloque */
 }
-
 .product-link:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
 }
-
-.product-link .card {
-  padding: 12px;
-  /* Menos padding para que la imagen luzca */
-}
-
+.product-link .card { padding: 12px; }
 .product-card img {
   width: 100%;
   border-radius: 10px;
-  /* Bordes redondeados para la imagen */
   border: 1px solid var(--border);
   background-color: var(--bg);
-  /* Color de fondo por si tarda en cargar */
 }
-
-.product-info {
-  padding: 12px 4px 4px;
-  /* Espacio para el texto debajo de la imagen */
-}
-
+.product-info { padding: 12px 4px 4px; }
 .product-info h3 {
   margin: 0 0 4px;
   font-size: 1.1rem;
   line-height: 1.3;
 }
-
 .product-price {
   margin: 0;
   color: var(--accent);
