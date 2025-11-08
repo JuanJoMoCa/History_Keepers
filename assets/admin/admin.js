@@ -208,6 +208,7 @@ function openCreate() {
   $("#name").value = "";
   $("#category").value = "";
   $("#price").value = "";
+  $("#discount").value = "0"; // <-- CAMBIADO (para seleccionar "Sin oferta")
   $("#images").value = "";
   $("#description").value = "";
   $("#highlights").value = "";
@@ -254,6 +255,7 @@ function fillForm(p) {
   $("#name").value = p?.name || "";
   $("#category").value = p?.category || "";
   $("#price").value = p?.price ?? "";
+  $("#discount").value = p?.discount || "0"; // <-- CAMBIADO (para seleccionar la oferta o "Sin oferta")
   $("#description").value = p?.description || "";
   $("#highlights").value = (p?.highlights || []).join(", ");
   $("#images").value = ""; 
@@ -278,16 +280,15 @@ function fillForm(p) {
       img.className = "img-preview";
       img.alt = "Vista previa";
       
-      // --- NUEVO: Botón de borrar ---
       const deleteBtn = document.createElement("button");
       deleteBtn.className = "img-delete-btn";
       deleteBtn.innerHTML = "&times;";
       deleteBtn.title = "Eliminar esta imagen";
-      deleteBtn.dataset.path = imgSrc; // La ruta a borrar (ej. /assets/uploads/img.jpg)
-      deleteBtn.dataset.id = p._id;  // El ID del producto
+      deleteBtn.dataset.path = imgSrc;
+      deleteBtn.dataset.id = p._id;
       
       wrapper.appendChild(img);
-      wrapper.appendChild(deleteBtn); // Añade el botón
+      wrapper.appendChild(deleteBtn);
       previewContainer.appendChild(wrapper);
     });
 
@@ -311,13 +312,13 @@ function collectForm() {
   formData.append('name', name);
   formData.append('category', category);
   formData.append('price', price);
+  formData.append('discount', Number($("#discount").value) || 0); // <-- CAMBIADO (lee el valor del select)
   formData.append('description', $("#description").value.trim());
   formData.append('highlights', $("#highlights").value.trim());
   
   const imageFiles = $("#images").files;
   if (imageFiles && imageFiles.length > 0) {
     for (const file of imageFiles) {
-      // Esta es la parte clave: 'images' como clave para cada archivo
       formData.append('images', file); 
     }
   }
