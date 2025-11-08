@@ -1,6 +1,8 @@
 const express = require('express');
-const { MongoClient, ObjectId } = require('mongodb'); // <-- Importamos ObjectId
+const { MongoClient, ObjectId } = require('mongodb');
 const path = require('path');
+const multer = require('multer'); // <-- 1. Importamos Multer
+const fs = require('fs');
 
 const app = express();
 const PORT = 3000;
@@ -10,16 +12,32 @@ const MONGO_URI = "mongodb+srv://Salinas_user:rutabus123@rutabus.qdwcba8.mongodb
 const DB_NAME = "history_keepers_db";
 let db;
 
-// Middlewares
-app.use(express.json()); // Para entender JSON
-app.use(express.urlencoded({ extended: true })); // Para entender formularios
+// --- 2. Configuración de Multer (Subida de Archivos) ---
+const fileStorage = multer.diskStorage({
+  // Destino: dónde se guardan los archivos
+  destination: (req, file, cb) => {
+    cb(null, 'assets/uploads');
+  },
+  // Nombre del archivo: para evitar colisiones, le ponemos un timestamp
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const upload = multer({ storage: fileStorage });
 
-// Servir estáticos (tu estructura de carpetas funciona con esto)
+// Middlewares
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true }));
+
+// Servir estáticos
 app.use(express.static(path.join(__dirname), {
   extensions: ['html']
 }));
+// Hacemos que la carpeta /assets/ sea accesible públicamente
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
-// --- RUTAS DE AUTENTICACIÓN ---
+
+// --- RUTAS DE AUTENTICACIÓN (Sin cambios) ---
 app.post('/api/register', async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
@@ -62,15 +80,14 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// --- NUEVA API DE PRODUCTOS (CRUD) ---
+// --- API DE PRODUCTOS (MODIFICADA PARA MULTER) ---
 
-// 1. OBTENER (GET) todos los productos (con paginación y búsqueda)
+// 1. OBTENER (GET) - Sin cambios
 app.get('/api/products', async (req, res) => {
   try {
     const { search = "", page = 1, limit = 10 } = req.query;
     const query = {};
     if (search) {
-      // Búsqueda por nombre o categoría
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
         { category: { $regex: search, $options: 'i' } }
@@ -88,18 +105,25 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-// 2. CREAR (POST) un nuevo producto
-app.post('/api/products', async (req, res) => {
+// 2. CREAR (POST) - Modificado para recibir FormData y archivos
+// upload.array('images', 5) significa: "acepta hasta 5 archivos del campo 'images'"
+app.post('/api/products', upload.array('images', 5), async (req, res) => {
   try {
-    // Recibimos el producto como JSON
     const newProductData = req.body;
     
-    // Limpiamos datos vacíos
-    if (newProductData.highlights && !Array.isArray(newProductData.highlights)) {
-      newProductData.highlights = newProductData.highlights.split(',').map(h => h.trim()).filter(h => h);
+    // --- CORRECCIÓN DE BUG ---
+    // El problema estaba aquí. req.files es un array de archivos.
+    // Usamos .map() para crear un array de strings (las rutas).
+    if (req.files && req.files.length > 0) {
+      newProductData.images = req.files.map(file => `/assets/uploads/${file.filename}`);
+    } else {
+      newProductData.images = [];
     }
-    if (newProductData.images && !Array.isArray(newProductData.images)) {
-      newProductData.images = newProductData.images.split(',').map(i => i.trim()).filter(i => i);
+
+    if (newProductData.highlights) {
+      newProductData.highlights = newProductData.highlights.split(',').map(h => h.trim()).filter(h => h);
+    } else {
+      newProductData.highlights = [];
     }
 
     const productsCol = db.collection('products');
@@ -110,24 +134,46 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
-// 3. ACTUALIZAR (PUT) un producto por ID
-app.put('/api/products/:id', async (req, res) => {
+// 3. ACTUALIZAR (PUT) - Modificado para recibir FormData y archivos
+app.put('/api/products/:id', upload.array('images', 5), async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-
-    // Limpiamos datos vacíos
-    if (updateData.highlights && !Array.isArray(updateData.highlights)) {
-      updateData.highlights = updateData.highlights.split(',').map(h => h.trim()).filter(h => h);
-    }
-    if (updateData.images && !Array.isArray(updateData.images)) {
-      updateData.images = updateData.images.split(',').map(i => i.trim()).filter(i => i);
-    }
-
     const productsCol = db.collection('products');
+
+    // --- INICIO DE LA CORRECCIÓN ---
+
+    // 1. Buscar el producto existente para obtener su array de imágenes actual
+    const existingProduct = await productsCol.findOne({ _id: new ObjectId(id) });
+    if (!existingProduct) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+
+    // 2. Empezar con la lista de imágenes que ya tenía
+    let images = existingProduct.images || [];
+
+    // 3. Si se subieron archivos nuevos (req.files), añadirlos a la lista
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map(file => `/assets/uploads/${file.filename}`);
+      images = images.concat(newImages); // Combina el array antiguo con el nuevo
+    }
+    
+    // 4. Asignar el array de imágenes combinado a los datos de actualización
+    updateData.images = images;
+    
+    // --- FIN DE LA CORRECCIÓN ---
+
+    // Procesar highlights (esto ya estaba bien)
+    if (updateData.highlights) {
+      updateData.highlights = updateData.highlights.split(',').map(h => h.trim()).filter(h => h);
+    } else {
+      // Si el campo de highlights viene vacío, asegúrate de que sea un array vacío
+      updateData.highlights = [];
+    }
+
     const result = await productsCol.updateOne(
       { _id: new ObjectId(id) },
-      { $set: updateData }
+      { $set: updateData } 
     );
     if (result.matchedCount === 0) {
       return res.status(404).json({ message: 'Producto no encontrado' });
@@ -138,7 +184,7 @@ app.put('/api/products/:id', async (req, res) => {
   }
 });
 
-// 4. ELIMINAR (DELETE) un producto por ID
+// 4. ELIMINAR (DELETE) - Sin cambios
 app.delete('/api/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -153,6 +199,42 @@ app.delete('/api/products/:id', async (req, res) => {
   }
 });
 
+app.delete('/api/products/:id/image', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { imagePath } = req.body; // Recibimos la ruta de la imagen a borrar
+
+    if (!imagePath) {
+      return res.status(400).json({ message: 'No se especificó la ruta de la imagen.' });
+    }
+
+    // 1. Eliminar la referencia de MongoDB
+    const productsCol = db.collection('products');
+    const updateResult = await productsCol.updateOne(
+      { _id: new ObjectId(id) },
+      { $pull: { images: imagePath } } // $pull quita un elemento de un array
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ message: 'Producto no encontrado.' });
+    }
+
+    // 2. Eliminar el archivo del servidor
+    // Construimos la ruta local (ej. 'assets/uploads/12345.jpg')
+    const localPath = path.join(__dirname, imagePath);
+    
+    fs.unlink(localPath, (err) => {
+      if (err) {
+        console.warn(`No se pudo borrar el archivo: ${localPath}. Puede que ya estuviera borrado.`);
+      }
+    });
+
+    res.json({ success: true, message: 'Imagen eliminada.' });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // --- INICIALIZACIÓN DEL SERVIDOR ---
 async function startServer() {

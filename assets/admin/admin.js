@@ -1,21 +1,18 @@
 /* =========================================================
    History Keepers — admin.js (Lógica del Panel de Admin)
+   VERSIÓN CON SUBIDA DE ARCHIVOS (FormData)
    ========================================================= */
 
 /********** Utils UI **********/
-// Funciones de ayuda para seleccionar elementos
 const $ = (s, c = document) => c.querySelector(s);
 const $$ = (s, c = document) => Array.from(c.querySelectorAll(s));
 
-// Formatear precio (simple)
 const fmtMoney = (n) => "$" + (Number(n || 0)).toLocaleString("es-MX");
 
-// Mostrar notificaciones "Toast"
 function toast(msg, kind = "ok") {
   const box = $("#toasts");
   const div = document.createElement("div");
   div.className = `toast toast--${kind}`;
-  // Iconos basados en la clase de la referencia
   div.innerHTML = `<i class="fa-solid ${
     kind === 'ok' ? 'fa-circle-check' : kind === 'warn' ? 'fa-triangle-exclamation' : 'fa-circle-xmark'
   }"></i> ${msg}`;
@@ -23,10 +20,8 @@ function toast(msg, kind = "ok") {
   setTimeout(() => div.remove(), 2500);
 }
 
-/********** Adaptador de API **********/
-// Este objeto maneja toda la comunicación con tu server.js
+/********** Adaptador de API (MODIFICADO para FormData) **********/
 const api = {
-  // Listar productos (con paginación y búsqueda)
   async list({ search = "", page = 1, limit = 10 } = {}) {
     const url = new URL('/api/products', window.location.origin);
     url.searchParams.set("search", search);
@@ -36,40 +31,40 @@ const api = {
     if (!r.ok) throw new Error("Error listando productos");
     return r.json();
   },
-  // Crear un producto nuevo (envía un objeto JSON)
-  async create(productData) {
-    const r = await fetch('/api/products', {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(productData)
-    });
+  
+  async create(formData) {
+    const r = await fetch('/api/products', { method: "POST", body: formData });
     if (!r.ok) throw new Error((await r.json()).message || "Error creando");
     return r.json();
   },
-  // Actualizar un producto (envía un objeto JSON)
-  async update(id, productData) {
-    const r = await fetch(`/api/products/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(productData)
-    });
+  
+  async update(id, formData) {
+    const r = await fetch(`/api/products/${id}`, { method: "PUT", body: formData });
     if (!r.ok) throw new Error((await r.json()).message || "Error actualizando");
     return r.json();
   },
-  // Eliminar un producto
+  
   async remove(id) {
     const r = await fetch(`/api/products/${id}`, { method: "DELETE" });
     if (!r.ok) throw new Error("Error eliminando");
     return { ok: true };
+  },
+
+  // --- NUEVA FUNCIÓN API ---
+  async deleteImage(productId, imagePath) {
+    const r = await fetch(`/api/products/${productId}/image`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imagePath })
+    });
+    if (!r.ok) throw new Error((await r.json()).message || "Error eliminando imagen");
+    return r.json();
   }
 };
 
 /********** Controlador de UI **********/
-
-// Estado de la página (paginación, búsqueda)
 const state = { page: 1, limit: 10, search: "" };
 
-// Elementos del DOM
 const el = {
   tbody: $("#tbody"),
   meta: $("#meta"),
@@ -80,11 +75,11 @@ const el = {
   btnSearch: $("#btnSearch"),
   btnNew: $("#btnNew"),
   modalForm: $("#modalForm"),
-  form: $("#form"),
   formTitle: $("#formTitle"),
   save: $("#save"),
 };
 
+// --- LÓGICA DE NAVEGACIÓN POR PESTAÑAS ---
 function wireTabNavigation() {
   const navLinks = $$('.inv-nav__item[data-tab]');
   const tabContents = $$('.tab-content');
@@ -93,20 +88,14 @@ function wireTabNavigation() {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const tabId = link.dataset.tab;
-
-      // 1. Actualizar el botón activo
       navLinks.forEach(nav => nav.classList.remove('active'));
       link.classList.add('active');
-
-      // 2. Mostrar el contenido de la pestaña
       tabContents.forEach(tab => {
         tab.classList.toggle('hidden', tab.id !== `tab-${tabId}`);
       });
     });
   });
 }
-
-
 
 // Dibuja las filas de la tabla
 function renderRows(list = []) {
@@ -127,12 +116,11 @@ function renderRows(list = []) {
     </tr>
   `).join("");
 
-  // Conecta los botones de "Editar" y "Eliminar" de cada fila
   $$("button[data-edit]").forEach(b => b.addEventListener("click", () => openEdit(b.dataset.edit)));
   $$("button[data-del]").forEach(b => b.addEventListener("click", () => removeProduct(b.dataset.del)));
 }
 
-// Actualiza la paginación (ej. "1 / 3")
+// Actualiza la paginación
 function paginate(total) {
   const pages = Math.max(1, Math.ceil(total / state.limit));
   el.page.textContent = `${state.page} / ${pages}`;
@@ -141,7 +129,7 @@ function paginate(total) {
   el.meta.textContent = `${total} producto${total === 1 ? '' : 's'}`;
 }
 
-// Función principal: recarga los datos de la API y redibuja la tabla
+// Función principal: recarga los datos
 async function refresh() {
   try {
     const { items, total } = await api.list(state);
@@ -154,33 +142,29 @@ async function refresh() {
 
 /********** Handlers (Manejadores de Eventos) **********/
 
-// Botón "Agregar nuevo"
 el.btnNew.addEventListener("click", openCreate);
-// Botón "Buscar"
 el.btnSearch.addEventListener("click", () => { state.search = el.search.value.trim(); state.page = 1; refresh(); });
-// Buscar con "Enter"
 el.search.addEventListener("keydown", e => { if (e.key === "Enter") { state.search = el.search.value.trim(); state.page = 1; refresh(); } });
-// Paginación
 el.prev.addEventListener("click", () => { if (state.page > 1) { state.page--; refresh(); } });
 el.next.addEventListener("click", () => { state.page++; refresh(); });
 
 // Botón "Guardar" del modal
 el.save.addEventListener("click", async () => {
   const id = $("#id").value;
-  let payload;
+  let formData;
   try {
-    payload = collectForm(); // Recoge los datos del formulario
+    formData = collectForm(); // Recoge los datos como FormData
   } catch(err) {
-    toast(err.message, "err"); // Muestra error si faltan campos
+    toast(err.message, "err");
     return;
   }
 
   try {
     if (id) {
-      await api.update(id, payload); // Actualiza si había un ID
+      await api.update(id, formData); // Actualiza
       toast("Producto actualizado", "ok");
     } else {
-      await api.create(payload); // Crea si no había ID
+      await api.create(formData); // Crea
       toast("Producto creado", "ok");
     }
     closeModals();
@@ -195,27 +179,55 @@ $$("[data-close]").forEach(b => b.addEventListener("click", closeModals));
 el.modalForm.addEventListener("click", e => { if (e.target === el.modalForm) closeModals(); });
 window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModals(); });
 
+$("#current-images-preview").addEventListener('click', async (e) => {
+  const deleteBtn = e.target.closest('.img-delete-btn');
+  if (!deleteBtn) return; // No se hizo clic en un botón de borrar
 
+  const { path, id } = deleteBtn.dataset;
+  if (!path || !id) return;
+
+  if (!confirm("¿Seguro que quieres eliminar esta imagen? Esta acción no se puede deshacer.")) {
+    return;
+  }
+
+  try {
+    await api.deleteImage(id, path);
+    toast("Imagen eliminada", "ok");
+    // Elimina el elemento de la UI
+    deleteBtn.parentElement.remove();
+  } catch(err) {
+    toast(err.message, "err");
+  }
+});
 /********** Lógica del Formulario (CRUD) **********/
 
 // Abre el modal para crear un producto
 function openCreate() {
-  $("#form").reset(); // Limpia el formulario
-  $("#id").value = ""; // Asegura que no haya ID
+  // Un <div> no tiene .reset(), reseteamos manualmente
+  $("#id").value = "";
+  $("#name").value = "";
+  $("#category").value = "";
+  $("#price").value = "";
+  $("#images").value = "";
+  $("#description").value = "";
+  $("#highlights").value = "";
+
+  // Oculta la vista previa de imágenes
+  $("#current-images-preview").innerHTML = "";
+  $("#current-images-preview").classList.add("hidden");
+
   $("#formTitle").textContent = "Nuevo producto";
   el.modalForm.classList.remove("hidden");
 }
 
-// Abre el modal para editar (busca el producto y rellena el form)
+// Abre el modal para editar
 async function openEdit(id) {
   try {
-    // Para editar, necesitamos los datos de 1 producto
-    // Hacemos una búsqueda simple filtrando los items que ya tenemos
-    const { items } = await api.list({ search: '', page: 1, limit: 1000 }); // Obtenemos todos
+    const { items } = await api.list({ limit: 1000 }); // Obtenemos todos
     const product = items.find(p => p._id === id);
     if (!product) throw new Error("Producto no encontrado");
     
-    fillForm(product); // Rellena el formulario
+    fillForm(product);
     $("#formTitle").textContent = "Editar producto";
     el.modalForm.classList.remove("hidden");
   } catch (err) {
@@ -236,40 +248,84 @@ function closeModals() {
   el.modalForm.classList.add("hidden");
 }
 
-// Rellena el formulario del modal con los datos de un producto
+// Rellena el formulario del modal con los datos de un producto (MODIFICADO)
 function fillForm(p) {
   $("#id").value = p?._id || "";
   $("#name").value = p?.name || "";
   $("#category").value = p?.category || "";
   $("#price").value = p?.price ?? "";
   $("#description").value = p?.description || "";
-  // Unimos los arrays con comas para rellenar los inputs
-  $("#images").value = (p?.images || []).join(", ");
   $("#highlights").value = (p?.highlights || []).join(", ");
+  $("#images").value = ""; 
+  
+  const previewContainer = $("#current-images-preview");
+  previewContainer.innerHTML = "";
+  
+  if (p.images && p.images.length > 0) {
+    previewContainer.classList.remove("hidden");
+    
+    const title = document.createElement("p");
+    title.textContent = "Imágenes actuales:";
+    title.style = "width: 100%; margin: 0 0 5px; font-weight: 600; font-size: 13px;";
+    previewContainer.appendChild(title);
+
+    p.images.forEach(imgSrc => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "img-preview-wrapper";
+      
+      const img = document.createElement("img");
+      img.src = imgSrc;
+      img.className = "img-preview";
+      img.alt = "Vista previa";
+      
+      // --- NUEVO: Botón de borrar ---
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "img-delete-btn";
+      deleteBtn.innerHTML = "&times;";
+      deleteBtn.title = "Eliminar esta imagen";
+      deleteBtn.dataset.path = imgSrc; // La ruta a borrar (ej. /assets/uploads/img.jpg)
+      deleteBtn.dataset.id = p._id;  // El ID del producto
+      
+      wrapper.appendChild(img);
+      wrapper.appendChild(deleteBtn); // Añade el botón
+      previewContainer.appendChild(wrapper);
+    });
+
+  } else {
+    previewContainer.classList.add("hidden");
+  }
 }
 
-// Recoge los datos del formulario y los devuelve como un objeto
+// Recoge los datos del formulario como FormData (MODIFICADO)
 function collectForm() {
   const name = $("#name").value.trim();
   const price = Number($("#price").value);
+  const category = $("#category").value;
 
-  if (!name || !price) {
-    throw new Error("Completa Nombre y Precio");
+  if (!name || !price || !category) {
+    throw new Error("Completa Nombre, Precio y Categoría");
   }
-
-  // El servidor se encarga de procesar los strings a arrays
-  return {
-    name: name,
-    category: $("#category").value.trim() || "General",
-    price: price,
-    description: $("#description").value.trim(),
-    images: $("#images").value.trim(), // Se envía como string
-    highlights: $("#highlights").value.trim() // Se envía como string
-  };
+  
+  const formData = new FormData();
+  
+  formData.append('name', name);
+  formData.append('category', category);
+  formData.append('price', price);
+  formData.append('description', $("#description").value.trim());
+  formData.append('highlights', $("#highlights").value.trim());
+  
+  const imageFiles = $("#images").files;
+  if (imageFiles && imageFiles.length > 0) {
+    for (const file of imageFiles) {
+      // Esta es la parte clave: 'images' como clave para cada archivo
+      formData.append('images', file); 
+    }
+  }
+  
+  return formData;
 }
 
 /********** Helpers **********/
-// Escapa HTML para evitar XSS en la tabla
 function escape(s = "") {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
