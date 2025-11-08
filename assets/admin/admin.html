@@ -127,40 +127,60 @@
   </div>
 
   <div id="modalForm" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal__dialog inv-card">
-      <div class="modal__head">
-        <h3 id="formTitle">Nuevo producto</h3>
-        <button class="modal__close" data-close>&times;</button>
+  <div class="modal__dialog inv-card">
+    <div class="modal__head">
+      <h3 id="formTitle">Nuevo producto</h3>
+      <button class="modal__close" data-close>&times;</button>
+    </div>
+    <div class="modal__body">
+      
+      <div id="form-body" class="grid">
+        <input type="hidden" id="id">
+        
+        <label class="grid-span-2">Nombre
+          <input id="name" name="name" class="input" required placeholder="Ej. Jersey Retro 1998">
+        </label>
+        
+        <label>Categoría
+          <select id="category" name="category" class="input" required>
+            <option value="">Selecciona una categoría...</option>
+            <option value="Fútbol">Fútbol</option>
+            <option value="Fútbol Americano">Fútbol Americano</option>
+            <option value="Baloncesto">Baloncesto</option>
+            <option value="Béisbol">Béisbol</option>
+            <option value="Voleibol">Voleibol</option>
+            <option value="Fórmula 1">Fórmula 1</option>
+            <option value="Boxeo">Boxeo</option>
+          </select>
+        </label>
+        
+        <label>Precio
+          <input id="price" name="price" type="number" min="0" step="1" class="input" required placeholder="Ej. 4200">
+        </label>
+        
+        <label class="grid-span-2">Imágenes (máximo 5)
+          <input id="images" name="images" type="file" class="input" multiple accept="image/png, image/jpeg, image/webp">
+        </label>
+
+        <div id="current-images-preview" class="grid-span-2">
+            </div>
+        
+        <label class="grid-span-2">Descripción
+          <textarea id="description" name="description" rows="3" class="input" placeholder="Descripción corta del producto..."></textarea>
+        </label>
+        
+        <label class="grid-span-2">Puntos Clave (separados por comas)
+          <input id="highlights" name="highlights" class="input" placeholder="Ej. Talla M, Original, Certificado">
+        </label>
       </div>
-      <div class="modal__body">
-        <form id="form" class="grid">
-          <input type="hidden" id="id">
-          <label class="grid-span-2">Nombre
-            <input id="name" class="input" required placeholder="Ej. Jersey Retro 1998">
-          </label>
-          <label>Categoría
-            <input id="category" class="input" placeholder="Ej. Fútbol, Básquetbol">
-          </label>
-          <label>Precio
-            <input id="price" type="number" min="0" step="1" class="input" required placeholder="Ej. 4200">
-          </label>
-          <label class="grid-span-2">Imágenes (URLs separadas por comas)
-            <textarea id="images" rows="3" class="input" placeholder="/assets/products/img1.jpg, /assets/products/img2.jpg"></textarea>
-          </label>
-          <label class="grid-span-2">Descripción
-            <textarea id="description" rows="3" class="input" placeholder="Descripción corta del producto..."></textarea>
-          </label>
-          <label class="grid-span-2">Puntos Clave (separados por comas)
-            <input id="highlights" class="input" placeholder="Ej. Talla M, Original, Certificado">
-          </label>
-        </form>
-      </div>
-      <div class="modal__foot">
-        <button class="btn" data-close>Cancelar</button>
-        <button id="save" class="btn btn--primary">Guardar</button>
-      </div>
+      
+    </div>
+    <div class="modal__foot">
+      <button class="btn" data-close>Cancelar</button>
+      <button id="save" class="btn btn--primary">Guardar</button>
     </div>
   </div>
+</div>
 
   <div id="toasts" class="toasts"></div>
 

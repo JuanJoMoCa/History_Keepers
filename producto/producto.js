@@ -1,9 +1,9 @@
 /* =========================================================
-   History Keepers — producto.js (Autocontenido)
+   History Keepers — producto.js (Conectado a la API)
    ========================================================= */
 
 // ------------------------------
-// Estado global (simple)
+// Estado global
 // ------------------------------
 const globalState = {
   isAuthenticated: false,
@@ -48,7 +48,7 @@ function showToast(message, type = "success") {
 }
 
 // ------------------------------
-// Modales + Auth
+// Modales + Auth (REAL)
 // ------------------------------
 function closeAnyModal() {
   document.querySelectorAll("dialog[open]").forEach((d) => {
@@ -96,21 +96,88 @@ function wireAuthForms() {
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
 
-  registerForm?.addEventListener("submit", (e) => {
+  // Registro (Conectado a la API)
+  registerForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    showToast("Registro simulado. Ahora inicia sesión.", "success");
-    closeAnyModal();
-    document.getElementById("dlg-login")?.showModal();
+    const fd = new FormData(registerForm);
+    const nombre = (fd.get("nombre") || "").toString().trim();
+    const email = (fd.get("email") || "").toString().trim();
+    const password = (fd.get("password") || "").toString();
+
+    if (!nombre || !email || !password) {
+      showToast("Todos los campos son obligatorios.", "error");
+      return;
+    }
+    try {
+      const resp = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, email, password })
+      });
+      const result = await resp.json();
+      if (result?.success) {
+        showToast(result.message || "Cuenta creada.", "success");
+        closeAnyModal();
+        document.getElementById("dlg-login")?.showModal();
+      } else {
+        showToast(result?.message || "No se pudo registrar.", "error");
+      }
+    } catch {
+      showToast("Error de conexión con el servidor.", "error");
+    }
   });
 
-  loginForm?.addEventListener("submit", (e) => {
+  // Login (Conectado a la API y con redirección)
+  loginForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = new FormData(loginForm).get("email") || "Usuario";
-    closeAnyModal();
-    globalState.isAuthenticated = true;
-    globalState.user = { rol: "usuario", nombre: email };
-    updateUIForAuthState();
-    showToast(`Bienvenido(a), ${globalState.user.nombre.split(" ")[0]}!`, "success");
+    const fd = new FormData(loginForm);
+    const email = (fd.get("email") || "").toString().trim();
+    const password = (fd.get("password") || "").toString();
+
+    if (!email || !password) {
+      showToast("Introduce tu correo y contraseña.", "error");
+      return;
+    }
+    try {
+      const resp = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const result = await resp.json();
+
+      if (result?.success) {
+        closeAnyModal();
+        showToast(result.message || `Bienvenido(a), ${result.user.nombre.split(" ")[0]}!`, "success");
+        
+        setTimeout(() => {
+          const userRole = result.user.rol;
+          switch (userRole) {
+            case 'usuario comprador':
+              window.location.href = '/comprador/comprador.html';
+              break;
+            case 'trabajador':
+              window.location.href = '/trabajador/trabajador.html';
+              break;
+            case 'gerente':
+              window.location.href = '/gerente/gerente.html';
+              break;
+            case 'administrador':
+              window.location.href = '/assets/admin/admin.html';
+              break;
+            default:
+              globalState.isAuthenticated = true;
+              globalState.user = result.user;
+              updateUIForAuthState();
+          }
+        }, 1000); 
+
+      } else {
+        showToast(result?.message || "Credenciales incorrectas.", "error");
+      }
+    } catch {
+      showToast("Error de conexión con el servidor.", "error");
+    }
   });
 }
 
@@ -148,63 +215,17 @@ function handleLogout() {
 }
 
 // ------------------------------
-// “BD” de ejemplo para la página
-// (Usa imágenes que sí existen en tu repo)
-// ------------------------------
-const state = {
-  products: [
-    {
-      id: "jersey-1998",
-      name: "Jersey Retro 1998",
-      price: 3500,
-      stock: 5,
-      category: "Fútbol",
-      images: [
-        "/assets/slides/slide1.png",
-        "/assets/slides/slide2.png",
-        "/assets/slides/slide3.png"
-      ],
-      description: "Edición histórica de club, excelente estado de conservación.",
-      highlights: ["Tallas M y L", "Original", "Coleccionable"],
-    },
-    {
-      id: "balon-firmado",
-      name: "Balón Firmado",
-      price: 6800,
-      stock: 3,
-      category: "Fútbol",
-      images: ["/assets/slides/slide2.png", "/assets/slides/slide3.png"],
-      description: "Balón autografiado con certificado de autenticidad.",
-      highlights: ["Incluye certificado", "Edición limitada"],
-    },
-    {
-      id: "tarjeta-1986",
-      name: "Tarjeta Rookie 1986",
-      price: 4200,
-      stock: 2,
-      category: "Básquetbol",
-      images: ["/assets/slides/slide3.png"],
-      description: "Tarjeta rookie clásica, ideal para marcos y exhibición.",
-      highlights: ["Grado de conservación alto", "Serie especial"],
-    }
-    
-  ],
-};
-
-// ------------------------------
 // Init de la página
 // ------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   wireTopbarModals();
   wireAuthForms();
-  updateUIForAuthState();
+  updateUIForAuthState(); // (Esto puede cambiar si hay un token guardado, pero por ahora está bien)
 
-  // Esc para cerrar modales
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeAnyModal();
   });
 
-  // Año footer
   const yearSpan = document.getElementById("y");
   if (yearSpan) yearSpan.textContent = new Date().getFullYear();
 
@@ -213,9 +234,9 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ------------------------------
-// Página de producto
+// Página de producto (CONECTADA A API)
 // ------------------------------
-function initProductPage() {
+async function initProductPage() {
   const params = new URLSearchParams(window.location.search);
   const productId = params.get("id");
 
@@ -224,14 +245,24 @@ function initProductPage() {
     return;
   }
 
-  const product = state.products.find((p) => p.id === productId);
-  if (!product) {
-    showNotFound();
-    return;
-  }
+  try {
+    // Pide el producto a la API que creamos en server.js
+    const response = await fetch(`/api/products/${productId}`);
+    
+    if (!response.ok) {
+      throw new Error('Producto no encontrado en la base de datos');
+    }
+    
+    const product = await response.json();
+    
+    // Si todo sale bien, renderiza el producto
+    renderProduct(product);
+    wireProductActions(product);
 
-  renderProduct(product);
-  wireProductActions(product);
+  } catch (error) {
+    console.error("Error al cargar el producto:", error.message);
+    showNotFound();
+  }
 }
 
 function showNotFound() {
@@ -245,7 +276,7 @@ function renderProduct(product) {
   document.getElementById("bc-name").textContent = product.name;
   document.getElementById("p-title").textContent = product.name;
   document.getElementById("p-price").textContent = formatPrice(product.price);
-  document.getElementById("p-stock").textContent = product.stock;
+  // El campo de stock ya no existe
   document.getElementById("p-desc").textContent = product.description;
 
   // Highlights
@@ -261,11 +292,13 @@ function renderProduct(product) {
   const mainImg = document.getElementById("p-main");
   const thumbsContainer = document.getElementById("p-thumbs");
   thumbsContainer.innerHTML = "";
+  
+  const images = product.images || [];
 
-  if (product.images && product.images.length > 0) {
-    mainImg.src = product.images[0];
+  if (images.length > 0) {
+    mainImg.src = images[0]; // Muestra la primera imagen
 
-    product.images.forEach((imgSrc, index) => {
+    images.forEach((imgSrc, index) => {
       const thumbDiv = document.createElement("div");
       thumbDiv.className = "thumb";
       if (index === 0) thumbDiv.classList.add("active");
@@ -273,7 +306,6 @@ function renderProduct(product) {
       const thumbImg = document.createElement("img");
       thumbImg.src = imgSrc;
       thumbImg.alt = `${product.name} miniatura ${index + 1}`;
-
       thumbDiv.appendChild(thumbImg);
 
       thumbDiv.addEventListener("click", () => {
@@ -285,6 +317,7 @@ function renderProduct(product) {
       thumbsContainer.appendChild(thumbDiv);
     });
   } else {
+    // Si no hay imágenes, muestra el placeholder
     mainImg.src = ph(product.name);
   }
 
@@ -295,32 +328,46 @@ function renderProduct(product) {
 function wireProductActions(product) {
   document.getElementById("add-cart")?.addEventListener("click", () => {
     const qty = document.getElementById("qty").valueAsNumber || 1;
-
-    // carrito en localStorage (simple)
     const cart = JSON.parse(localStorage.getItem("hk_cart") || "[]");
-    const existing = cart.find((i) => i.id === product.id);
+    
+    // CORREGIDO: Usar _id de MongoDB
+    const existing = cart.find((i) => i.id === product._id); 
+    
     if (existing) {
       existing.qty += qty;
     } else {
-      cart.push({ id: product.id, name: product.name, price: product.price, qty });
+      // CORREGIDO: Guardar _id y la primera imagen
+      cart.push({ 
+        id: product._id, 
+        name: product.name, 
+        price: product.price, 
+        qty,
+        image: (product.images && product.images[0]) ? product.images[0] : ph(product.name)
+      });
     }
     localStorage.setItem("hk_cart", JSON.stringify(cart));
-
     showToast(`Se agregaron ${qty} "${product.name}" al carrito.`, "success");
   });
 
   document.getElementById("buy-now")?.addEventListener("click", () => {
-    // añade 1 si no está
+    const qty = document.getElementById("qty").valueAsNumber || 1;
     const cart = JSON.parse(localStorage.getItem("hk_cart") || "[]");
-    const existing = cart.find((i) => i.id === product.id);
+    
+    // CORREGIDO: Usar _id de MongoDB
+    const existing = cart.find((i) => i.id === product._id);
+    
     if (existing) {
-      existing.qty += 1;
+      existing.qty += qty;
     } else {
-      cart.push({ id: product.id, name: product.name, price: product.price, qty: 1 });
+      cart.push({ 
+        id: product._id, 
+        name: product.name, 
+        price: product.price, 
+        qty,
+        image: (product.images && product.images[0]) ? product.images[0] : ph(product.name)
+      });
     }
     localStorage.setItem("hk_cart", JSON.stringify(cart));
-
-    // redirige al carrito (ruta absoluta correcta)
     window.location.href = "/carrito/carrito.html";
   });
 }

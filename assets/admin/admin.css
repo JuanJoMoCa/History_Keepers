@@ -320,7 +320,10 @@ body {
 }
 
 .modal__dialog {
-  width: min(900px, 96vw)
+  width: min(900px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal__head {
@@ -330,7 +333,11 @@ body {
   padding: 16px;
   border-bottom: 1px solid var(--border)
 }
-.modal__body { padding: 16px }
+.modal__body {
+  padding: 16px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
 .modal__foot {
   display: flex;
   justify-content: flex-end;
@@ -420,4 +427,68 @@ body {
 }
 .inv-nav__item.active i {
   color: var(--primary); /* Icono dorado */
+}
+
+/* --- ESTILOS PARA VISTA PREVIA DE IMÁGENES --- */
+#current-images-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  background-color: var(--bg); /* Fondo beige claro */
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: -10px; /* Pega al campo de subida */
+}
+
+#current-images-preview.hidden {
+  display: none; /* Oculta el contenedor si está vacío */
+}
+
+#current-images-preview .img-preview-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+#current-images-preview .img-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#current-images-preview .img-preview-wrapper {
+  position: relative; /* <--- Asegúrate de que tenga position: relative */
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+/* --- NUEVO: Botón de 'X' para borrar --- */
+.img-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.2s ease;
+}
+.img-delete-btn:hover {
+  background: var(--danger);
 }
