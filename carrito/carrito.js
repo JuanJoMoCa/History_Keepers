@@ -96,21 +96,75 @@ function wireAuthForms() {
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
 
-  registerForm?.addEventListener("submit", (e) => {
+  // Registro (Conectado a la API)
+  registerForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    showToast("Registro simulado. Ahora inicia sesión.", "success");
-    closeAnyModal();
-    document.getElementById("dlg-login")?.showModal();
+    const fd = new FormData(registerForm);
+    const nombre = (fd.get("nombre") || "").toString().trim();
+    const email = (fd.get("email") || "").toString().trim();
+    const password = (fd.get("password") || "").toString();
+
+    if (!nombre || !email || !password) {
+      showToast("Todos los campos son obligatorios.", "error");
+      return;
+    }
+    try {
+      const resp = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, email, password })
+      });
+      const result = await resp.json();
+      if (result?.success) {
+        showToast(result.message || "Cuenta creada.", "success");
+        closeAnyModal();
+        document.getElementById("dlg-login")?.showModal();
+      } else {
+        showToast(result?.message || "No se pudo registrar.", "error");
+      }
+    } catch {
+      showToast("Error de conexión con el servidor.", "error");
+    }
   });
 
-  loginForm?.addEventListener("submit", (e) => {
+  // Login (Conectado a la API y con redirección)
+  loginForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = new FormData(loginForm).get("email") || "Usuario";
-    closeAnyModal();
-    globalState.isAuthenticated = true;
-    globalState.user = { rol: "usuario", nombre: email };
-    updateUIForAuthState();
-    showToast(`Bienvenido(a), ${globalState.user.nombre.split(" ")[0]}!`, "success");
+    const fd = new FormData(loginForm);
+    const email = (fd.get("email") || "").toString().trim();
+    const password = (fd.get("password") || "").toString();
+
+    if (!email || !password) {
+      showToast("Introduce tu correo y contraseña.", "error");
+      return;
+    }
+    try {
+      const resp = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const result = await resp.json();
+
+      if (result?.success) {
+        closeAnyModal();
+        showToast(result.message || `Bienvenido(a), ${result.user.nombre.split(" ")[0]}!`, "success");
+        
+        // El carrito no debe redirigir inmediatamente,
+        // solo debe actualizar el estado de la UI
+        globalState.isAuthenticated = true;
+        globalState.user = result.user;
+        updateUIForAuthState();
+        
+        // (Si el usuario es admin, etc., verá los botones de "Mi Panel"
+        // y podrá decidir si se va o sigue comprando)
+
+      } else {
+        showToast(result?.message || "Credenciales incorrectas.", "error");
+      }
+    } catch {
+      showToast("Error de conexión con el servidor.", "error");
+    }
   });
 }
 
@@ -122,8 +176,18 @@ function updateUIForAuthState() {
 
   if (globalState.isAuthenticated) {
     const userName = globalState.user.nombre.split(" ")[0] || globalState.user.rol;
+    
+    // Determinar a dónde debe ir el botón "Mi Panel"
+    let panelHref = "/index.html";
+    const r = (globalState.user?.rol || "").toLowerCase();
+    if (r.includes("admin")) panelHref = "/assets/admin/admin.html";
+    else if (r.includes("gerente")) panelHref = "/gerente/gerente.html";
+    else if (r.includes("trabajador")) panelHref = "/trabajador/trabajador.html";
+    else if (r.includes("comprador") || r.includes("usuario")) panelHref = "/comprador/comprador.html";
+    
     actionsContainer.innerHTML = `
       ${cartIconHTML}
+      <a class="btn top-btn ghost" href="${panelHref}">Mi panel</a>
       <span class="welcome-message">Hola, ${userName}!</span>
       <button class="btn top-btn ghost" data-action="logout">Cerrar Sesión</button>
     `;
@@ -240,10 +304,18 @@ function renderCartItems() {
 function changeQty(id, delta) {
   const item = cartState.items.find((i) => i.id === id);
   if (!item) return;
+  
+  // No permitir más de 1 por ser artículos únicos
+  if (delta > 0 && item.qty >= 1) {
+    showToast("Este es un artículo de colección único. Solo puedes añadir 1.", "error");
+    return;
+  }
+
   item.qty += delta;
   if (item.qty <= 0) {
     cartState.items = cartState.items.filter((i) => i.id !== id);
   }
+  
   saveCart();
   if (cartState.items.length === 0) {
     document.getElementById("cart-empty").hidden = false;

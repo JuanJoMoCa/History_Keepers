@@ -4,7 +4,7 @@
 
 // ---- Estado y datos base (catálogo mínimo para home/buscar/slider)
 const state = {
-  viewModes: { catalogo: "grid", buscar: "list" }, // defaults
+  viewModes: { catalogo: "grid", buscar: "list" },
   lastSearch: [],
   lastCatalogFilter: null,
   index: 0,
@@ -12,61 +12,7 @@ const state = {
   slides: [],
   isAuthenticated: false,
   user: { rol: "invitado", nombre: "Invitado" },
-  products: [
-    {
-      id: "jersey-1998",
-      name: "Jersey Retro 1998",
-      price: 3500,
-      discountPercent: 20,
-      stock: 5,
-      category: "Fútbol",
-      images: ["assets/products/jersey1998-1.jpg","assets/products/jersey1998-2.jpg","assets/products/jersey1998-3.jpg"],
-      description: "Edición histórica de club, excelente estado de conservación.",
-      highlights: ["Tallas M y L","Original","Coleccionable"]
-    },
-    {
-      id: "balon-firmado",
-      name: "Balón Firmado",
-      price: 6800,
-      stock: 3,
-      category: "Fútbol",
-      images: ["assets/products/balon-1.jpg","assets/products/balon-2.jpg"],
-      description: "Balón autografiado con certificado de autenticidad.",
-      highlights: ["Incluye certificado","Edición limitada"]
-    },
-    {
-      id: "tarjeta-1986",
-      name: "Tarjeta Rookie 1986",
-      price: 4200,
-      discountPercent: 20,
-      stock: 2,
-      category: "Básquetbol",
-      images: ["assets/products/rookie1986-1.jpg","assets/products/rookie1986-2.jpg"],
-      description: "Tarjeta rookie clásica, ideal para marcos y exhibición.",
-      highlights: ["Grado de conservación alto","Serie especial"]
-    },
-    {
-      id: "guantes-2005",
-      name: "Guantes de Portero 2005",
-      price: 2100,
-      stock: 8,
-      category: "Fútbol",
-      images: ["assets/products/guantes2005-1.jpg"],
-      description: "Modelo profesional de archivo 2005.",
-      highlights: ["Pieza de archivo","Material original"]
-    },
-    {
-      id: "gorra pokemon",
-      name: "Gorra Pokemon",
-      price: 9100,
-      discountPercent: 20,
-      stock: 10,
-      category: "Anime",
-      images: [""],
-      description: "Modelo profesional de archivo 2005.",
-      highlights: ["Pieza de archivo","Material original"]
-    }
-  ]
+  products: [] // <-- Se cargará desde la API
 };
 
 // ---- Utilidades
@@ -94,20 +40,14 @@ function normalizeStr(s) {
 // Crea un léxico simple para autocompletar (una sola vez)
 function buildSuggestionLexicon() {
   if (state._lexicon) return state._lexicon;
-
   const base = new Set();
   const add = (txt = "") =>
     txt.split(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]+/).forEach(w => {
       if (w && w.length >= 3) base.add(w.toLowerCase());
     });
-
   state.products.forEach(p => { add(p.name); add(p.category); add(p.description); });
-
-  // Unos términos genéricos útiles
-  ["jersey","balón","balones","gorra","gorras","gorro","tarjeta","rookie",
-   "guantes","portero","retro","firmado","anime","fútbol","basquetbol",
-   "básquetbol","béisbol","beisbol"].forEach(add);
-
+  // Términos genéricos
+  ["jersey","balón","gorra","tarjeta","guantes","fútbol","basquetbol","béisbol", "formula 1", "boxeo", "voleibol"].forEach(add);
   state._lexicon = Array.from(base).sort();
   return state._lexicon;
 }
@@ -119,19 +59,31 @@ function getImages(p) {
 
 // Devuelve {oldPrice, discountPct} si hay oferta; soporta oldPrice o discountPercent
 function getOffer(p) {
-  const oldPrice = (p.oldPrice && p.oldPrice > p.price) ? p.oldPrice : null;
-  const discountPct = p.discountPercent != null
-    ? Math.round(p.discountPercent)
-    : (oldPrice ? Math.round(100 - (p.price / oldPrice) * 100) : null);
-  return { oldPrice, discountPct };
+  const price = p.price || 0;
+  const discount = p.discount || 0; // p.discount es el porcentaje
+  
+  if (discount > 0) {
+    const finalPrice = price * (1 - discount / 100);
+    return {
+      finalPrice: finalPrice,
+      oldPrice: price, // El precio original
+      discountPct: discount
+    };
+  } else {
+    return {
+      finalPrice: price,
+      oldPrice: null,
+      discountPct: 0
+    };
+  }
 }
 
 function createMiniProductCard(p) {
   const imgs = getImages(p);
-  const { oldPrice, discountPct } = getOffer(p);
+  const { finalPrice, oldPrice, discountPct } = getOffer(p);
 
   return `
-    <div class="card product-card mini h-item" data-id="${p.id}">
+    <div class="card product-card mini h-item" data-id="${p._id}">
       <div class="pc-media">
         <img class="pc-img" src="${imgs[0]}" alt="${p.name}">
         ${discountPct ? `<span class="pc-badge">${discountPct}% OFF</span>` : ``}
@@ -139,7 +91,7 @@ function createMiniProductCard(p) {
       <div class="pc-body">
         <div class="pc-title">${p.name}</div>
         <div class="pc-price">
-          <span class="pc-current">${formatPrice(p.price)}</span>
+          <span class="pc-current">${formatPrice(finalPrice)}</span>
           ${oldPrice ? `<span class="pc-old">${formatPrice(oldPrice)}</span>` : ``}
         </div>
       </div>
@@ -177,28 +129,45 @@ function showToast(message, type = "success") {
 
 // ================================================================
 // Inicialización (solo elementos presentes en index.html)
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  // 1. Conectar lógica de modales y login
   wireTopbarModals();
   wireAuthForms();
-  updateUIForAuthState();
+  updateUIForAuthState(); // (Esto leerá si el usuario ya está logueado)
 
+  // 2. Cargar los productos REALES desde la API
+  await loadProducts();
+  
+  // 3. Inicializar el resto de la UI
   if (document.querySelector(".slider")) {
-    initSlider().then(() => {
-      buildMenu();
-      wireFooterLinks();
-      setActive("inicio");         // <- antes decía "home"
-      wireSliderControls();
-    });
-  } else {
-    buildMenu();
-    wireFooterLinks();
-    setActive("inicio");           // <- antes decía "home"
+    await initSlider();
+    wireSliderControls();
   }
-
+  
+  buildMenu();
+  wireFooterLinks();
+  setActive("inicio"); // Cargar la pestaña de inicio por defecto
+  
+  // 4. Listener global de 'Escape'
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeAnyModal();
   });
 });
+
+async function loadProducts() {
+  try {
+    const response = await fetch('/api/products?limit=1000'); // Pedir todos
+    if (!response.ok) {
+      throw new Error('No se pudieron cargar los productos');
+    }
+    const data = await response.json();
+    state.products = data.items || []; // Guardar productos en el estado
+  } catch (error) {
+    console.error(error);
+    showToast("Error al cargar productos de la tienda.", "error");
+    state.products = []; // Usar array vacío si falla
+  }
+}
 
 async function initSlider() {
   try {
@@ -220,8 +189,8 @@ async function initSlider() {
 
 function renderProductsHTML(products, mode = "grid", { center = false } = {}) {
   const wrapperClass = mode === "grid"
-    ? `grid ${center ? "grid-center" : ""}`  // centrado sólo si quieres
-    : "list-vertical";                       // lista vertical (no centrada)
+    ? `grid ${center ? "grid-center" : ""}`
+    : "list-vertical";
   return `<div class="${wrapperClass}" style="margin-top:10px;">
     ${products.map(createProductCard).join("")}
   </div>`;
@@ -413,11 +382,15 @@ function setActive(key) {
 
 function createProductCard(p) {
   const imgs = getImages(p);
-  const { oldPrice, discountPct } = getOffer(p);
+  const { finalPrice, oldPrice, discountPct } = getOffer(p); // Usar la nueva lógica
   const primary = imgs[0];
 
+  // IMPORTANTE:
+  // 1. data-id ahora usa p._id
+  // 2. El <a> ahora usa p._id
+  // 3. Los precios usan finalPrice y oldPrice
   return `
-    <div class="card product-card" data-id="${p.id}" tabindex="0">
+    <div class="card product-card" data-id="${p._id}" tabindex="0">
       <div class="pc-media">
         <img class="pc-img" src="${primary}" alt="${p.name}">
         ${discountPct ? `<span class="pc-badge">${discountPct}% OFF</span>` : ``}
@@ -426,11 +399,11 @@ function createProductCard(p) {
       <div class="pc-body">
         <div class="pc-title">${p.name}</div>
         <div class="pc-price">
-          <span class="pc-current">${formatPrice(p.price)}</span>
+          <span class="pc-current">${formatPrice(finalPrice)}</span>
           ${oldPrice ? `<span class="pc-old">${formatPrice(oldPrice)}</span>` : ``}
           ${discountPct ? `<span class="pc-off">${discountPct}% OFF</span>` : ``}
         </div>
-        <a class="btn" href="/producto/producto.html?id=${encodeURIComponent(p.id)}">Ver</a>
+        <a class="btn" href="/producto/producto.html?id=${encodeURIComponent(p._id)}">Ver</a>
       </div>
     </div>
   `;
@@ -694,6 +667,39 @@ function renderBuscar() {
   const sBox  = content.querySelector("#suggestions");
   const words = buildSuggestionLexicon();
 
+  function closeAnyModal() {
+    document.querySelectorAll("dialog[open]").forEach(d => d.close("cancel"));
+  }
+
+  function wireTopbarModals() {
+  const dlgLogin = document.getElementById("dlg-login");
+  const dlgRegister = document.getElementById("dlg-register");
+
+  document.querySelectorAll('.actions [data-open]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const which = btn.getAttribute('data-open');
+      if (which === 'login') dlgLogin?.showModal();
+      if (which === 'register') dlgRegister?.showModal();
+    });
+  });
+
+  [dlgLogin, dlgRegister].forEach(dlg => {
+    if (!dlg) return;
+    dlg.addEventListener("click", (e) => {
+      if (e.target === dlg) dlg.close("cancel");
+    });
+  });
+
+  document.querySelectorAll("[data-switch]").forEach(link => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const target = link.dataset.switch;
+      closeAnyModal();
+      document.getElementById(`dlg-${target}`)?.showModal();
+    });
+  });
+}
+
   function renderSuggestions(prefix) {
     const p = normalizeStr(prefix.trim());
     if (p.length < 2) { sBox.classList.add("hidden"); sBox.innerHTML = ""; return; }
@@ -797,7 +803,7 @@ function wireAuthForms() {
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
 
-  // Registro (opcional; usa tu backend)
+  // Registro (Conectado a la API)
   registerForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(registerForm);
@@ -846,15 +852,17 @@ function wireAuthForms() {
       }
 
       state.isAuthenticated = true;
-      state.user = { ...data.user }; // { nombre, email, rol }
-      // Persistencia opcional:
-      // localStorage.setItem("hk_user", JSON.stringify(state.user));
-
+      state.user = { ...data.user };
+      
       document.getElementById("dlg-login")?.close();
       updateUIForAuthState();
       showToast(`¡Bienvenido(a), ${state.user.nombre.split(" ")[0]}!`, "success");
 
-      redirectByRole(state.user.rol);
+      // AÑADIDO: Retraso de 1 segundo para la redirección
+      setTimeout(() => {
+        redirectByRole(state.user.rol);
+      }, 1000);
+
     } catch {
       showToast("Error de red al iniciar sesión.", "error");
     }
@@ -869,37 +877,49 @@ function redirectByRole(rol = "") {
   if (r.includes("comprador") || r.includes("usuario")) {
     window.location.href = "/comprador/comprador.html"; return;
   }
-  window.location.href = "/index.html";
+  // Si no es un rol especial, nos quedamos en index.
+  // window.location.href = "/index.html";
 }
 
 function wireProductCardHover(scopeEl) {
   const cards = scopeEl.querySelectorAll('.product-card');
   cards.forEach(card => {
     const id = card.dataset.id;
-    const p = state.products.find(x => x.id === id);
+    const p = state.products.find(x => x._id === id); // <-- CORREGIDO a _id
+    if (!p) return; // Producto no encontrado
+
     const imgs = getImages(p);
-    if (imgs.length <= 1) return;          // si no hay más de una, no ciclamos
-
     const imgEl = card.querySelector('.pc-img');
-    let i = 0, t = null;
+    
+    // 1. Lógica de clic para redireccionar
+    card.addEventListener('click', (e) => {
+      // Evitar que el clic se dispare si se hizo clic en el botón "Ver"
+      if (e.target.closest('a.btn')) {
+        return;
+      }
+      // Redirigir a la página del producto
+      window.location.href = `/producto/producto.html?id=${p._id}`;
+    });
 
+    // 2. Lógica de hover para ciclar imágenes
+    if (imgs.length <= 1) return;
+    let i = 0, t = null;
     const start = () => {
       if (t) return;
       t = setInterval(() => {
         i = (i + 1) % imgs.length;
-        imgEl.src = imgs[i];
-      }, 1200); // cambia cada 1.2s mientras el puntero está encima
+        if(imgEl) imgEl.src = imgs[i];
+      }, 1200);
     };
     const stop = () => {
       if (t) clearInterval(t);
       t = null;
       i = 0;
-      imgEl.src = imgs[0];                 // regresar a la primera
+      if(imgEl) imgEl.src = imgs[0];
     };
 
     card.addEventListener('mouseenter', start);
     card.addEventListener('mouseleave', stop);
-    // accesible con teclado
     card.addEventListener('focusin', start);
     card.addEventListener('focusout', stop);
   });
@@ -935,7 +955,8 @@ function updateUIForAuthState() {
       <button class="btn top-btn" data-open="login">Login</button>
       <button class="btn top-btn" data-open="register">Registrarse</button>
     `;
-    wireTopbarModals();
+    // El listener para data-open se añade en wireTopbarModals
+    wireTopbarModals(); 
   }
 }
 
@@ -945,3 +966,5 @@ function handleLogout() {
   updateUIForAuthState();
   showToast("Sesión cerrada correctamente.", "success");
 }
+
+

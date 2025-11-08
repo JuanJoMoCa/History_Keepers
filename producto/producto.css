@@ -527,3 +527,36 @@ footer {
     max-height: 360px;
   }
 }
+
+.price-container {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap; /* Para que se ajuste en móviles */
+  gap: 12px;
+  margin: 10px 0 6px;
+}
+
+/* Precio actual (con o sin descuento) */
+.price-current {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+/* Precio original (tachado) */
+.price-original {
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: var(--muted);
+  text-decoration: line-through;
+  line-height: 1;
+}
+
+/* Etiqueta de descuento (ej. 30% OFF) */
+.price-discount-badge {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #16a34a; /* Verde de éxito */
+  line-height: 1;
+}

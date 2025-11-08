@@ -275,9 +275,28 @@ function renderProduct(product) {
   document.title = `${product.name} — History Keepers`;
   document.getElementById("bc-name").textContent = product.name;
   document.getElementById("p-title").textContent = product.name;
-  document.getElementById("p-price").textContent = formatPrice(product.price);
-  // El campo de stock ya no existe
   document.getElementById("p-desc").textContent = product.description;
+
+  // --- NUEVA LÓGICA DE PRECIO ---
+  const priceContainer = document.getElementById("p-price-container");
+  const price = product.price;
+  const discount = product.discount || 0;
+
+  if (discount > 0) {
+    // Si hay descuento
+    const newPrice = price * (1 - discount / 100);
+    priceContainer.innerHTML = `
+      <span class="price-current">${formatPrice(newPrice)}</span>
+      <span class="price-original">${formatPrice(price)}</span>
+      <span class="price-discount-badge">${discount}% OFF</span>
+    `;
+  } else {
+    // Si no hay descuento
+    priceContainer.innerHTML = `
+      <span class="price-current">${formatPrice(price)}</span>
+    `;
+  }
+  // --- FIN DE LÓGICA DE PRECIO ---
 
   // Highlights
   const hList = document.getElementById("p-highlights");
@@ -296,8 +315,7 @@ function renderProduct(product) {
   const images = product.images || [];
 
   if (images.length > 0) {
-    mainImg.src = images[0]; // Muestra la primera imagen
-
+    mainImg.src = images[0];
     images.forEach((imgSrc, index) => {
       const thumbDiv = document.createElement("div");
       thumbDiv.className = "thumb";
@@ -317,7 +335,6 @@ function renderProduct(product) {
       thumbsContainer.appendChild(thumbDiv);
     });
   } else {
-    // Si no hay imágenes, muestra el placeholder
     mainImg.src = ph(product.name);
   }
 
@@ -326,34 +343,38 @@ function renderProduct(product) {
 }
 
 function wireProductActions(product) {
+  
+  // --- Calcular el precio final ---
+  const price = product.price;
+  const discount = product.discount || 0;
+  const finalPrice = (discount > 0) ? price * (1 - discount / 100) : price;
+
   document.getElementById("add-cart")?.addEventListener("click", () => {
-    const qty = document.getElementById("qty").valueAsNumber || 1;
+    // El qty ya no existe en el HTML, lo forzamos a 1 (pieza única)
+    const qty = 1; 
     const cart = JSON.parse(localStorage.getItem("hk_cart") || "[]");
     
-    // CORREGIDO: Usar _id de MongoDB
     const existing = cart.find((i) => i.id === product._id); 
     
     if (existing) {
       existing.qty += qty;
     } else {
-      // CORREGIDO: Guardar _id y la primera imagen
       cart.push({ 
         id: product._id, 
         name: product.name, 
-        price: product.price, 
+        price: finalPrice, // <-- USA EL PRECIO FINAL
         qty,
         image: (product.images && product.images[0]) ? product.images[0] : ph(product.name)
       });
     }
     localStorage.setItem("hk_cart", JSON.stringify(cart));
-    showToast(`Se agregaron ${qty} "${product.name}" al carrito.`, "success");
+    showToast(`Se agregó "${product.name}" al carrito.`, "success");
   });
 
   document.getElementById("buy-now")?.addEventListener("click", () => {
-    const qty = document.getElementById("qty").valueAsNumber || 1;
+    const qty = 1; // Pieza única
     const cart = JSON.parse(localStorage.getItem("hk_cart") || "[]");
     
-    // CORREGIDO: Usar _id de MongoDB
     const existing = cart.find((i) => i.id === product._id);
     
     if (existing) {
@@ -362,7 +383,7 @@ function wireProductActions(product) {
       cart.push({ 
         id: product._id, 
         name: product.name, 
-        price: product.price, 
+        price: finalPrice, // <-- USA EL PRECIO FINAL
         qty,
         image: (product.images && product.images[0]) ? product.images[0] : ph(product.name)
       });
