@@ -151,13 +151,13 @@ document.addEventListener("DOMContentLoaded", () => {
     initSlider().then(() => {
       buildMenu();
       wireFooterLinks();
-      setActive("home");
+      setActive("inicio");         // <- antes decía "home"
       wireSliderControls();
     });
   } else {
     buildMenu();
     wireFooterLinks();
-    setActive("home");
+    setActive("inicio");           // <- antes decía "home"
   }
 
   window.addEventListener("keydown", (e) => {
@@ -262,6 +262,12 @@ function restartAuto() { stopAuto(); startAuto(); }
 // ================================================================
 // Menú + Secciones (index)
 const sections = {
+  inicio: `
+    <div class="card section-center">
+      <h2>Inicio</h2>
+      <p class="small">Bienvenido a History Keepers. Usa las pestañas para explorar el sitio.</p>
+    </div>
+  `,
   home: `
     <div class="card section-center">
       <h2>Explora por Deporte</h2>
@@ -313,6 +319,7 @@ function buildMenu() {
   if (!nav) return;
 
   const items = [
+    { key: "inicio",   label: "Inicio" },
     { key: "home", label: "Deportes" },
     { key: "catalogo", label: "Catálogo" },
     { key: "buscar", label: "Buscar" }
@@ -329,6 +336,7 @@ function buildMenu() {
     });
   });
 }
+
 function wireFooterLinks() {
   document.querySelectorAll('footer [data-key]').forEach(a => {
     a.addEventListener('click', e => {
