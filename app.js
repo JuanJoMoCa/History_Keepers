@@ -126,6 +126,41 @@ function getOffer(p) {
   return { oldPrice, discountPct };
 }
 
+function createMiniProductCard(p) {
+  const imgs = getImages(p);
+  const { oldPrice, discountPct } = getOffer(p);
+
+  return `
+    <div class="card product-card mini h-item" data-id="${p.id}">
+      <div class="pc-media">
+        <img class="pc-img" src="${imgs[0]}" alt="${p.name}">
+        ${discountPct ? `<span class="pc-badge">${discountPct}% OFF</span>` : ``}
+      </div>
+      <div class="pc-body">
+        <div class="pc-title">${p.name}</div>
+        <div class="pc-price">
+          <span class="pc-current">${formatPrice(p.price)}</span>
+          ${oldPrice ? `<span class="pc-old">${formatPrice(oldPrice)}</span>` : ``}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCarousel(products) {
+  return `<div class="h-carousel">
+    ${products.map(createMiniProductCard).join("")}
+  </div>`;
+}
+
+function renderImageStrip(imgs = []) {
+  if (!imgs.length) return '';
+  return `<div class="image-strip">
+    ${imgs.map(src => `<img src="${src}" alt="Coleccionable">`).join("")}
+  </div>`;
+}
+
+
 
 // ================================================================
 // Toast (global)
@@ -346,14 +381,15 @@ function wireFooterLinks() {
     });
   });
 }
+
 function setActive(key) {
   document.querySelectorAll("nav.menu a").forEach(a => {
     a.classList.toggle("active", a.dataset.key === key);
   });
-
   const content = document.querySelector("section.content");
   if (!content) return;
 
+  if (key === "inicio") { renderInicio(); return; }
   if (key === "home") {
     content.innerHTML = sections[key] || "";
     content.querySelectorAll('.category-card').forEach(card => {
@@ -366,9 +402,10 @@ function setActive(key) {
       });
     });
     return;
+    
   }
-
-  if (key === "catalogo") { renderCatalog(); return; }
+    
+  if (key === "catalogo"){ renderCatalog(); return; }
   if (key === "buscar")  { renderBuscar();  return; }
 
   content.innerHTML = sections[key] || "";
@@ -398,6 +435,181 @@ function createProductCard(p) {
     </div>
   `;
 }
+
+function renderInicio() {
+  const content = document.querySelector("section.content");
+  if (!content) return;
+
+  const imgsAll = state.products.flatMap(p => getImages(p));
+  const img1 = imgsAll[0] || ph("Ofertas");
+  const img2 = imgsAll[1] || ph("Primera compra");
+  const img3 = imgsAll[2] || ph("Esenciales");
+  const img4 = imgsAll[3] || ph("Favoritos");
+
+  const withOffer = state.products.filter(p => getOffer(p).discountPct);
+  const ofertas    = withOffer.length ? withOffer : state.products.slice(0, 6);
+  const destacados = state.products.slice(0, 10);
+  const visualImgs = (imgsAll.length ? imgsAll : [
+    ph("Jersey"), ph("Balón"), ph("Tarjeta"), ph("Guantes"), ph("Poster")
+  ]).slice(0, 12);
+
+  content.innerHTML = `
+    <!-- NUEVA franja superior (4 paneles) -->
+    <section class="tpanels">
+      <article class="tpanel">
+        <div class="tp-copy">
+          <small>DESTACADOS</small>
+          <h3>Ofertas en tendencia</h3>
+          <a class="tp-link" href="#" data-key="catalogo">Ver más</a>
+        </div>
+        <div class="tp-img" style="background-image:url('${img1}')"></div>
+      </article>
+
+      <article class="tpanel">
+        <div class="tp-copy">
+          <small>NUEVO</small>
+          <h3>Tu primera compra</h3>
+          <a class="tp-link" href="#" data-key="catalogo">Explorar catálogo</a>
+        </div>
+        <div class="tp-img" style="background-image:url('${img2}')"></div>
+      </article>
+
+      <article class="tpanel">
+        <div class="tp-copy">
+          <small>PROMOS</small>
+          <h3>Hasta 25% en coleccionables</h3>
+          <a class="tp-link" href="#" data-key="catalogo">Descubrir</a>
+        </div>
+        <div class="tp-img" style="background-image:url('${img3}')"></div>
+      </article>
+
+      <article class="tpanel">
+        <div class="tp-copy">
+          <small>TUS FAVORITOS</small>
+          <h3>Colecciones más vistas</h3>
+          <a class="tp-link" href="#" data-key="catalogo">Ver ahora</a>
+        </div>
+        <div class="tp-img" style="background-image:url('${img4}')"></div>
+      </article>
+    </section>
+
+    <!-- Grilla principal -->
+    <div class="home-sections">
+      <!-- Ofertas en tendencia (más ancho) -->
+      <section class="card h-card h-span-2">
+        <div class="section-head">
+          <h3>Ofertas en tendencia</h3>
+          <a href="#" data-key="catalogo">Ver más</a>
+        </div>
+        ${renderCarousel(ofertas)}
+      </section>
+
+      <!-- Comienza con tu elección -->
+      <section class="card h-card">
+        <div class="section-head">
+          <h3>Comienza con tu elección</h3>
+          <a href="#" data-key="catalogo">Explorar catálogo</a>
+        </div>
+        <p class="small">Compra en cualquier categoría y encuentra piezas históricas.</p>
+        <div style="aspect-ratio:3/2; border-radius:12px; border:1px solid var(--border);
+             background:url('/assets/Categorias/futbol.jpg') center/cover no-repeat;"></div>
+      </section>
+
+      <!-- Explora por categoría (a todo el ancho, más abajo) -->
+      <section class="card h-card h-span-3">
+        <div class="section-head"><h3>Explora por categoría</h3></div>
+        <div class="tile-grid">
+          <div class="tile" data-category="Fútbol"
+               style="background-image:url('/assets/Categorias/futbol.jpg');"><h4>Fútbol</h4></div>
+          <div class="tile" data-category="Básquetbol"
+               style="background-image:url('/assets/Categorias/basket.jpg');"><h4>Básquetbol</h4></div>
+          <div class="tile" data-category="Béisbol"
+               style="background-image:url('/assets/Categorias/beisbol.jpg');"><h4>Béisbol</h4></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- (MOVIDOS ABAJO) Banners “dos mitades” -->
+    <div class="promo-row">
+      <section class="promo">
+        <div class="p-copy">
+          <small class="muted">ENVÍOS DESDE USA</small>
+          <h3>Mundo gamer — hasta 40% OFF</h3>
+          <a class="p-link" href="#" data-key="catalogo">Ver más</a>
+        </div>
+        <div class="p-img" style="background-image:url('${imgsAll[4] || ph("Gamer")}');"></div>
+      </section>
+      <section class="promo">
+        <div class="p-copy">
+          <small class="muted">OFERTAS</small>
+          <h3>Hasta 50% de descuento</h3>
+          <a class="p-link" href="#" data-key="catalogo">Ver más</a>
+        </div>
+        <div class="p-img" style="background-image:url('${imgsAll[5] || ph("Ofertas")}');"></div>
+      </section>
+    </div>
+
+    <!-- Videojuegos antiguos -->
+    <section class="card h-card" style="margin-top:16px;">
+      <div class="section-head">
+        <h3>Videojuegos antiguos</h3>
+        <a href="#" data-key="catalogo">Ver más</a>
+      </div>
+      ${renderImageStrip([
+        ph("NES"), ph("SNES"), ph("Game Boy"), ph("N64"), ph("PS1"), ph("Dreamcast"),
+        ph("Arcade"), ph("Mega Drive")
+      ])}
+    </section>
+
+    <!-- Solo imágenes -->
+    <section class="card h-card" style="margin-top:16px;">
+      <div class="section-head"><h3>Solo imágenes — lo más visual</h3></div>
+      ${renderImageStrip((imgsAll.length ? imgsAll : [
+        ph("Jersey"), ph("Balón"), ph("Tarjeta"), ph("Guantes"), ph("Poster")
+      ]).slice(0,12))}
+    </section>
+
+    <!-- Nuevos y destacados -->
+    <section class="card h-card" style="margin-top:16px;">
+      <div class="section-head">
+        <h3>Nuevos y destacados</h3>
+        <a href="#" data-key="catalogo">Ver más</a>
+      </div>
+      ${renderCarousel(destacados)}
+    </section>
+
+    <!-- Métodos de pago (queda al final) -->
+    <section class="card h-card" style="margin-top:16px;">
+      <div class="section-head"><h3>Descubre nuestros métodos de pago</h3></div>
+      <div class="pay-strip">
+        <div class="pay-item"><svg class="pay-icon" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><rect x="16" y="14" width="4" height="3" rx="1"/></svg>Crédito y débito</div>
+        <div class="pay-item"><svg class="pay-icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M5 9h0M19 9h0M5 15h0M19 15h0"/></svg>Efectivo</div>
+        <div class="pay-item"><svg class="pay-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>Pago a meses</div>
+        <div class="pay-item"><svg class="pay-icon" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="2"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="12" y1="8" x2="12" y2="20"/><path d="M12 8c-1.6-.5-3-1.8-3-3a2 2 0 1 1 4 0c0 1.2-1.2 2.5-3 3 M12 8c1.6-.5 3-1.8 3-3a2 2 0 1 0-4 0c0 1.2 1.2 2.5 3 3"/></svg>Tarjeta de regalo</div>
+        <div class="pay-item"><svg class="pay-icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M8 12l-2 2 2 2"/><path d="M16 12l2-2-2-2"/><line x1="10" y1="14" x2="14" y2="10"/></svg>Transferencia</div>
+      </div>
+    </section>
+  `;
+
+  // Navegación desde “Inicio”
+  content.querySelectorAll('[data-key="catalogo"]').forEach(a => {
+    a.addEventListener('click', e => { e.preventDefault(); setActive('catalogo'); });
+  });
+  content.querySelectorAll('.tile[data-category]').forEach(t => {
+    t.addEventListener('click', () => {
+      renderCatalog(t.dataset.category);
+      document.querySelectorAll("nav.menu a").forEach(a =>
+        a.classList.toggle("active", a.dataset.key === 'catalogo'));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  // Hover-carrusel para mini-products
+  wireProductCardHover(content);
+}
+
+
+
 
 function renderCatalog(filterCategory = null) {
   const content = document.querySelector("section.content");
