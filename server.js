@@ -105,6 +105,28 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const productsCol = db.collection('products');
+    
+    // Buscar el producto por su ObjectId
+    const product = await productsCol.findOne({ _id: new ObjectId(id) });
+
+    if (!product) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+    
+    res.json(product); // Devuelve el producto encontrado
+  } catch (error) {
+    // Manejo de error si el ID no es válido
+    if (error.name === 'BSONTypeError') {
+      return res.status(404).json({ message: 'ID de producto no válido' });
+    }
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // 2. CREAR (POST) - Modificado para recibir FormData y archivos
 // upload.array('images', 5) significa: "acepta hasta 5 archivos del campo 'images'"
 app.post('/api/products', upload.array('images', 5), async (req, res) => {
