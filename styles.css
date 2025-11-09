@@ -676,3 +676,36 @@ section.content { padding: 14px 0 50px; }
   min-height: 280px;                    /* que coincida con el panel */
   background: #e9e4d9 center/cover no-repeat;
 }
+
+/* ===== Catálogo por temáticas ===== */
+.theme-nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0 4px;
+}
+
+.chip {
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 10%, #fff);
+  padding: 8px 12px;
+  border-radius: 9999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.chip:hover {
+  background: color-mix(in srgb, var(--accent) 18%, #fff);
+}
+
+.theme-section {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.theme-section .section-head {
+  margin-bottom: 12px;
+}

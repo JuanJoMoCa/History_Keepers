@@ -5,6 +5,7 @@
 // ---- Estado y datos base (catálogo mínimo para home/buscar/slider)
 const state = {
   viewModes: { catalogo: "grid", buscar: "list" },
+  catalogoLayout: "themed", // ← NUEVO: 'themed' o 'flat'
   lastSearch: [],
   lastCatalogFilter: null,
   index: 0,
@@ -12,8 +13,44 @@ const state = {
   slides: [],
   isAuthenticated: false,
   user: { rol: "invitado", nombre: "Invitado" },
-  products: [] // <-- Se cargará desde la API
+  products: []
 };
+
+// ---- Temáticas (reglas simples por palabras clave/categorías)
+const THEMES = [
+  { id: "destacados", title: "Destacados", test: (p, txt) => p.featured === true || p.rating >= 4.5 },
+  { id: "ofertas", title: "Ofertas", test: (p) => getOffer(p).discountPct > 0 },
+  { id: "retro", title: "Retro / Vintage", test: (_, txt) => /retro|vintage|clásic|199|198|197/.test(txt) },
+  { id: "firmados", title: "Firmados y certificados", test: (_, txt) => /firmad|autenticad|certificad|autograph|signature/.test(txt) },
+  { id: "tarjetas", title: "Tarjetas coleccionables", test: (_, txt) => /tarjeta|trading\s?card|rookie|panini|upper\s?deck|topps|carta/.test(txt) },
+  { id: "jerseys", title: "Jerseys", test: (_, txt) => /jersey|camiset|playera/.test(txt) },
+  { id: "balones", title: "Balones", test: (_, txt) => /bal[oó]n|ball/.test(txt) },
+  { id: "futbol", title: "Fútbol", test: (p, txt) => (p.category || "").toLowerCase() === "fútbol" || /f[úu]tbol|soccer|liga|mundial/.test(txt) },
+  { id: "basquet", title: "Básquetbol", test: (p, txt) => (p.category || "").toLowerCase() === "básquetbol" || /b[áa]squet|basket|nba|jordan|kobe|lebron/.test(txt) },
+  { id: "beis", title: "Béisbol", test: (p, txt) => (p.category || "").toLowerCase() === "béisbol" || /b[ée]isbol|mlb|yankees|dodgers/.test(txt) },
+  { id: "f1", title: "F1 / Automovilismo", test: (_, txt) => /f1|fórmula\s?1|formula\s?1|automovil|automotor|ferrar|mercedes|red\s?bull|verstappen|hamilton/.test(txt) },
+  { id: "boxeo", title: "Boxeo", test: (_, txt) => /boxeo|canelo|tyson|boxer|wbc|wbo|ibf/.test(txt) },
+  
+];
+
+function collectText(p) {
+  // Texto combinado y normalizado para pruebas de tema
+  const joined = `${p.name || ""} ${p.description || ""} ${p.category || ""}`.trim();
+  return normalizeStr(joined);
+}
+
+function groupByThemes(products) {
+  const buckets = [];
+  for (const t of THEMES) {
+    const items = products.filter(p => {
+      const txt = collectText(p);
+      return t.test(p, txt);
+    });
+    if (items.length) buckets.push({ id: t.id, title: t.title, items });
+  }
+  return buckets;
+}
+
 
 // ---- Utilidades
 function formatPrice(n) {
@@ -76,6 +113,20 @@ function getOffer(p) {
       discountPct: 0
     };
   }
+}
+
+function isNewish(p) {
+  const now = Date.now();
+  const times = [p.createdAt, p.updatedAt, p.date]
+    .map(d => Date.parse(d))
+    .filter(n => !Number.isNaN(n));
+  if (times.length) {
+    const latest = Math.max(...times);
+    const days = (now - latest) / (1000 * 60 * 60 * 24);
+    return days <= 90; // “nuevo” = últimos 90 días
+  }
+  const txt = collectText(p);
+  return /nuevo|new|reciente|últim[ao]s|latest|2024|2025/.test(txt);
 }
 
 function createMiniProductCard(p) {
@@ -585,10 +636,15 @@ function renderInicio() {
 
 
 function renderCatalog(filterCategory = null) {
+  state.lastCatalogFilter = filterCategory ?? null;
+
+  if (state.catalogoLayout === "themed" && !filterCategory) {
+    renderCatalogThemed(null);
+    return;
+  }
+
   const content = document.querySelector("section.content");
   if (!content) return;
-
-  state.lastCatalogFilter = filterCategory ?? null;
 
   const productsToShow = filterCategory
     ? state.products.filter(p => p.category === filterCategory)
@@ -597,7 +653,7 @@ function renderCatalog(filterCategory = null) {
   const title = filterCategory ? `Catálogo: ${filterCategory}` : "Catálogo";
   const subtitle = filterCategory
     ? `Mostrando artículos de ${filterCategory}.`
-    : "Explora todos nuestros artículos destacados.";
+    : "Explora todo el catálogo en vista lista/cuadrícula.";
 
   const mode = state.viewModes.catalogo || "grid";
   const has = productsToShow.length > 0;
@@ -609,11 +665,15 @@ function renderCatalog(filterCategory = null) {
           <h2>${title}</h2>
           <p class="small">${subtitle}</p>
         </div>
-        <button class="btn icon-btn" id="toggle-catalogo"
-          title="Cambiar a vista ${mode === "grid" ? "lista" : "cuadrícula"}"
-          aria-label="Cambiar vista">
-          ${mode === "grid" ? "≡" : "▦"}
-        </button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn icon-btn" id="toggle-layout"
+            title="Ver por temáticas"></button>
+          <button class="btn icon-btn" id="toggle-catalogo"
+            title="Cambiar a vista ${mode === "grid" ? "lista" : "cuadrícula"}"
+            aria-label="Cambiar vista">
+            ${mode === "grid" ? "≡" : "▦"}
+          </button>
+        </div>
       </div>
 
       ${has
@@ -622,15 +682,93 @@ function renderCatalog(filterCategory = null) {
     </div>
   `;
 
-  // Toggle vista
+  // Toggle vista grid/list
   document.getElementById("toggle-catalogo")?.addEventListener("click", () => {
     state.viewModes.catalogo = (state.viewModes.catalogo === "grid") ? "list" : "grid";
     renderCatalog(state.lastCatalogFilter);
   });
 
-  // Hover: ciclado de imágenes
+  // Cambiar a vista temáticas
+  document.getElementById("toggle-layout")?.addEventListener("click", () => {
+    state.catalogoLayout = "themed";
+    renderCatalog(state.lastCatalogFilter);
+  });
+
   wireProductCardHover(content);
 }
+
+
+function renderCatalogThemed(filterCategory = null) {
+  const content = document.querySelector("section.content");
+  if (!content) return;
+
+  const base = filterCategory
+    ? state.products.filter(p => (p.category || "") === filterCategory)
+    : state.products;
+
+  if (!base.length) {
+    content.innerHTML = `
+      <div class="card">
+        <div class="section-head">
+          <div>
+            <h2>Catálogo por temáticas</h2>
+            <p class="small">No hay productos para mostrar.</p>
+          </div>
+          <button class="btn icon-btn" id="toggle-layout">▦</button>
+        </div>
+      </div>`;
+    document.getElementById("toggle-layout")?.addEventListener("click", () => {
+      state.catalogoLayout = "flat";
+      renderCatalog(state.lastCatalogFilter);
+    });
+    return;
+  }
+
+  const groups = groupByThemes(base);
+  const chips = groups.map(g => `<button class="chip" data-goto="${g.id}">${g.title}</button>`).join("");
+
+  content.innerHTML = `
+    <div class="card">
+      <div class="section-head">
+        <div>
+          <h2>Catálogo por temáticas</h2>
+          <p class="small">${filterCategory ? `Filtrado por categoría: ${filterCategory}. ` : ""}Explora colecciones agrupadas por interés.</p>
+        </div>
+        <button class="btn icon-btn" id="toggle-layout" title="Ver lista completa">${"≡"}</button>
+      </div>
+
+      <div class="theme-nav">${chips}</div>
+    </div>
+
+    ${groups.map(g => `
+      <section class="theme-section" id="t-${g.id}">
+        <div class="section-head">
+          <h3>${g.title}</h3>
+          <span class="muted small">${g.items.length} artículos</span>
+        </div>
+        ${renderProductsHTML(g.items, "grid", { center: true })}
+      </section>
+    `).join("")}
+  `;
+
+  // interacciones
+  document.getElementById("toggle-layout")?.addEventListener("click", () => {
+    state.catalogoLayout = "flat";
+    renderCatalog(state.lastCatalogFilter);
+  });
+
+  content.querySelectorAll(".theme-nav .chip").forEach(b => {
+    b.addEventListener("click", () => {
+      const id = b.getAttribute("data-goto");
+      const el = content.querySelector(`#t-${id}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  // Hover de productos
+  content.querySelectorAll(".theme-section").forEach(sec => wireProductCardHover(sec));
+}
+
 
 function renderBuscar() {
   const content = document.querySelector("section.content");
