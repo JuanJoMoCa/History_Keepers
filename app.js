@@ -362,7 +362,7 @@ const sections = {
         </details>
         <details class="faq-item">
           <summary>¿Tienen tienda física?</summary>
-          <p>Por el momento operamos 100% en línea para poder ofrecerte el mejor catálogo de coleccionables de todo el mundo.</p>
+          <p>Si contamos tambien con tienda fisica y entregas en fisico dentro de la ciudad.</p>
         </details>
       </div>
     </div>
