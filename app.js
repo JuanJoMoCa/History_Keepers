@@ -1106,3 +1106,25 @@ function handleLogout() {
 }
 
 
+//Lógica del botón "Regresar Arriba"
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("btn-back-to-top");
+  if (!btn) return;
+
+  // 1. Mostrar/ocultar al hacer scroll
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 300) {
+      btn.classList.add("show");
+    } else {
+      btn.classList.remove("show");
+    }
+  }, { passive: true }); // Mejora el rendimiento
+
+  // 2. Hacer clic para subir
+  btn.addEventListener("click", () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth" // Deslizamiento suave
+    });
+  });
+});

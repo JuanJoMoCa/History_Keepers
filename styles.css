@@ -709,3 +709,34 @@ section.content { padding: 14px 0 50px; }
 .theme-section .section-head {
   margin-bottom: 12px;
 }
+
+/* NUEVO: Botón "Regresar Arriba"*/
+#btn-back-to-top {
+  position: fixed; /* Se queda fijo en la pantalla */
+  bottom: 20px;
+  right: 20px;
+  z-index: 100; /* Encima de todo */
+  
+  /* Estilo del botón */
+  padding: 12px 14px;
+  border-radius: 50%; /* Lo hacemos redondo */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  font-size: 1.1rem;
+  line-height: 1;
+
+  /* Oculto por defecto */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+}
+
+#btn-back-to-top.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+#btn-back-to-top:hover {
+  transform: translateY(-2px); /* Mantiene el hover del btn */
+}
