@@ -169,3 +169,64 @@ footer {
   font-weight: 700;
   font-size: 1.05rem;
 }
+
+/* =========================================================
+   Estilos Adicionales de 'comprador.html' (Mis Pedidos)
+   ========================================================= */
+
+.orders-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.order-item {
+  border-top: 1px solid var(--border);
+  padding-top: 15px;
+}
+
+.order-item__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.order-item__header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.order-item__details {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.order-item__details strong {
+  color: var(--text); /* Color de texto normal para el estatus */
+}
+
+/* Usamos los mismos badges de estatus del admin */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+}
+.status-badge[data-status="Pagado"] {
+  background-color: #f3f4f6; color: #4b5563;
+}
+.status-badge[data-status="En Preparación"] {
+  background-color: #e0e7ff; color: #3730a3;
+}
+.status-badge[data-status="Enviado"] {
+  background-color: #d1fae5; color: #065f46;
+}
+.status-badge[data-status="Entregado"] {
+  background-color: #e5e7eb; color: #1f2937;
+}

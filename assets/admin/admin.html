@@ -84,6 +84,31 @@
         </section>
       </div>
 
+      <div id="tab-envios" class="tab-content hidden">
+        <section class="inv-card">
+          <div class="inv-card__head">
+            <div class="inv-card__title">
+              <h2>Gestión de Envíos y Pedidos</h2>
+            </div>
+          </div>
+          <div class="inv-tablewrap">
+            <table class="inv-table" id="orders-table">
+              <thead>
+                <tr>
+                  <th>N° Pedido</th>
+                  <th>Cliente</th>
+                  <th>Total</th>
+                  <th>Estatus</th>
+                  <th style="width:160px; text-align:right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="orders-tbody">
+                </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
       <div id="tab-ventas" class="tab-content hidden">
         <section class="inv-card">
           <div class="inv-card__head">
@@ -196,6 +221,60 @@
     </div>
   </div>
 </div>
+
+<div id="modalGestionPedido" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal__dialog inv-card" style="width: min(600px, 96vw);">
+      <div class="modal__head">
+        <h3 id="order-modal-title">Gestionar Pedido #HK-12345</h3>
+        <button class="modal__close" data-close-order>&times;</button>
+      </div>
+      <div class="modal__body">
+        
+        <div id="order-details" class="order-details-grid">
+          <div class="detail-item">
+            <strong>Cliente:</strong>
+            <span id="order-customer-name">Nombre del Cliente</span>
+          </div>
+          <div class="detail-item">
+            <strong>Contacto:</strong>
+            <span id="order-customer-email">cliente@email.com</span>
+          </div>
+          <div class="detail-item grid-span-2">
+            <strong>Dirección:</strong>
+            <span id="order-customer-address">Calle Falsa 123, Ciudad</span>
+          </div>
+          <div class="detail-item grid-span-2">
+            <strong>Productos:</strong>
+            <ul id="order-products-list">
+              <li>(1x) Jersey Retro 1998</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid" style="border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px;">
+          <input type="hidden" id="order-id-input">
+          
+          <label>Estatus del Pedido
+            <select id="order-status-select" name="status" class="input" required>
+              <option value="Pagado">Pagado</option>
+              <option value="En Preparación">En Preparación</option>
+              <option value="Enviado">Enviado</option>
+              <option value="Entregado">Entregado</option>
+            </select>
+          </label>
+          
+          <label>Número de Guía (Opcional)
+            <input id="order-tracking-input" name="tracking" class="input" placeholder="Ej. ESTAFETA 123456789">
+          </label>
+        </div>
+        
+      </div>
+      <div class="modal__foot">
+        <button class="btn" data-close-order>Cancelar</button>
+        <button id="save-order-status" class="btn btn--primary">Actualizar Pedido</button>
+      </div>
+    </div>
+  </div>
 
   <div id="toasts" class="toasts"></div>
 

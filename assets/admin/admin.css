@@ -492,3 +492,63 @@ body {
 .img-delete-btn:hover {
   background: var(--danger);
 }
+
+/* =========================================================
+   Estilos Adicionales para Gestión de Pedidos
+   ========================================================= */
+
+/* --- Colores de Estatus --- */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+  background-color: #eee;
+  color: #333;
+}
+.status-badge[data-status="Pagado"] {
+  background-color: #f3f4f6; /* Gris claro */
+  color: #4b5563;
+}
+.status-badge[data-status="En Preparación"] {
+  background-color: #e0e7ff; /* Azul claro */
+  color: #3730a3;
+}
+.status-badge[data-status="Enviado"] {
+  background-color: #d1fae5; /* Verde claro */
+  color: #065f46;
+}
+.status-badge[data-status="Entregado"] {
+  background-color: #e5e7eb; /* Gris (Terminado) */
+  color: #1f2937;
+}
+
+/* --- Modal de Gestión de Pedido --- */
+.order-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  font-size: 14px;
+}
+.order-details-grid .detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.order-details-grid .detail-item strong {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.order-details-grid .detail-item span {
+  color: var(--text);
+  font-size: 15px;
+}
+
+#order-products-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 15px;
+}

@@ -1,6 +1,7 @@
 /* =========================================================
    History Keepers — admin.js (Lógica del Panel de Admin)
    VERSIÓN CON SUBIDA DE ARCHIVOS (FormData)
+   Y GESTIÓN DE PEDIDOS (SIMULADA)
    ========================================================= */
 
 /********** Utils UI **********/
@@ -20,8 +21,36 @@ function toast(msg, kind = "ok") {
   setTimeout(() => div.remove(), 2500);
 }
 
-/********** Adaptador de API (MODIFICADO para FormData) **********/
+// --- DATOS DE EJEMPLO (MOCK) PARA PEDIDOS ---
+// (Esto lo moverás a tu API/BD después)
+let mockOrders = [
+  {
+    _id: "order_1", orderNumber: "HK-12345",
+    customer: { name: "Juan Pérez", email: "juan@correo.com" },
+    shippingAddress: { calle: "Av. Siempre Viva 123", ciudad: "Springfield", cp: "12345" },
+    products: [{ name: "Jersey Retro 1998", qty: 1 }, { name: "Gorra Edición Especial", qty: 2 }],
+    total: 7300, status: "Pagado", trackingNumber: ""
+  },
+  {
+    _id: "order_2", orderNumber: "HK-12346",
+    customer: { name: "Ana García", email: "ana@correo.com" },
+    shippingAddress: { calle: "Calle Falsa 456", ciudad: "Ciudad Capital", cp: "67890" },
+    products: [{ name: "Balón Firmado Leyenda", qty: 1 }],
+    total: 12800, status: "En Preparación", trackingNumber: ""
+  },
+  {
+    _id: "order_3", orderNumber: "HK-12347",
+    customer: { name: "Carlos Sánchez", email: "carlos@correo.com" },
+    shippingAddress: { calle: "Blvd. Principal 789", ciudad: "Metrópolis", cp: "10112" },
+    products: [{ name: "Tarjeta Rookie 1986", qty: 1 }],
+    total: 4200, status: "Enviado", trackingNumber: "FEDEX-987654321"
+  }
+];
+
+
+/********** Adaptador de API (Fusionado) **********/
 const api = {
+  // --- FUNCIONES DE PRODUCTOS (TU CÓDIGO) ---
   async list({ search = "", page = 1, limit = 10 } = {}) {
     const url = new URL('/api/products', window.location.origin);
     url.searchParams.set("search", search);
@@ -50,7 +79,6 @@ const api = {
     return { ok: true };
   },
 
-  // --- NUEVA FUNCIÓN API ---
   async deleteImage(productId, imagePath) {
     const r = await fetch(`/api/products/${productId}/image`, {
       method: "DELETE",
@@ -59,6 +87,33 @@ const api = {
     });
     if (!r.ok) throw new Error((await r.json()).message || "Error eliminando imagen");
     return r.json();
+  },
+
+  // --- NUEVAS FUNCIONES DE PEDIDOS (Simuladas) ---
+  async listOrders() {
+    console.log("Simulando: listOrders()");
+    // En el futuro, esto sería:
+    // const r = await fetch('/api/orders'); return r.json();
+    return Promise.resolve(mockOrders); // Devuelve los datos de ejemplo
+  },
+
+  async updateOrder(id, status, trackingNumber) {
+    console.log("Simulando: updateOrder()", { id, status, trackingNumber });
+    // En el futuro, esto sería:
+    // const r = await fetch(`/api/orders/${id}`, { 
+    //   method: "PUT",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ status, trackingNumber })
+    // });
+    // if (!r.ok) throw new Error("Error actualizando pedido");
+    
+    // Simulación: Actualizar el mock
+    const order = mockOrders.find(o => o._id === id);
+    if (order) {
+      order.status = status;
+      order.trackingNumber = trackingNumber;
+    }
+    return Promise.resolve(order);
   }
 };
 
@@ -66,6 +121,7 @@ const api = {
 const state = { page: 1, limit: 10, search: "" };
 
 const el = {
+  // --- Elementos de Productos ---
   tbody: $("#tbody"),
   meta: $("#meta"),
   page: $("#page"),
@@ -77,9 +133,16 @@ const el = {
   modalForm: $("#modalForm"),
   formTitle: $("#formTitle"),
   save: $("#save"),
+
+  // --- NUEVOS Elementos de Pedidos ---
+  ordersTbody: $("#orders-tbody"),
+  modalGestionPedido: $("#modalGestionPedido"),
+  orderModalTitle: $("#order-modal-title"),
+  orderSaveButton: $("#save-order-status")
 };
 
-// --- LÓGICA DE NAVEGACIÓN POR PESTAÑAS ---
+// --- LÓGICA DE NAVEGACIÓN POR PESTAÑAS (MODIFICADA) ---
+// (Esta función reemplaza la que tenías)
 function wireTabNavigation() {
   const navLinks = $$('.inv-nav__item[data-tab]');
   const tabContents = $$('.tab-content');
@@ -93,10 +156,18 @@ function wireTabNavigation() {
       tabContents.forEach(tab => {
         tab.classList.toggle('hidden', tab.id !== `tab-${tabId}`);
       });
+
+      // --- PARTE MODIFICADA ---
+      // Si se hace clic en "envios", carga la tabla de pedidos
+      if (tabId === 'envios') {
+        loadOrders();
+      }
+      // --- FIN DE LA MODIFICACIÓN ---
     });
   });
 }
 
+// --- LÓGICA DE PRODUCTOS (TU CÓDIGO) ---
 // Dibuja las filas de la tabla
 function renderRows(list = []) {
   el.tbody.innerHTML = list.map(p => `
@@ -140,15 +211,119 @@ async function refresh() {
   }
 }
 
+// --- NUEVAS FUNCIONES PARA PEDIDOS ---
+/**
+ * Carga y renderiza la tabla de pedidos
+ */
+async function loadOrders() {
+  try {
+    const orders = await api.listOrders();
+    renderOrdersTable(orders);
+  } catch(err) {
+    toast(err.message, 'err');
+  }
+}
+
+/**
+ * Dibuja las filas de la tabla de pedidos
+ */
+function renderOrdersTable(list = []) {
+  el.ordersTbody.innerHTML = list.map(p => `
+    <tr>
+      <td>
+        <div style="font-weight:700">${escape(p.orderNumber)}</div>
+        <div class="muted" style="font-size:12px;">${escape(p.customer.email)}</div>
+      </td>
+      <td>${escape(p.customer.name)}</td>
+      <td>${fmtMoney(p.total)}</td>
+      <td>
+        <span class="status-badge" data-status="${escape(p.status)}">
+          ${escape(p.status)}
+        </span>
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="btn" data-manage-order="${p._id}" title="Gestionar Pedido">
+            <i class="fa-solid fa-pen-to-square"></i> Gestionar
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+
+  // Conectar los nuevos botones de "Gestionar"
+  $$("button[data-manage-order]").forEach(b => 
+    b.addEventListener("click", () => openOrderModal(b.dataset.manageOrder))
+  );
+}
+
+/**
+ * Abre el modal de gestión de pedido y lo rellena con datos
+ */
+function openOrderModal(id) {
+  // Usamos los datos mock. En el futuro, podrías hacer un fetch del pedido por ID
+  const order = mockOrders.find(o => o._id === id);
+  if (!order) {
+    toast("No se encontró el pedido", "err");
+    return;
+  }
+
+  // Rellenar el modal
+  $("#order-modal-title").textContent = `Gestionar Pedido #${order.orderNumber}`;
+  $("#order-id-input").value = order._id;
+  $("#order-customer-name").textContent = order.customer.name;
+  $("#order-customer-email").textContent = order.customer.email;
+  $("#order-customer-address").textContent = `${order.shippingAddress.calle}, ${order.shippingAddress.ciudad}, C.P. ${order.shippingAddress.cp}`;
+  
+  // Rellenar productos
+  $("#order-products-list").innerHTML = order.products.map(
+    p => `<li>(${p.qty}x) ${escape(p.name)}</li>`
+  ).join("");
+
+  // Rellenar campos de formulario
+  $("#order-status-select").value = order.status;
+  $("#order-tracking-input").value = order.trackingNumber || "";
+
+  el.modalGestionPedido.classList.remove("hidden");
+}
+
+/**
+ * Cierra el modal de gestión de pedido
+ */
+function closeOrderModal() {
+  el.modalGestionPedido.classList.add("hidden");
+}
+
+/**
+ * Guarda los cambios del pedido
+ */
+async function saveOrderStatus() {
+  const id = $("#order-id-input").value;
+  const status = $("#order-status-select").value;
+  const trackingNumber = $("#order-tracking-input").value.trim();
+
+  try {
+    await api.updateOrder(id, status, trackingNumber);
+    toast("Pedido actualizado (Simulado)", "ok");
+    closeOrderModal();
+    loadOrders(); // Recarga la tabla de pedidos
+  } catch(err) {
+    toast(err.message, "err");
+  }
+}
+// --- FIN DE NUEVAS FUNCIONES ---
+
+
 /********** Handlers (Manejadores de Eventos) **********/
 
+// --- Handlers de Productos (TU CÓDIGO) ---
 el.btnNew.addEventListener("click", openCreate);
 el.btnSearch.addEventListener("click", () => { state.search = el.search.value.trim(); state.page = 1; refresh(); });
 el.search.addEventListener("keydown", e => { if (e.key === "Enter") { state.search = el.search.value.trim(); state.page = 1; refresh(); } });
 el.prev.addEventListener("click", () => { if (state.page > 1) { state.page--; refresh(); } });
 el.next.addEventListener("click", () => { state.page++; refresh(); });
 
-// Botón "Guardar" del modal
+// Botón "Guardar" del modal de Producto
 el.save.addEventListener("click", async () => {
   const id = $("#id").value;
   let formData;
@@ -174,11 +349,12 @@ el.save.addEventListener("click", async () => {
   }
 });
 
-// Cerrar modales
+// Cerrar modal de Producto
 $$("[data-close]").forEach(b => b.addEventListener("click", closeModals));
 el.modalForm.addEventListener("click", e => { if (e.target === el.modalForm) closeModals(); });
 window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModals(); });
 
+// Borrar imagen de producto
 $("#current-images-preview").addEventListener('click', async (e) => {
   const deleteBtn = e.target.closest('.img-delete-btn');
   if (!deleteBtn) return; // No se hizo clic en un botón de borrar
@@ -199,7 +375,17 @@ $("#current-images-preview").addEventListener('click', async (e) => {
     toast(err.message, "err");
   }
 });
-/********** Lógica del Formulario (CRUD) **********/
+
+
+// --- NUEVOS Handlers para modal de pedido ---
+$$("[data-close-order]").forEach(b => b.addEventListener("click", closeOrderModal));
+el.modalGestionPedido.addEventListener("click", e => { 
+  if (e.target === el.modalGestionPedido) closeOrderModal(); 
+});
+el.orderSaveButton.addEventListener("click", saveOrderStatus);
+
+
+/********** Lógica del Formulario (CRUD Productos) **********/
 
 // Abre el modal para crear un producto
 function openCreate() {
@@ -208,7 +394,7 @@ function openCreate() {
   $("#name").value = "";
   $("#category").value = "";
   $("#price").value = "";
-  $("#discount").value = "0"; // <-- CAMBIADO (para seleccionar "Sin oferta")
+  $("#discount").value = "0";
   $("#images").value = "";
   $("#description").value = "";
   $("#highlights").value = "";
@@ -255,7 +441,7 @@ function fillForm(p) {
   $("#name").value = p?.name || "";
   $("#category").value = p?.category || "";
   $("#price").value = p?.price ?? "";
-  $("#discount").value = p?.discount || "0"; // <-- CAMBIADO (para seleccionar la oferta o "Sin oferta")
+  $("#discount").value = p?.discount || "0";
   $("#description").value = p?.description || "";
   $("#highlights").value = (p?.highlights || []).join(", ");
   $("#images").value = ""; 
@@ -297,7 +483,7 @@ function fillForm(p) {
   }
 }
 
-// Recoge los datos del formulario como FormData (MODIFICADO)
+// Recoge los datos del formulario como FormData
 function collectForm() {
   const name = $("#name").value.trim();
   const price = Number($("#price").value);
@@ -312,7 +498,7 @@ function collectForm() {
   formData.append('name', name);
   formData.append('category', category);
   formData.append('price', price);
-  formData.append('discount', Number($("#discount").value) || 0); // <-- CAMBIADO (lee el valor del select)
+  formData.append('discount', Number($("#discount").value) || 0);
   formData.append('description', $("#description").value.trim());
   formData.append('highlights', $("#highlights").value.trim());
   
@@ -334,4 +520,4 @@ function escape(s = "") {
 /********** Init **********/
 // Carga inicial
 wireTabNavigation();
-refresh();
+refresh(); // Carga el inventario (productos) al inicio
