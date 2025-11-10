@@ -552,3 +552,53 @@ body {
   padding-left: 20px;
   font-size: 15px;
 }
+
+.status-badge-product {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+  background-color: #eee;
+  color: #333;
+}
+/* Verde para Disponible */
+.status-badge-product[data-status="Disponible"] {
+  background-color: #d1fae5; 
+  color: #065f46;
+}
+/* Azul/Naranja para Pendiente */
+.status-badge-product[data-status="Pendiente de envío"] {
+  background-color: #e0e7ff; 
+  color: #3730a3;
+}
+/* Gris para Vendido */
+.status-badge-product[data-status="Vendido"] {
+  background-color: #e5e7eb; 
+  color: #1f2937;
+}
+
+/* --- ESTILOS PARA DASHBOARD DE VENTAS --- */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Gráfica de líneas más ancha */
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 350px; /* Altura fija para la gráfica */
+}
+
+/* Responsivo para el dashboard */
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr; /* Una columna en pantallas medianas */
+  }
+  .chart-container {
+    height: 300px; /* Un poco más bajo */
+  }
+}

@@ -1,56 +1,55 @@
 const express = require('express');
-const { MongoClient, ObjectId } = require('mongodb');
+const mongoose = require('mongoose');
 const path = require('path');
-const multer = require('multer'); // <-- 1. Importamos Multer
+const multer = require('multer');
 const fs = require('fs');
+
+// Importar TODOS los modelos
+const Product = require('./models/product.model.js');
+const Order = require('./models/order.model.js');
+const ReturnTicket = require('./models/return.model.js');
+const User = require('./models/user.model.js'); // <-- Importar nuevo modelo
 
 const app = express();
 const PORT = 3000;
 
-// --- Conexión a MongoDB ---
-const MONGO_URI = "mongodb+srv://Salinas_user:rutabus123@rutabus.qdwcba8.mongodb.net/?retryWrites=true&w=majority&appName=Rutabus";
-const DB_NAME = "history_keepers_db";
-let db;
+// --- Conexión a MongoDB (con Mongoose) ---
+// El nombre de la BD (history_keepers_db) va en la URI
+const MONGO_URI = "mongodb+srv://Salinas_user:rutabus123@rutabus.qdwcba8.mongodb.net/history_keepers_db?retryWrites=true&w=majority&appName=Rutabus";
 
-// --- 2. Configuración de Multer (Subida de Archivos) ---
+// Configuración de Multer (sin cambios)
 const fileStorage = multer.diskStorage({
-  // Destino: dónde se guardan los archivos
-  destination: (req, file, cb) => {
-    cb(null, 'assets/uploads');
-  },
-  // Nombre del archivo: para evitar colisiones, le ponemos un timestamp
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
+  destination: (req, file, cb) => cb(null, 'assets/uploads'),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 const upload = multer({ storage: fileStorage });
 
 // Middlewares
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
-
-// Servir estáticos
-app.use(express.static(path.join(__dirname), {
-  extensions: ['html']
-}));
-// Hacemos que la carpeta /assets/ sea accesible públicamente
+app.use(express.static(path.join(__dirname), { extensions: ['html'] }));
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 
-// --- RUTAS DE AUTENTICACIÓN (Sin cambios) ---
+// --- RUTAS DE AUTENTICACIÓN (REESCRITAS CON MONGOOSE) ---
+
 app.post('/api/register', async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
     if (!email || !password || !nombre) {
       return res.status(400).json({ success: false, message: "Faltan campos obligatorios." });
     }
-    const usuarios = db.collection('usuarios');
-    const usuarioExistente = await usuarios.findOne({ email });
+    
+    // Usar Mongoose para buscar
+    const usuarioExistente = await User.findOne({ email });
     if (usuarioExistente) {
       return res.status(400).json({ success: false, message: "Este correo ya está registrado." });
     }
-    const nuevoUsuario = { nombre, email, password, rol: 'usuario comprador' };
-    await usuarios.insertOne(nuevoUsuario);
+    
+    // Usar Mongoose para crear
+    const nuevoUsuario = new User({ nombre, email, password, rol: 'usuario comprador' });
+    await nuevoUsuario.save();
+    
     res.status(201).json({ success: true, message: "¡Registro exitoso! Ya puedes iniciar sesión." });
   } catch (error) {
     console.error("Error en el registro:", error);
@@ -61,18 +60,22 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const usuarios = db.collection('usuarios');
-    const usuario = await usuarios.findOne({ email });
+    
+    // Usar Mongoose para buscar
+    const usuario = await User.findOne({ email });
     if (!usuario) {
       return res.status(404).json({ success: false, message: "Usuario no encontrado." });
     }
+    
     if (usuario.password !== password) {
       return res.status(401).json({ success: false, message: "Contraseña incorrecta." });
     }
+    
     res.json({
       success: true,
       message: `¡Bienvenido, ${usuario.nombre}!`,
-      user: { nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
+      // Enviar solo los datos seguros del usuario
+      user: { _id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
     });
   } catch (error) {
     console.error("Error en el login:", error);
@@ -93,12 +96,11 @@ app.get('/api/products', async (req, res) => {
         { category: { $regex: search, $options: 'i' } }
       ];
     }
-    const productsCol = db.collection('products');
-    const items = await productsCol.find(query)
+    const items = await Product.find(query)
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit))
-      .toArray();
-    const total = await productsCol.countDocuments(query);
+      .sort({ createdAt: -1 }); // Ordenar por más nuevo
+    const total = await Product.countDocuments(query);
     res.json({ items, total });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -107,22 +109,10 @@ app.get('/api/products', async (req, res) => {
 
 app.get('/api/products/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    const productsCol = db.collection('products');
-    
-    // Buscar el producto por su ObjectId
-    const product = await productsCol.findOne({ _id: new ObjectId(id) });
-
-    if (!product) {
-      return res.status(404).json({ message: 'Producto no encontrado' });
-    }
-    
-    res.json(product); // Devuelve el producto encontrado
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Producto no encontrado' });
+    res.json(product);
   } catch (error) {
-    // Manejo de error si el ID no es válido
-    if (error.name === 'BSONTypeError') {
-      return res.status(404).json({ message: 'ID de producto no válido' });
-    }
     res.status(500).json({ message: error.message });
   }
 });
@@ -131,26 +121,26 @@ app.get('/api/products/:id', async (req, res) => {
 // upload.array('images', 5) significa: "acepta hasta 5 archivos del campo 'images'"
 app.post('/api/products', upload.array('images', 5), async (req, res) => {
   try {
-    const newProductData = req.body;
+    const data = req.body;
     
-    // --- CORRECCIÓN DE BUG ---
-    // El problema estaba aquí. req.files es un array de archivos.
-    // Usamos .map() para crear un array de strings (las rutas).
+    // --- LÓGICA DE CÓDIGO DE BARRAS ---
+    // Genera un código único basado en el tiempo + 4 dígitos aleatorios
+    const barcode = Date.now().toString().slice(3) + Math.floor(1000 + Math.random() * 9000);
+    data.barcode = barcode;
+    
+    // Asigna el estatus inicial
+    data.status = 'Disponible';
+
     if (req.files && req.files.length > 0) {
-      newProductData.images = req.files.map(file => `/assets/uploads/${file.filename}`);
-    } else {
-      newProductData.images = [];
+      data.images = req.files.map(file => `/assets/uploads/${file.filename}`);
     }
-
-    if (newProductData.highlights) {
-      newProductData.highlights = newProductData.highlights.split(',').map(h => h.trim()).filter(h => h);
-    } else {
-      newProductData.highlights = [];
+    if (data.highlights) {
+      data.highlights = data.highlights.split(',').map(h => h.trim()).filter(h => h);
     }
-
-    const productsCol = db.collection('products');
-    const result = await productsCol.insertOne(newProductData);
-    res.status(201).json({ ...newProductData, _id: result.insertedId });
+    
+    const newProduct = new Product(data);
+    await newProduct.save();
+    res.status(201).json(newProduct);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -161,46 +151,23 @@ app.put('/api/products/:id', upload.array('images', 5), async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    const productsCol = db.collection('products');
+    
+    const existingProduct = await Product.findById(id);
+    if (!existingProduct) return res.status(404).json({ message: 'Producto no encontrado' });
 
-    // --- INICIO DE LA CORRECCIÓN ---
-
-    // 1. Buscar el producto existente para obtener su array de imágenes actual
-    const existingProduct = await productsCol.findOne({ _id: new ObjectId(id) });
-    if (!existingProduct) {
-      return res.status(404).json({ message: 'Producto no encontrado' });
-    }
-
-    // 2. Empezar con la lista de imágenes que ya tenía
     let images = existingProduct.images || [];
-
-    // 3. Si se subieron archivos nuevos (req.files), añadirlos a la lista
     if (req.files && req.files.length > 0) {
       const newImages = req.files.map(file => `/assets/uploads/${file.filename}`);
-      images = images.concat(newImages); // Combina el array antiguo con el nuevo
+      images = images.concat(newImages);
     }
-    
-    // 4. Asignar el array de imágenes combinado a los datos de actualización
     updateData.images = images;
     
-    // --- FIN DE LA CORRECCIÓN ---
-
-    // Procesar highlights (esto ya estaba bien)
     if (updateData.highlights) {
       updateData.highlights = updateData.highlights.split(',').map(h => h.trim()).filter(h => h);
-    } else {
-      // Si el campo de highlights viene vacío, asegúrate de que sea un array vacío
-      updateData.highlights = [];
     }
 
-    const result = await productsCol.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: updateData } 
-    );
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ message: 'Producto no encontrado' });
-    }
-    res.json({ ...updateData, _id: id });
+    const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true });
+    res.json(updatedProduct);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -209,12 +176,11 @@ app.put('/api/products/:id', upload.array('images', 5), async (req, res) => {
 // 4. ELIMINAR (DELETE) - Sin cambios
 app.delete('/api/products/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    const productsCol = db.collection('products');
-    const result = await productsCol.deleteOne({ _id: new ObjectId(id) });
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: 'Producto no encontrado' });
-    }
+    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+    if (!deletedProduct) return res.status(404).json({ message: 'Producto no encontrado' });
+    
+    // (Opcional: borrar también las imágenes de /uploads)
+    
     res.json({ ok: true, message: 'Producto eliminado' });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -224,35 +190,146 @@ app.delete('/api/products/:id', async (req, res) => {
 app.delete('/api/products/:id/image', async (req, res) => {
   try {
     const { id } = req.params;
-    const { imagePath } = req.body; // Recibimos la ruta de la imagen a borrar
+    const { imagePath } = req.body;
+    if (!imagePath) return res.status(400).json({ message: 'No se especificó la ruta de la imagen.' });
 
-    if (!imagePath) {
-      return res.status(400).json({ message: 'No se especificó la ruta de la imagen.' });
-    }
+    // 1. Quitar de MongoDB
+    await Product.findByIdAndUpdate(id, { $pull: { images: imagePath } });
 
-    // 1. Eliminar la referencia de MongoDB
-    const productsCol = db.collection('products');
-    const updateResult = await productsCol.updateOne(
-      { _id: new ObjectId(id) },
-      { $pull: { images: imagePath } } // $pull quita un elemento de un array
-    );
-
-    if (updateResult.matchedCount === 0) {
-      return res.status(404).json({ message: 'Producto no encontrado.' });
-    }
-
-    // 2. Eliminar el archivo del servidor
-    // Construimos la ruta local (ej. 'assets/uploads/12345.jpg')
+    // 2. Borrar del servidor
     const localPath = path.join(__dirname, imagePath);
-    
     fs.unlink(localPath, (err) => {
-      if (err) {
-        console.warn(`No se pudo borrar el archivo: ${localPath}. Puede que ya estuviera borrado.`);
-      }
+      if (err) console.warn(`No se pudo borrar el archivo: ${localPath}.`);
     });
 
     res.json({ success: true, message: 'Imagen eliminada.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
+app.get('/api/orders', async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .populate('products.product')
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/orders', async (req, res) => {
+  try {
+    // Lógica para el futuro: el cliente envía su carrito
+    const { customerDetails, products, subtotal, shippingCost, total, tipoVenta } = req.body;
+    
+    // --- LÓGICA DE INVENTARIO ---
+    // 1. Generar número de pedido
+    const orderNumber = `HK-${Date.now().toString().slice(5)}`;
+    
+    // 2. Actualizar el status de los productos comprados
+    const productIds = products.map(p => p.product); // Asume que el carrito envía los IDs
+    await Product.updateMany(
+      { _id: { $in: productIds } },
+      { $set: { status: 'Pendiente de envío' } }
+    );
+    
+    // 3. Crear el pedido
+    const newOrder = new Order({
+      orderNumber,
+      customerDetails,
+      products,
+      subtotal,
+      shippingCost,
+      total,
+      tipoVenta,
+      status: 'Pagado' // Inicia en "Pagado"
+    });
+    
+    await newOrder.save();
+    res.status(201).json(newOrder);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.put('/api/orders/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, trackingNumber } = req.body;
+
+    const order = await Order.findById(id);
+    if (!order) return res.status(404).json({ message: 'Pedido no encontrado' });
+
+    order.status = status;
+    if (trackingNumber) {
+      order.trackingNumber = trackingNumber;
+    }
+    
+    // --- LÓGICA DE INVENTARIO (Devolución/Cancelación) ---
+    // Si el admin (o el cliente) lo marca como "Cancelado"
+    if (status === 'Cancelado') {
+      const productIds = order.products.map(p => p.product);
+      await Product.updateMany(
+        { _id: { $in: productIds } },
+        { $set: { status: 'Disponible' } } // Vuelve a estar disponible
+      );
+    }
+    
+    // Si se marca como "Entregado", marcamos el producto como "Vendido"
+    if (status === 'Entregado') {
+       const productIds = order.products.map(p => p.product);
+      await Product.updateMany(
+        { _id: { $in: productIds } },
+        { $set: { status: 'Vendido' } }
+      );
+    }
+
+    await order.save();
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get('/api/sales/summary', async (req, res) => {
+  try {
+    // 1. Ventas por mes (últimos 12 meses)
+    const salesByMonth = await Order.aggregate([
+      { $match: { status: { $in: ['Entregado', 'Vendido'] } } }, // Contar solo ventas completadas
+      {
+        $group: {
+          _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+          totalSales: { $sum: "$total" }
+        }
+      },
+      { $sort: { "_id.year": -1, "_id.month": -1 } },
+      { $limit: 12 }
+    ]);
+    
+    // 2. Ventas por tipo (Online vs Física)
+    const salesByType = await Order.aggregate([
+      { $match: { status: { $in: ['Entregado', 'Vendido'] } } },
+      {
+        $group: {
+          _id: "$tipoVenta", // 'Online' o 'Física'
+          totalSales: { $sum: "$total" }
+        }
+      }
+    ]);
+    
+    // 3. Pedidos por estatus (para la pestaña "Envíos")
+    const ordersByStatus = await Order.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    res.json({ salesByMonth, salesByType, ordersByStatus });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -261,10 +338,9 @@ app.delete('/api/products/:id/image', async (req, res) => {
 // --- INICIALIZACIÓN DEL SERVIDOR ---
 async function startServer() {
   try {
-    const client = new MongoClient(MONGO_URI);
-    await client.connect();
-    db = client.db(DB_NAME);
-    console.log(`✅ Conectado a la base de datos: ${DB_NAME}`);
+    // 5. Conectar a Mongoose (esto es todo lo que se necesita)
+    await mongoose.connect(MONGO_URI);
+    console.log(`✅ Conectado a la base de datos con Mongoose`);
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);

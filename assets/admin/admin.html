@@ -10,6 +10,8 @@
   
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -25,7 +27,7 @@
           <i class="fa-solid fa-boxes-stacked"></i> Inventario
         </a>
         <a href="#" class="inv-nav__item" data-tab="ventas">
-          <i class="fa-solid fa-chart-line"></i> Ventas del Mes
+          <i class="fa-solid fa-chart-line"></i> Ventas
         </a>
         <a href="#" class="inv-nav__item" data-tab="envios">
           <i class="fa-solid fa-truck-fast"></i> Envíos
@@ -67,6 +69,7 @@
                   <th>Nombre del Producto</th>
                   <th style="width:180px">Categoría</th>
                   <th style="width:140px">Precio</th>
+                  <th style="width:140px">Estatus</th>
                   <th style="width:160px; text-align:right;">Acciones</th>
                 </tr>
               </thead>
@@ -110,29 +113,67 @@
       </div>
 
       <div id="tab-ventas" class="tab-content hidden">
-        <section class="inv-card">
-          <div class="inv-card__head">
-            <div class="inv-card__title">
-              <h2>Ventas del Mes</h2>
+        
+        <div class="dashboard-grid">
+          <section class="inv-card">
+            <div class="inv-card__head">
+              <div class="inv-card__title">
+                <h3>Ventas por Mes (Últimos 12 meses)</h3>
+              </div>
             </div>
-          </div>
-          <div class="inv-card__body" style="padding: 20px;">
-            <p>Aquí irá el contenido de la sección de Ventas del Mes.</p>
-          </div>
-        </section>
-      </div>
+            <div class="inv-card__body" style="padding: 20px;">
+              <div class="chart-container">
+                <canvas id="sales-by-month-chart"></canvas>
+              </div>
+            </div>
+          </section>
+          
+          <section class="inv-card">
+            <div class="inv-card__head">
+              <div class="inv-card__title">
+                <h3>Ventas por Tipo</h3>
+              </div>
+            </div>
+            <div class="inv-card__body" style="padding: 20px;">
+              <div class="chart-container" style="max-height: 350px; margin: auto;">
+                <canvas id="sales-by-type-chart"></canvas>
+              </div>
+            </div>
+          </section>
+        </div>
 
-      <div id="tab-envios" class="tab-content hidden">
-        <section class="inv-card">
+        <section class="inv-card" style="margin-top: 20px;">
           <div class="inv-card__head">
             <div class="inv-card__title">
-              <h2>Envíos</h2>
+              <h2>Historial de Ventas</h2>
+            </div>
+            <div class="inv-actions">
+              <select id="sales-filter-type" class="input" style="min-width: 150px; width: 150px;">
+                <option value="">Todo tipo</option>
+                <option value="Online">Online</option>
+                <option value="Física">Física</option>
+              </select>
+              <input id="sales-filter-month" class="input" type="month" style="min-width: 150px; width: 150px;">
             </div>
           </div>
-          <div class="inv-card__body" style="padding: 20px;">
-            <p>Aquí irá el contenido de la sección de Envíos.</p>
+          <div class="inv-tablewrap">
+            <table class="inv-table" id="sales-table">
+              <thead>
+                <tr>
+                  <th>N° Pedido</th>
+                  <th>Fecha</th>
+                  <th>Cliente</th>
+                  <th>Tipo</th>
+                  <th>Total</th>
+                  <th>Estatus</th>
+                </tr>
+              </thead>
+              <tbody id="sales-tbody">
+                </tbody>
+            </table>
           </div>
         </section>
+
       </div>
 
       <div id="tab-empleados" class="tab-content hidden">
@@ -152,77 +193,81 @@
   </div>
 
   <div id="modalForm" class="modal hidden" role="dialog" aria-modal="true">
-  <div class="modal__dialog inv-card">
-    <div class="modal__head">
-      <h3 id="formTitle">Nuevo producto</h3>
-      <button class="modal__close" data-close>&times;</button>
-    </div>
-    <div class="modal__body">
-      
-      <div id="form-body" class="grid">
-        <input type="hidden" id="id">
-        
-        <label class="grid-span-2">Nombre
-          <input id="name" name="name" class="input" required placeholder="Ej. Jersey Retro 1998">
-        </label>
-        
-        <label>Categoría
-          <select id="category" name="category" class="input" required>
-            <option value="">Selecciona una categoría...</option>
-            <option value="Fútbol">Fútbol</option>
-            <option value="Fútbol Americano">Fútbol Americano</option>
-            <option value="Baloncesto">Baloncesto</option>
-            <option value="Béisbol">Béisbol</option>
-            <option value="Voleibol">Voleibol</option>
-            <option value="Fórmula 1">Fórmula 1</option>
-            <option value="Boxeo">Boxeo</option>
-          </select>
-        </label>
-        
-        <label>Precio
-          <input id="price" name="price" type="number" min="0" step="1" class="input" required placeholder="Ej. 4200">
-        </label>
-        
-        <label>Porcentaje de Oferta (%)
-          <select id="discount" name="discount" class="input">
-            <option value="0">Sin oferta</option>
-            <option value="10">10%</option>
-            <option value="20">20%</option>
-            <option value="30">30%</option>
-            <option value="40">40%</option>
-            <option value="50">50%</option>
-            <option value="60">60%</option>
-            <option value="70">70%</option>
-            <option value="80">80%</option>
-            <option value="90">90%</option>
-          </select>
-        </label>
-        
-        <label class="grid-span-2">Imágenes (máximo 5)
-          <input id="images" name="images" type="file" class="input" multiple accept="image/png, image/jpeg, image/webp">
-        </label>
-
-        <div id="current-images-preview" class="grid-span-2">
-            </div>
-        
-        <label class="grid-span-2">Descripción
-          <textarea id="description" name="description" rows="3" class="input" placeholder="Descripción corta del producto..."></textarea>
-        </label>
-        
-        <label class="grid-span-2">Puntos Clave (separados por comas)
-          <input id="highlights" name="highlights" class="input" placeholder="Ej. Talla M, Original, Certificado">
-        </label>
+    <div class="modal__dialog inv-card">
+      <div class="modal__head">
+        <h3 id="formTitle">Nuevo producto</h3>
+        <button class="modal__close" data-close>&times;</button>
       </div>
-      
-    </div>
-    <div class="modal__foot">
-      <button class="btn" data-close>Cancelar</button>
-      <button id="save" class="btn btn--primary">Guardar</button>
+      <div class="modal__body">
+        
+        <div id="form-body" class="grid">
+          <input type="hidden" id="id">
+          
+          <label class="grid-span-2">Nombre
+            <input id="name" name="name" class="input" required placeholder="Ej. Jersey Retro 1998">
+          </label>
+          
+          <label class="grid-span-2">Categoría
+            <select id="category" name="category" class="input" required>
+              <option value="">Selecciona una categoría...</option>
+              <option value="Fútbol">Fútbol</option>
+              <option value="Fútbol Americano">Fútbol Americano</option>
+              <option value="Baloncesto">Baloncesto</option>
+              <option value="Béisbol">Béisbol</option>
+              <option value="Voleibol">Voleibol</option>
+              <option value="Fórmula 1">Fórmula 1</option>
+              <option value="Boxeo">Boxeo</option>
+            </select>
+          </label>
+          
+          <label>Precio
+            <input id="price" name="price" type="number" min="0" step="1" class="input" required placeholder="Ej. 4200">
+          </label>
+          
+          <label>Porcentaje de Oferta (%)
+            <select id="discount" name="discount" class="input">
+              <option value="0">Sin oferta</option>
+              <option value="10">10%</option>
+              <option value="20">20%</option>
+              <option value="30">30%</option>
+              <option value="40">40%</option>
+              <option value="50">50%</option>
+              <option value="60">60%</option>
+              <option value="70">70%</option>
+              <option value="80">80%</option>
+              <option value="90">90%</option>
+            </select>
+          </label>
+          
+          <label class="grid-span-2">Imágenes (máximo 5)
+            <input id="images" name="images" type="file" class="input" multiple accept="image/png, image/jpeg, image/webp">
+          </label>
+
+          <div id="current-images-preview" class="grid-span-2">
+            </div>
+          
+          <label class="grid-span-2">Descripción
+            <textarea id="description" name="description" rows="3" class="input" placeholder="Descripción corta del producto..."></textarea>
+          </label>
+          
+          <label class="grid-span-2">Puntos Clave (separados por comas)
+            <input id="highlights" name="highlights" class="input" placeholder="Ej. Talla M, Original, Certificado">
+          </label>
+          
+          <label class="grid-span-2">Código de Barras (Generado automáticamente)
+            <input id="barcode" name="barcode" class="input" readonly style="background: var(--bg); color: var(--muted); cursor: not-allowed;">
+          </label>
+        </div>
+        
+      </div>
+      <div class="modal__foot">
+        <button class="btn" data-close>Cancelar</button>
+        <button id="save" class="btn btn--primary">Guardar</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div id="modalGestionPedido" class="modal hidden" role="dialog" aria-modal="true">
+  <div id="modalGestionPedido" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal__dialog inv-card" style="width: min(600px, 96vw);">
       <div class="modal__head">
         <h3 id="order-modal-title">Gestionar Pedido #HK-12345</h3>
@@ -260,6 +305,7 @@
               <option value="En Preparación">En Preparación</option>
               <option value="Enviado">Enviado</option>
               <option value="Entregado">Entregado</option>
+              <option value="Cancelado">Cancelado</option>
             </select>
           </label>
           
@@ -278,6 +324,6 @@
 
   <div id="toasts" class="toasts"></div>
 
-  <script src="admin.js"></script>
+  <script src="admin.js"></script> 
 </body>
 </html>

@@ -15,42 +15,15 @@ function toast(msg, kind = "ok") {
   const div = document.createElement("div");
   div.className = `toast toast--${kind}`;
   div.innerHTML = `<i class="fa-solid ${
-    kind === 'ok' ? 'fa-circle-check' : kind === 'warn' ? 'fa-triangle-exclamation' : 'fa-circle-xmark'
+    kind === 'ok' ? 'fa-circle-check' : 'fa-triangle-exclamation'
   }"></i> ${msg}`;
   box.appendChild(div);
-  setTimeout(() => div.remove(), 2500);
-}
-
-// --- DATOS DE EJEMPLO (MOCK) PARA PEDIDOS ---
-// (Esto lo moverás a tu API/BD después)
-let mockOrders = [
-  {
-    _id: "order_1", orderNumber: "HK-12345",
-    customer: { name: "Juan Pérez", email: "juan@correo.com" },
-    shippingAddress: { calle: "Av. Siempre Viva 123", ciudad: "Springfield", cp: "12345" },
-    products: [{ name: "Jersey Retro 1998", qty: 1 }, { name: "Gorra Edición Especial", qty: 2 }],
-    total: 7300, status: "Pagado", trackingNumber: ""
-  },
-  {
-    _id: "order_2", orderNumber: "HK-12346",
-    customer: { name: "Ana García", email: "ana@correo.com" },
-    shippingAddress: { calle: "Calle Falsa 456", ciudad: "Ciudad Capital", cp: "67890" },
-    products: [{ name: "Balón Firmado Leyenda", qty: 1 }],
-    total: 12800, status: "En Preparación", trackingNumber: ""
-  },
-  {
-    _id: "order_3", orderNumber: "HK-12347",
-    customer: { name: "Carlos Sánchez", email: "carlos@correo.com" },
-    shippingAddress: { calle: "Blvd. Principal 789", ciudad: "Metrópolis", cp: "10112" },
-    products: [{ name: "Tarjeta Rookie 1986", qty: 1 }],
-    total: 4200, status: "Enviado", trackingNumber: "FEDEX-987654321"
-  }
-];
-
+  setTimeout(() => div.remove(), 2500); // <-- CORRECCIÓN: ')' y ';' añadidos
+} // <-- CORRECCIÓN: '}' añadida
 
 /********** Adaptador de API (Fusionado) **********/
 const api = {
-  // --- FUNCIONES DE PRODUCTOS (TU CÓDIGO) ---
+  // --- FUNCIONES DE PRODUCTOS ---
   async list({ search = "", page = 1, limit = 10 } = {}) {
     const url = new URL('/api/products', window.location.origin);
     url.searchParams.set("search", search);
@@ -89,36 +62,40 @@ const api = {
     return r.json();
   },
 
-  // --- NUEVAS FUNCIONES DE PEDIDOS (Simuladas) ---
+  // --- FUNCIONES DE PEDIDOS (CONECTADAS) ---
   async listOrders() {
-    console.log("Simulando: listOrders()");
-    // En el futuro, esto sería:
-    // const r = await fetch('/api/orders'); return r.json();
-    return Promise.resolve(mockOrders); // Devuelve los datos de ejemplo
+    const r = await fetch('/api/orders');
+    if (!r.ok) throw new Error("Error al cargar los pedidos");
+    return r.json();
   },
 
   async updateOrder(id, status, trackingNumber) {
-    console.log("Simulando: updateOrder()", { id, status, trackingNumber });
-    // En el futuro, esto sería:
-    // const r = await fetch(`/api/orders/${id}`, { 
-    //   method: "PUT",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ status, trackingNumber })
-    // });
-    // if (!r.ok) throw new Error("Error actualizando pedido");
-    
-    // Simulación: Actualizar el mock
-    const order = mockOrders.find(o => o._id === id);
-    if (order) {
-      order.status = status;
-      order.trackingNumber = trackingNumber;
-    }
-    return Promise.resolve(order);
-  }
+    const r = await fetch(`/api/orders/${id}/status`, { 
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status, trackingNumber })
+    });
+    if (!r.ok) throw new Error((await r.json()).message || "Error actualizando pedido");
+    return r.json();
+  },
+
+  async getSalesSummary() {
+    const r = await fetch('/api/sales/summary');
+    if (!r.ok) throw new Error("Error al cargar el resumen de ventas");
+    return r.json();
+  },
 };
 
 /********** Controlador de UI **********/
-const state = { page: 1, limit: 10, search: "" };
+const state = { 
+  page: 1, 
+  limit: 10, 
+  search: "",
+  orders: [],
+  salesData: null, // Para guardar los datos de la API
+  salesMonthChart: null, // Para la instancia del gráfico
+  salesTypeChart: null  // Para la instancia del gráfico
+};
 
 const el = {
   // --- Elementos de Productos ---
@@ -134,11 +111,16 @@ const el = {
   formTitle: $("#formTitle"),
   save: $("#save"),
 
-  // --- NUEVOS Elementos de Pedidos ---
+  // --- Elementos de Pedidos ---
   ordersTbody: $("#orders-tbody"),
   modalGestionPedido: $("#modalGestionPedido"),
   orderModalTitle: $("#order-modal-title"),
-  orderSaveButton: $("#save-order-status")
+  orderSaveButton: $("#save-order-status"),
+  salesTbody: $("#sales-tbody"),
+  salesFilterType: $("#sales-filter-type"),
+  salesFilterMonth: $("#sales-filter-month"),
+  salesByMonthCtx: $("#sales-by-month-chart")?.getContext('2d'),
+  salesByTypeCtx: $("#sales-by-type-chart")?.getContext('2d')
 };
 
 // --- LÓGICA DE NAVEGACIÓN POR PESTAÑAS (MODIFICADA) ---
@@ -151,21 +133,26 @@ function wireTabNavigation() {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const tabId = link.dataset.tab;
+      
       navLinks.forEach(nav => nav.classList.remove('active'));
       link.classList.add('active');
       tabContents.forEach(tab => {
         tab.classList.toggle('hidden', tab.id !== `tab-${tabId}`);
       });
 
-      // --- PARTE MODIFICADA ---
-      // Si se hace clic en "envios", carga la tabla de pedidos
+      // --- CAMBIOS AQUÍ ---
       if (tabId === 'envios') {
-        loadOrders();
+        loadOrders(); // Carga todos los pedidos
       }
-      // --- FIN DE LA MODIFICACIÓN ---
+      if (tabId === 'ventas') {
+        // Carga los pedidos (para la tabla) Y los datos del dashboard (para gráficas)
+        loadOrders(); // (loadOrders ya los guarda en state.orders)
+        loadSalesDashboard();
+      }
     });
   });
 }
+
 
 // --- LÓGICA DE PRODUCTOS (TU CÓDIGO) ---
 // Dibuja las filas de la tabla
@@ -178,6 +165,13 @@ function renderRows(list = []) {
       </td>
       <td>${escape(p.category || "—")}</td>
       <td>${fmtMoney(p.price)}</td>
+      
+      <td>
+        <span class="status-badge-product" data-status="${escape(p.status)}">
+          ${escape(p.status)}
+        </span>
+      </td>
+      
       <td>
         <div class="row-actions">
           <button class="btn" data-edit="${p._id}" title="Editar"><i class="fa-solid fa-pen"></i></button>
@@ -218,6 +212,7 @@ async function refresh() {
 async function loadOrders() {
   try {
     const orders = await api.listOrders();
+    state.orders = orders; // <-- Guarda los pedidos reales en el estado
     renderOrdersTable(orders);
   } catch(err) {
     toast(err.message, 'err');
@@ -232,9 +227,9 @@ function renderOrdersTable(list = []) {
     <tr>
       <td>
         <div style="font-weight:700">${escape(p.orderNumber)}</div>
-        <div class="muted" style="font-size:12px;">${escape(p.customer.email)}</div>
+        <div class="muted" style="font-size:12px;">${escape(p.customerDetails.email)}</div>
       </td>
-      <td>${escape(p.customer.name)}</td>
+      <td>${escape(p.customerDetails.name)}</td>
       <td>${fmtMoney(p.total)}</td>
       <td>
         <span class="status-badge" data-status="${escape(p.status)}">
@@ -261,8 +256,8 @@ function renderOrdersTable(list = []) {
  * Abre el modal de gestión de pedido y lo rellena con datos
  */
 function openOrderModal(id) {
-  // Usamos los datos mock. En el futuro, podrías hacer un fetch del pedido por ID
-  const order = mockOrders.find(o => o._id === id);
+  // CAMBIO: Lee de state.orders, no de mockOrders
+  const order = state.orders.find(o => o._id === id);
   if (!order) {
     toast("No se encontró el pedido", "err");
     return;
@@ -271,9 +266,10 @@ function openOrderModal(id) {
   // Rellenar el modal
   $("#order-modal-title").textContent = `Gestionar Pedido #${order.orderNumber}`;
   $("#order-id-input").value = order._id;
-  $("#order-customer-name").textContent = order.customer.name;
-  $("#order-customer-email").textContent = order.customer.email;
-  $("#order-customer-address").textContent = `${order.shippingAddress.calle}, ${order.shippingAddress.ciudad}, C.P. ${order.shippingAddress.cp}`;
+  // CAMBIO: Adaptado a Mongoose (customerDetails)
+  $("#order-customer-name").textContent = order.customerDetails.name;
+  $("#order-customer-email").textContent = order.customerDetails.email;
+  $("#order-customer-address").textContent = order.customerDetails.address;
   
   // Rellenar productos
   $("#order-products-list").innerHTML = order.products.map(
@@ -304,12 +300,153 @@ async function saveOrderStatus() {
 
   try {
     await api.updateOrder(id, status, trackingNumber);
-    toast("Pedido actualizado (Simulado)", "ok");
+    toast("Pedido actualizado", "ok"); // <-- Ya no es simulado
     closeOrderModal();
     loadOrders(); // Recarga la tabla de pedidos
   } catch(err) {
     toast(err.message, "err");
   }
+}
+
+async function loadSalesDashboard() {
+  try {
+    const summary = await api.getSalesSummary();
+    state.salesData = summary; // Guardar datos
+
+    // 1. Dibujar gráfica de ventas por mes
+    renderSalesByMonthChart(summary.salesByMonth || []);
+
+    // 2. Dibujar gráfica de ventas por tipo
+    renderSalesByTypeChart(summary.salesByType || []);
+
+    // 3. Renderizar la tabla de ventas (usa state.orders, que se carga con loadOrders)
+    renderSalesTable();
+
+  } catch (err) {
+    toast(err.message, 'err');
+    const salesTab = $("#tab-ventas .inv-card__body");
+    if (salesTab) salesTab.innerHTML = `<p>Error al cargar el dashboard.</p>`;
+  }
+}
+
+/**
+ * Dibuja la gráfica de líneas (Ventas por Mes)
+ */
+function renderSalesByMonthChart(salesData) {
+  if (!el.salesByMonthCtx) return;
+
+  // Mapear meses
+  const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  // Ordenar los datos (la API los da descendentes)
+  const sortedData = salesData.slice().reverse();
+  const labels = sortedData.map(d => `${monthNames[d._id.month - 1]} ${d._id.year}`);
+  const data = sortedData.map(d => d.totalSales);
+
+  if (state.salesMonthChart) {
+    state.salesMonthChart.destroy(); // Destruir gráfica anterior
+  }
+
+  state.salesMonthChart = new Chart(el.salesByMonthCtx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Total de Ventas',
+        data: data,
+        borderColor: 'rgb(183, 136, 47)', // Color --primary
+        backgroundColor: 'rgba(183, 136, 47, 0.2)',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+}
+
+/**
+ * Dibuja la gráfica de dona (Ventas por Tipo)
+ */
+function renderSalesByTypeChart(salesData) {
+  if (!el.salesByTypeCtx) return;
+
+  const labels = salesData.map(d => d._id); // "Online", "Física"
+  const data = salesData.map(d => d.totalSales);
+
+  if (state.salesTypeChart) {
+    state.salesTypeChart.destroy(); // Destruir gráfica anterior
+  }
+
+  state.salesTypeChart = new Chart(el.salesByTypeCtx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Total de Ventas',
+        data: data,
+        backgroundColor: [
+          '#b7882f', // Dorado (--primary)
+          '#3a2622', // Café oscuro (sidebar)
+          '#6d5a45'  // Café medio (--muted)
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+}
+
+/**
+ * Dibuja la tabla de historial de ventas (usa state.orders)
+ */
+function renderSalesTable() {
+  const typeFilter = el.salesFilterType.value;
+  const monthFilter = el.salesFilterMonth.value; // Formato "YYYY-MM"
+  const tbody = $("#sales-tbody");
+  if (!tbody) return;
+
+  // Filtrar solo los pedidos completados
+  const completedOrders = (state.orders || []).filter(o => 
+    o.status === 'Entregado' || o.status === 'Vendido' // 'Vendido' es para ventas físicas
+  );
+
+  const filtered = completedOrders.filter(order => {
+    const typeMatch = !typeFilter || order.tipoVenta === typeFilter;
+
+    const orderDate = new Date(order.createdAt);
+    const orderMonth = `${orderDate.getFullYear()}-${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
+    const monthMatch = !monthFilter || orderMonth === monthFilter;
+
+    return typeMatch && monthMatch;
+  });
+
+  tbody.innerHTML = filtered.map(p => `
+    <tr>
+      <td>${escape(p.orderNumber)}</td>
+      <td>${new Date(p.createdAt).toLocaleDateString("es-MX")}</td>
+      <td>${escape(p.customerDetails.name)}</td>
+      <td>${escape(p.tipoVenta)}</td>
+      <td>${fmtMoney(p.total)}</td>
+      <td>
+        <span class="status-badge" data-status="${escape(p.status)}">
+          ${escape(p.status)}
+        </span>
+      </td>
+    </tr>
+  `).join("");
+}
+
+/**
+ * Conecta los filtros de la tabla de ventas
+ */
+function wireSalesFilters() {
+  el.salesFilterType.addEventListener('change', renderSalesTable);
+  el.salesFilterMonth.addEventListener('change', renderSalesTable);
 }
 // --- FIN DE NUEVAS FUNCIONES ---
 
@@ -328,7 +465,7 @@ el.save.addEventListener("click", async () => {
   const id = $("#id").value;
   let formData;
   try {
-    formData = collectForm(); // Recoge los datos como FormData
+    formData = collectForm();
   } catch(err) {
     toast(err.message, "err");
     return;
@@ -336,10 +473,10 @@ el.save.addEventListener("click", async () => {
 
   try {
     if (id) {
-      await api.update(id, formData); // Actualiza
+      await api.update(id, formData);
       toast("Producto actualizado", "ok");
     } else {
-      await api.create(formData); // Crea
+      await api.create(formData);
       toast("Producto creado", "ok");
     }
     closeModals();
@@ -352,12 +489,18 @@ el.save.addEventListener("click", async () => {
 // Cerrar modal de Producto
 $$("[data-close]").forEach(b => b.addEventListener("click", closeModals));
 el.modalForm.addEventListener("click", e => { if (e.target === el.modalForm) closeModals(); });
-window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModals(); });
+// Actualizado para cerrar ambos modales
+window.addEventListener("keydown", (e) => { 
+  if (e.key === "Escape") {
+    closeModals();
+    closeOrderModal();
+  } 
+});
 
 // Borrar imagen de producto
 $("#current-images-preview").addEventListener('click', async (e) => {
   const deleteBtn = e.target.closest('.img-delete-btn');
-  if (!deleteBtn) return; // No se hizo clic en un botón de borrar
+  if (!deleteBtn) return; 
 
   const { path, id } = deleteBtn.dataset;
   if (!path || !id) return;
@@ -369,7 +512,6 @@ $("#current-images-preview").addEventListener('click', async (e) => {
   try {
     await api.deleteImage(id, path);
     toast("Imagen eliminada", "ok");
-    // Elimina el elemento de la UI
     deleteBtn.parentElement.remove();
   } catch(err) {
     toast(err.message, "err");
@@ -389,7 +531,6 @@ el.orderSaveButton.addEventListener("click", saveOrderStatus);
 
 // Abre el modal para crear un producto
 function openCreate() {
-  // Un <div> no tiene .reset(), reseteamos manualmente
   $("#id").value = "";
   $("#name").value = "";
   $("#category").value = "";
@@ -398,8 +539,8 @@ function openCreate() {
   $("#images").value = "";
   $("#description").value = "";
   $("#highlights").value = "";
+  $("#barcode").value = "";
 
-  // Oculta la vista previa de imágenes
   $("#current-images-preview").innerHTML = "";
   $("#current-images-preview").classList.add("hidden");
 
@@ -410,9 +551,10 @@ function openCreate() {
 // Abre el modal para editar
 async function openEdit(id) {
   try {
-    const { items } = await api.list({ limit: 1000 }); // Obtenemos todos
-    const product = items.find(p => p._id === id);
-    if (!product) throw new Error("Producto no encontrado");
+    // ACTUALIZADO: Llamada directa a la API para 1 producto
+    const r = await fetch(`/api/products/${id}`);
+    if (!r.ok) throw new Error("Producto no encontrado");
+    const product = await r.json();
     
     fillForm(product);
     $("#formTitle").textContent = "Editar producto";
@@ -430,7 +572,6 @@ function removeProduct(id) {
     .catch(e => toast(e.message || "Error", "err"));
 }
 
-// Cierra todos los modales
 function closeModals() {
   el.modalForm.classList.add("hidden");
 }
@@ -444,6 +585,7 @@ function fillForm(p) {
   $("#discount").value = p?.discount || "0";
   $("#description").value = p?.description || "";
   $("#highlights").value = (p?.highlights || []).join(", ");
+  $("#barcode").value = p?.barcode || "N/A";
   $("#images").value = ""; 
   
   const previewContainer = $("#current-images-preview");
@@ -520,4 +662,5 @@ function escape(s = "") {
 /********** Init **********/
 // Carga inicial
 wireTabNavigation();
-refresh(); // Carga el inventario (productos) al inicio
+wireSalesFilters(); // <-- AÑADE ESTA LÍNEA
+refresh();// Carga el inventario (productos) al inicio
