@@ -180,11 +180,25 @@
         <section class="inv-card">
           <div class="inv-card__head">
             <div class="inv-card__title">
-              <h2>Empleados</h2>
+              <h2>Gestión de Empleados</h2>
+            </div>
+            <div class="inv-actions">
+              <button id="btnNewUser" class="btn btn--success"><i class="fa-solid fa-plus"></i> Crear Empleado</button>
             </div>
           </div>
-          <div class="inv-card__body" style="padding: 20px;">
-            <p>Aquí irá el contenido de la sección de Empleados.</p>
+          <div class="inv-tablewrap">
+            <table class="inv-table" id="users-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th style="width:160px; text-align:right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                </tbody>
+            </table>
           </div>
         </section>
       </div>
@@ -321,6 +335,48 @@
       </div>
     </div>
   </div>
+
+  <div id="modalUserForm" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal__dialog inv-card" style="width: min(600px, 96vw);">
+      <div class="modal__head">
+        <h3 id="user-form-title">Crear Nuevo Empleado</h3>
+        <button class="modal__close" data-close-user>&times;</button>
+      </div>
+      <div class="modal__body">
+        
+        <form id="user-form" class="grid">
+          <input type="hidden" id="user-id">
+          
+          <label class="grid-span-2">Nombre Completo
+            <input id="user-name" name="nombre" class="input" required>
+          </label>
+          
+          <label class="grid-span-2">Email
+            <input id="user-email" name="email" type="email" class="input" required>
+          </label>
+          
+          <label class="grid-span-2" id="user-password-field">Contraseña (temporal)
+            <input id="user-password" name="password" type="password" class="input" placeholder="Asigna una contraseña temporal" required>
+          </label>
+          
+          <label class="grid-span-2">Rol
+            <select id="user-rol" name="rol" class="input" required>
+              <option value="usuario comprador">Usuario Comprador</option>
+              <option value="trabajador">Trabajador</option>
+              <option value="gerente">Gerente</option>
+              <option value="administrador">Administrador</option>
+            </select>
+          </label>
+        </form>
+        
+      </div>
+      <div class="modal__foot">
+        <button class="btn" data-close-user>Cancelar</button>
+        <button id="save-user" class="btn btn--primary">Guardar</button>
+      </div>
+    </div>
+  </div>
+
 
   <div id="toasts" class="toasts"></div>
 

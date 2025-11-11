@@ -335,6 +335,91 @@ app.get('/api/sales/summary', async (req, res) => {
   }
 });
 
+app.get('/api/users', async (req, res) => {
+  try {
+    // Buscamos a todos los usuarios EXCEPTO los 'usuario comprador'
+    const users = await User.find({ 
+      rol: { $ne: 'usuario comprador' } // $ne = Not Equal
+    }).select('-password'); // Aún quitamos el password
+
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// CREAR (POST) un nuevo empleado (lo usará el admin)
+app.post('/api/users', async (req, res) => {
+  try {
+    const { nombre, email, password, rol } = req.body;
+    
+    // Validar que el rol sea uno de los permitidos
+    const validRoles = ['usuario comprador', 'trabajador', 'gerente', 'administrador'];
+    if (!nombre || !email || !password || !validRoles.includes(rol)) {
+      return res.status(400).json({ message: 'Todos los campos (nombre, email, password, rol) son obligatorios y el rol debe ser válido.' });
+    }
+
+    const usuarioExistente = await User.findOne({ email });
+    if (usuarioExistente) {
+      return res.status(400).json({ message: 'Este correo ya está registrado.' });
+    }
+    
+    const nuevoUsuario = new User({ nombre, email, password, rol });
+    await nuevoUsuario.save();
+    
+    // Devolvemos el usuario sin el password
+    const userResponse = nuevoUsuario.toObject();
+    delete userResponse.password;
+    
+    res.status(201).json(userResponse);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ACTUALIZAR (PUT) el ROL de un empleado
+app.put('/api/users/:id/role', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rol } = req.body;
+
+    const validRoles = ['usuario comprador', 'trabajador', 'gerente', 'administrador'];
+    if (!validRoles.includes(rol)) {
+      return res.status(400).json({ message: 'Rol no válido.' });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { $set: { rol: rol } }, // Solo actualizamos el rol
+      { new: true }
+    ).select('-password'); // Devolvemos el usuario actualizado sin password
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+    
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ELIMINAR (DELETE) un empleado
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+    
+    res.json({ success: true, message: 'Usuario eliminado.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // --- INICIALIZACIÓN DEL SERVIDOR ---
 async function startServer() {
   try {

@@ -84,6 +84,38 @@ const api = {
     if (!r.ok) throw new Error("Error al cargar el resumen de ventas");
     return r.json();
   },
+
+  async listUsers() {
+    const r = await fetch('/api/users');
+    if (!r.ok) throw new Error("Error al cargar empleados");
+    return r.json();
+  },
+
+  async createUser(userData) {
+    const r = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
+    });
+    if (!r.ok) throw new Error((await r.json()).message || "Error creando empleado");
+    return r.json();
+  },
+
+  async updateUserRole(id, rol) {
+    const r = await fetch(`/api/users/${id}/role`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rol })
+    });
+    if (!r.ok) throw new Error((await r.json()).message || "Error actualizando rol");
+    return r.json();
+  },
+
+  async deleteUser(id) {
+    const r = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error("Error eliminando empleado");
+    return { ok: true };
+  }
 };
 
 /********** Controlador de UI **********/
@@ -94,7 +126,8 @@ const state = {
   orders: [],
   salesData: null, // Para guardar los datos de la API
   salesMonthChart: null, // Para la instancia del gráfico
-  salesTypeChart: null  // Para la instancia del gráfico
+  salesTypeChart: null,
+  users: []  // Para la instancia del gráfico
 };
 
 const el = {
@@ -120,7 +153,14 @@ const el = {
   salesFilterType: $("#sales-filter-type"),
   salesFilterMonth: $("#sales-filter-month"),
   salesByMonthCtx: $("#sales-by-month-chart")?.getContext('2d'),
-  salesByTypeCtx: $("#sales-by-type-chart")?.getContext('2d')
+  salesByTypeCtx: $("#sales-by-type-chart")?.getContext('2d'),
+  usersTbody: $("#users-tbody"),
+  btnNewUser: $("#btnNewUser"),
+  modalUserForm: $("#modalUserForm"),
+  userForm: $("#user-form"),
+  userFormTitle: $("#user-form-title"),
+  userPasswordField: $("#user-password-field"),
+  saveUserButton: $("#save-user")
 };
 
 // --- LÓGICA DE NAVEGACIÓN POR PESTAÑAS (MODIFICADA) ---
@@ -140,14 +180,16 @@ function wireTabNavigation() {
         tab.classList.toggle('hidden', tab.id !== `tab-${tabId}`);
       });
 
-      // --- CAMBIOS AQUÍ ---
       if (tabId === 'envios') {
-        loadOrders(); // Carga todos los pedidos
+        loadOrders();
       }
       if (tabId === 'ventas') {
-        // Carga los pedidos (para la tabla) Y los datos del dashboard (para gráficas)
-        loadOrders(); // (loadOrders ya los guarda en state.orders)
+        loadOrders();
         loadSalesDashboard();
+      }
+      // --- AÑADIDO ---
+      if (tabId === 'empleados') {
+        loadUsers(); // Carga la lista de empleados
       }
     });
   });
@@ -448,12 +490,154 @@ function wireSalesFilters() {
   el.salesFilterType.addEventListener('change', renderSalesTable);
   el.salesFilterMonth.addEventListener('change', renderSalesTable);
 }
+
+async function loadUsers() {
+  try {
+    const users = await api.listUsers();
+    state.users = users;
+    renderUsersTable(users);
+  } catch(err) {
+    toast(err.message, 'err');
+  }
+}
+
+/**
+ * Dibuja las filas de la tabla de empleados
+ */
+function renderUsersTable(list = []) {
+  el.usersTbody.innerHTML = list.map(u => `
+    <tr>
+      <td>${escape(u.nombre)}</td>
+      <td>${escape(u.email)}</td>
+      <td>
+        <span class="status-badge" data-status="${escape(u.rol)}">
+          ${escape(u.rol)}
+        </span>
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="btn" data-manage-user="${u._id}" title="Gestionar Rol">
+            <i class="fa-solid fa-pen-to-square"></i> Gestionar
+          </button>
+          <button class="btn btn--danger" data-del-user="${u._id}" title="Eliminar Empleado">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+
+  // Conectar los botones de "Gestionar" y "Eliminar"
+  $$("button[data-manage-user]").forEach(b => 
+    b.addEventListener("click", () => openUserModal(b.dataset.manageUser))
+  );
+  $$("button[data-del-user]").forEach(b => 
+    b.addEventListener("click", () => removeUser(b.dataset.delUser))
+  );
+}
+
+/**
+ * Abre el modal para crear o editar un empleado
+ */
+function openUserModal(id = null) {
+  el.userForm.reset();
+  $("#user-id").value = id || "";
+
+  if (id) {
+    // --- MODO EDICIÓN (Gestionar Rol) ---
+    const user = state.users.find(u => u._id === id);
+    if (!user) {
+      toast("Empleado no encontrado", "err");
+      return;
+    }
+    el.userFormTitle.textContent = "Gestionar Rol de Empleado";
+    // Rellenar campos
+    $("#user-name").value = user.nombre;
+    $("#user-email").value = user.email;
+    $("#user-rol").value = user.rol;
+    // Ocultar y deshabilitar campos que no se pueden editar
+    $("#user-name").disabled = true;
+    $("#user-email").disabled = true;
+    el.userPasswordField.classList.add('hidden'); // Ocultar campo de contraseña
+    $("#user-password").required = false;
+
+  } else {
+    // --- MODO CREACIÓN ---
+    el.userFormTitle.textContent = "Crear Nuevo Empleado";
+    // Mostrar y habilitar todos los campos
+    $("#user-name").disabled = false;
+    $("#user-email").disabled = false;
+    el.userPasswordField.classList.remove('hidden');
+    $("#user-password").required = true;
+  }
+  
+  el.modalUserForm.classList.remove("hidden");
+}
+
+/**
+ * Cierra el modal de empleados
+ */
+function closeUserModal() {
+  el.modalUserForm.classList.add("hidden");
+}
+
+/**
+ * Guarda el empleado (nuevo o editado)
+ */
+async function saveUser() {
+  const id = $("#user-id").value;
+  const formData = new FormData(el.userForm);
+  
+  try {
+    if (id) {
+      // --- LÓGICA DE ACTUALIZAR ROL ---
+      const rol = formData.get('rol');
+      await api.updateUserRole(id, rol);
+      toast("Rol actualizado correctamente", "ok");
+    } else {
+      // --- LÓGICA DE CREAR USUARIO ---
+      const userData = {
+        nombre: formData.get('nombre'),
+        email: formData.get('email'),
+        password: formData.get('password'),
+        rol: formData.get('rol')
+      };
+      await api.createUser(userData);
+      toast("Empleado creado exitosamente", "ok");
+    }
+    closeUserModal();
+    loadUsers(); // Recargar la tabla de empleados
+  } catch(err) {
+    toast(err.message, "err");
+  }
+}
+
+/**
+ * Elimina un empleado
+ */
+async function removeUser(id) {
+  if (!confirm("¿Seguro que quieres eliminar a este empleado? Esta acción no se puede deshacer.")) {
+    return;
+  }
+  try {
+    await api.deleteUser(id);
+    toast("Empleado eliminado", "ok");
+    loadUsers(); // Recargar la tabla
+  } catch(err) {
+    toast(err.message, "err");
+  }
+}
 // --- FIN DE NUEVAS FUNCIONES ---
 
 
 /********** Handlers (Manejadores de Eventos) **********/
 
-// --- Handlers de Productos (TU CÓDIGO) ---
+el.btnNewUser.addEventListener("click", () => openUserModal()); // Botón "Crear Empleado"
+$$("[data-close-user]").forEach(b => b.addEventListener("click", closeUserModal));
+el.modalUserForm.addEventListener("click", e => { 
+  if (e.target === el.modalUserForm) closeUserModal(); 
+});
+el.saveUserButton.addEventListener("click", saveUser);
 el.btnNew.addEventListener("click", openCreate);
 el.btnSearch.addEventListener("click", () => { state.search = el.search.value.trim(); state.page = 1; refresh(); });
 el.search.addEventListener("keydown", e => { if (e.key === "Enter") { state.search = el.search.value.trim(); state.page = 1; refresh(); } });
@@ -494,6 +678,7 @@ window.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     closeModals();
     closeOrderModal();
+    closeUserModal(); // <-- AÑADIDO
   } 
 });
 
@@ -525,8 +710,6 @@ el.modalGestionPedido.addEventListener("click", e => {
   if (e.target === el.modalGestionPedido) closeOrderModal(); 
 });
 el.orderSaveButton.addEventListener("click", saveOrderStatus);
-
-
 /********** Lógica del Formulario (CRUD Productos) **********/
 
 // Abre el modal para crear un producto

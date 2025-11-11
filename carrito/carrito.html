@@ -26,7 +26,6 @@
   </header>
 
   <main class="container">
-    <!-- Breadcrumb + botón regresar -->
     <nav class="small breadcrumb">
       <div class="crumbs">
         <a href="/index.html" class="small">Inicio</a> &nbsp;/&nbsp; <span>Carrito</span>
@@ -49,7 +48,6 @@
           <div class="card" style="position: sticky; top: 90px;">
             <h3 id="summary-title">Resumen del Pedido</h3>
 
-            <!-- Paso 1: Resumen -->
             <div id="step-summary" class="checkout-step">
               <div class="summary-row">
                 <span>Subtotal <span id="summary-count">(0 artículos)</span></span>
@@ -68,23 +66,22 @@
               </button>
             </div>
 
-            <!-- Paso 2: Dirección -->
             <div id="step-address" class="checkout-step" hidden>
               <form id="address-form" class="checkout-form" novalidate>
                 <label for="addr-calle">Dirección de Envío</label>
-                <input id="addr-calle" class="input" type="text" placeholder="Calle y Número" required>
+                <input id="addr-calle" name="addr-calle" class="input" type="text" placeholder="Calle y Número" required>
 
                 <label for="addr-colonia">Colonia</label>
-                <input id="addr-colonia" class="input" type="text" placeholder="Colonia / Municipio" required>
+                <input id="addr-colonia" name="addr-colonia" class="input" type="text" placeholder="Colonia / Municipio" required>
 
                 <div class="form-grid">
                   <div>
                     <label for="addr-ciudad">Ciudad</label>
-                    <input id="addr-ciudad" class="input" type="text" placeholder="Ciudad" required>
+                    <input id="addr-ciudad" name="addr-ciudad" class="input" type="text" placeholder="Ciudad" required>
                   </div>
                   <div>
                     <label for="addr-cp">C.P.</label>
-                    <input id="addr-cp" class="input" type="text" placeholder="C.P." maxlength="5" inputmode="numeric" required>
+                    <input id="addr-cp" name="addr-cp" class="input" type="text" placeholder="C.P." maxlength="5" inputmode="numeric" required>
                   </div>
                 </div>
 
@@ -94,7 +91,6 @@
               </form>
             </div>
 
-            <!-- Paso 3: Pago -->
             <div id="step-payment" class="checkout-step" hidden>
               <form id="payment-form" class="checkout-form" novalidate>
                 <label for="pay-nombre">Nombre en la tarjeta</label>
@@ -120,7 +116,6 @@
               </form>
             </div>
 
-            <!-- Paso 4: Confirmación -->
             <div id="step-confirmation" class="checkout-step" hidden>
               <p>¡Gracias por tu compra! Te enviaremos un correo con los detalles.</p>
               <p style="margin-top:15px;"><a href="/index.html" class="btn">Volver al inicio</a></p>
@@ -135,7 +130,6 @@
     <div class="container small">© <span id="y"></span> History Keepers</div>
   </footer>
 
-  <!-- Modales -->
   <dialog id="dlg-register" class="modal">
     <form method="dialog" class="card modal-card modal-card-dark" id="register-form">
       <img src="/assets/logo.png" alt="Logo History Keepers" class="modal-logo" />

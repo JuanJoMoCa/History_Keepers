@@ -374,6 +374,15 @@ function wireCheckoutSteps() {
       showToast("Tu carrito está vacío.", "error");
       return;
     }
+    
+    // --- NUEVO: Validar login ---
+    // El usuario DEBE estar logueado para comprar
+    if (!globalState.isAuthenticated) {
+      showToast("Debes iniciar sesión para continuar.", "error");
+      document.getElementById("dlg-login")?.showModal();
+      return;
+    }
+    
     steps.summary.hidden = true;
     steps.address.hidden = false;
     title.textContent = "Dirección de Envío";
@@ -390,19 +399,68 @@ function wireCheckoutSteps() {
     title.textContent = "Método de Pago";
   });
 
-  document.getElementById("btn-pay")?.addEventListener("click", () => {
+  // --- MODIFICADO: Lógica de "Pagar ahora" ---
+  document.getElementById("btn-pay")?.addEventListener("click", async () => {
     if (!forms.payment.checkValidity()) {
       showToast("Por favor, completa los datos de pago.", "error");
       forms.payment.reportValidity();
       return;
     }
-    // Simulación de pago
-    localStorage.removeItem("hk_cart");
-    cartState.items = [];
-    steps.payment.hidden = true;
-    steps.confirmation.hidden = false;
-    title.textContent = "¡Gracias!";
-    document.getElementById("cart-items-container").hidden = true;
+    
+    // 1. Recopilar todos los datos
+    const addressForm = new FormData(forms.address);
+    const subtotal = cartState.items.reduce((sum, it) => sum + it.price * it.qty, 0);
+    const total = subtotal + cartState.shipping;
+
+    // 2. Construir el objeto del pedido (payload)
+    const orderPayload = {
+      customerDetails: {
+        // Usar los datos del usuario logueado
+        name: globalState.user.nombre || addressForm.get('addr-calle'), // Fallback
+        email: globalState.user.email,
+        address: `${addressForm.get('addr-calle')}, ${addressForm.get('addr-colonia')}, ${addressForm.get('addr-ciudad')}, C.P. ${addressForm.get('addr-cp')}`
+      },
+      // Mapear los productos del carrito al formato del backend
+      products: cartState.items.map(item => ({
+        product: item.id, // ID del producto
+        name: item.name,
+        price: item.price,
+        qty: item.qty
+      })),
+      subtotal: subtotal,
+      shippingCost: cartState.shipping,
+      total: total,
+      tipoVenta: 'Online' // Marcar como venta Online
+    };
+
+    // 3. Enviar a la API
+    try {
+      const resp = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload)
+      });
+      const result = await resp.json();
+
+      if (!resp.ok) {
+        throw new Error(result.message || "No se pudo crear el pedido");
+      }
+
+      // 4. Éxito: Limpiar todo y mostrar confirmación
+      localStorage.removeItem("hk_cart");
+      cartState.items = [];
+      steps.payment.hidden = true;
+      steps.confirmation.hidden = false;
+      title.textContent = "¡Gracias!";
+      document.getElementById("cart-items-container").hidden = true;
+      
+      // (Opcional) Mostrar el nuevo número de pedido
+      const confirmMsg = document.querySelector("#step-confirmation p");
+      if(confirmMsg) confirmMsg.textContent = `¡Gracias por tu compra! Tu pedido #${result.orderNumber} ha sido procesado. Te enviaremos un correo con los detalles.`;
+
+    } catch (err) {
+      showToast(err.message, "error");
+    }
   });
 }
 
