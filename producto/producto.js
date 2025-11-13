@@ -150,6 +150,9 @@ function wireAuthForms() {
         closeAnyModal();
         showToast(result.message || `Bienvenido(a), ${result.user.nombre.split(" ")[0]}!`, "success");
         
+        // --- AÑADIDO: Guardar ID en localStorage ---
+        localStorage.setItem('hk-user-id', result.user._id);
+
         setTimeout(() => {
           const userRole = result.user.rol;
           switch (userRole) {
@@ -210,6 +213,10 @@ function updateUIForAuthState() {
 function handleLogout() {
   globalState.isAuthenticated = false;
   globalState.user = { rol: "invitado", nombre: "Invitado" };
+  
+  // --- AÑADIDO: Borrar ID de localStorage ---
+  localStorage.removeItem('hk-user-id');
+  
   updateUIForAuthState();
   showToast("Sesión cerrada correctamente.", "success");
 }

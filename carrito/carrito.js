@@ -150,15 +150,14 @@ function wireAuthForms() {
         closeAnyModal();
         showToast(result.message || `Bienvenido(a), ${result.user.nombre.split(" ")[0]}!`, "success");
         
-        // El carrito no debe redirigir inmediatamente,
-        // solo debe actualizar el estado de la UI
         globalState.isAuthenticated = true;
         globalState.user = result.user;
+        
+        // --- AÑADIDO: Guardar ID en localStorage ---
+        localStorage.setItem('hk-user-id', globalState.user._id);
+        
         updateUIForAuthState();
         
-        // (Si el usuario es admin, etc., verá los botones de "Mi Panel"
-        // y podrá decidir si se va o sigue comprando)
-
       } else {
         showToast(result?.message || "Credenciales incorrectas.", "error");
       }
@@ -207,6 +206,10 @@ function updateUIForAuthState() {
 function handleLogout() {
   globalState.isAuthenticated = false;
   globalState.user = { rol: "invitado", nombre: "Invitado" };
+
+  // --- AÑADIDO: Borrar ID de localStorage ---
+  localStorage.removeItem('hk-user-id');
+  
   updateUIForAuthState();
   showToast("Sesión cerrada correctamente.", "success");
 }

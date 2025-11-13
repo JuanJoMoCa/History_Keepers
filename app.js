@@ -992,11 +992,13 @@ function wireAuthForms() {
       state.isAuthenticated = true;
       state.user = { ...data.user };
       
+      // --- AÑADIDO: Guardar ID en localStorage ---
+      localStorage.setItem('hk-user-id', state.user._id); 
+      
       document.getElementById("dlg-login")?.close();
       updateUIForAuthState();
       showToast(`¡Bienvenido(a), ${state.user.nombre.split(" ")[0]}!`, "success");
 
-      // AÑADIDO: Retraso de 1 segundo para la redirección
       setTimeout(() => {
         redirectByRole(state.user.rol);
       }, 1000);
@@ -1101,6 +1103,10 @@ function updateUIForAuthState() {
 function handleLogout() {
   state.isAuthenticated = false;
   state.user = { rol: "invitado", nombre: "Invitado" };
+  
+  // --- AÑADIDO: Borrar ID de localStorage ---
+  localStorage.removeItem('hk-user-id');
+  
   updateUIForAuthState();
   showToast("Sesión cerrada correctamente.", "success");
 }

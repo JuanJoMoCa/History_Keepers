@@ -423,6 +423,72 @@ app.delete('/api/users/:id', async (req, res) => {
   }
 });
 
+// --- API DE PERFIL DE COMPRADOR ---
+
+// OBTENER (GET) los datos del perfil de un usuario
+app.get('/api/profile/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Buscamos al usuario por ID y excluimos el password
+    const user = await User.findById(id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ACTUALIZAR (PUT) los datos del perfil (nombre, email, teléfono)
+app.put('/api/profile/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, email, telefono } = req.body;
+
+    if (!nombre || !email) {
+      return res.status(400).json({ message: 'Nombre y Email son obligatorios.' });
+    }
+
+    // Verificar si el nuevo email ya está en uso por OTRO usuario
+    const emailEnUso = await User.findOne({ email: email, _id: { $ne: id } });
+    if (emailEnUso) {
+      return res.status(400).json({ message: 'Ese email ya está en uso.' });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { $set: { nombre, email, telefono } },
+      { new: true } // Devuelve el documento actualizado
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.json({ success: true, message: 'Perfil actualizado', user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ACTUALIZAR (PUT) la contraseña
+app.put('/api/password/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    await User.findByIdAndUpdate(id, { $set: { password: newPassword } });
+
+    res.json({ success: true, message: 'Contraseña actualizada.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // --- INICIALIZACIÓN DEL SERVIDOR ---
 async function startServer() {
   try {

@@ -1,0 +1,613 @@
+/* =========================================================
+   Panel de Admin - Estilo "History Keepers"
+   ========================================================= */
+
+/* * :root fusionado con la paleta de styles.css
+ * Se mantienen los colores semánticos (success, danger)
+ * Se reemplazan los colores de UI (primary, bg, card)
+ */
+:root {
+  /* Paleta de History Keepers */
+  --bg: #f5efe6;            /* Fondo principal (beige claro) */
+  --card: #fffaf2;          /* Fondo de tarjetas (beige extra-claro) */
+  --border: rgba(183, 136, 47, 0.35); /* Borde (dorado transparente) */
+  --text: #2b1d1a;           /* Texto (café oscuro) */
+  --muted: #6d5a45;          /* Texto secundario (café medio) */
+  --primary: #b7882f;        /* Acento (dorado/bronce) */
+  
+  /* Colores semánticos (mantenidos) */
+  --success: #16a34a;
+  --danger: #ef4444;
+  
+  /* Sombras y bordes de History Keepers */
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  --radius: 16px; /* Bordes más redondeados */
+}
+
+* {
+  box-sizing: border-box
+}
+
+html,
+body {
+  height: 100%
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, Helvetica, sans-serif
+}
+
+/* Layout */
+.inv-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+/* Sidebar (Ahora con el tema oscuro de la marca) */
+.inv-sidebar {
+  background: #3a2622; /* Café oscuro (del topbar de la tienda) */
+  border-right: 1px solid rgba(212, 180, 118, 0.35); /* Borde dorado */
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px
+}
+
+.inv-sidebar__header {
+  display: flex;
+  align-items: center;
+  gap: 10px
+}
+
+/* Logo (Ahora con el acento dorado) */
+.inv-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--primary); /* Dorado */
+  display: grid;
+  place-items: center;
+  color: var(--text); /* Texto café oscuro */
+  font-weight: 800
+}
+
+.inv-appname {
+  font-size: 16px;
+  margin: 0;
+  color: var(--bg); /* Texto beige claro */
+}
+
+.inv-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px
+}
+
+/* Botones de Navegación */
+.inv-nav__item {
+  appearance: none;
+  border: 1px solid var(--muted); /* Borde café medio */
+  background: transparent;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  color: var(--bg); /* Texto beige claro */
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.inv-nav__item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.inv-nav__item--muted {
+  color: var(--muted);
+  border-color: var(--muted);
+}
+.inv-nav__item--muted:hover {
+  color: var(--bg);
+  border-color: var(--bg);
+}
+
+.inv-sidebar__footer {
+  margin-top: auto
+}
+
+.inv-main {
+  padding: 22px
+}
+
+.inv-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px
+}
+
+.inv-topbar__title {
+  margin: 0;
+  font-size: 20px
+}
+
+.inv-user {
+  color: var(--muted)
+}
+
+/* Tarjetas (Usan --card y --border de la marca) */
+.inv-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow)
+}
+
+.inv-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border)
+}
+
+.inv-card__title {
+  display: flex;
+  align-items: center;
+  gap: 12px
+}
+
+.inv-pill {
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px
+}
+
+.inv-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px
+}
+
+.inv-search {
+  display: flex;
+  align-items: center;
+  gap: 8px
+}
+
+/* Inputs (Usan --card y --border de la marca) */
+.input {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  outline: none;
+  min-width: 260px;
+  width: 100%;
+  font: 14px/1.45 system-ui;
+}
+
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(183, 136, 47, 0.25);
+}
+
+/* Botones */
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+  background: color-mix(in srgb, var(--primary) 10%, var(--card));
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+/* Botón Primario (Dorado) */
+.btn--primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--text); /* Texto café oscuro para contraste */
+}
+.btn--primary:hover {
+  background: var(--primary);
+  filter: brightness(1.1);
+}
+
+/* Botón Success (Verde - semántico) */
+.btn--success {
+  background: var(--success);
+  border-color: transparent;
+  color: #fff;
+}
+.btn--success:hover { background: var(--success); filter: brightness(1.1); }
+
+/* Botón Danger (Rojo - semántico) */
+.btn--danger {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #7f1d1d;
+}
+.btn--danger:hover { background: #fee2e2; filter: brightness(0.97); }
+
+/* Tabla */
+.inv-tablewrap {
+  padding: 8px 16px 0 16px
+}
+
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+}
+
+.inv-table th,
+.inv-table td {
+  border: 1px solid var(--border); /* Borde más suave */
+  padding: 10px 12px;
+  vertical-align: middle;
+  text-align: left;
+}
+
+.inv-table th {
+  background: var(--bg); /* Fondo beige claro para header */
+  font-weight: 800;
+}
+
+.inv-table tbody tr:hover td {
+  background: var(--bg);
+}
+
+/* Badges (Semánticos - se mantienen) */
+.badge {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid #e2e8f0
+}
+.badge--ok { background: #e7f8ef; color: #065f46; border-color: #b7e4c7; }
+.badge--low { background: #fff4e6; color: #7c2d12; border-color: #ffd7ba; }
+.badge--off { background: #fee2e2; color: #7f1d1d; border-color: #fecaca; }
+
+.inv-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px
+}
+
+.muted {
+  color: var(--muted)
+}
+
+.inv-pager {
+  display: flex;
+  align-items: center;
+  gap: 10px
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 20, 19, 0.5); /* Fondo del modal de la tienda */
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 40
+}
+
+.modal.hidden {
+  display: none
+}
+
+.modal__dialog {
+  width: min(900px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--border)
+}
+.modal__body {
+  padding: 16px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+.modal__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px;
+  border-top: 1px solid var(--border)
+}
+.modal__close {
+  border: none;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--muted);
+}
+.modal__close:hover { color: var(--text); }
+
+/* Forms grid */
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.grid-span-2 { grid-column: span 2 }
+.check { display: flex; align-items: center; gap: 8px }
+
+@media (max-width:760px) {
+  .inv-layout { grid-template-columns: 1fr }
+  .grid, .grid-3 { grid-template-columns: 1fr }
+  .grid-span-2 { grid-column: span 1; }
+  .input { min-width: unset; }
+}
+
+.row-actions { display: flex; justify-content: flex-end; gap: 8px }
+
+.thumb {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  overflow: hidden
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover }
+
+/* Toasts (Notificaciones) */
+.toasts {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 60
+}
+
+/* Toast (Tema oscuro por defecto) */
+.toast {
+  background: var(--text); /* Café oscuro */
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  min-width: 240px;
+  display: flex;
+  align-items: center;
+  gap: 10px
+}
+/* Colores semánticos */
+.toast--ok { background: #065f46 }
+.toast--warn { background: #92400e }
+.toast--err { background: #7f1d1d }
+
+/* Alertas */
+.inv-alert { padding: 12px 16px; border-radius: 10px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.inv-alert--danger { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
+
+.hidden { display: none !important; }
+
+/* --- ESTILOS PARA PESTAÑAS Y MENÚ ACTIVO --- */
+.tab-content.hidden {
+  display: none;
+}
+/* Botón activo (Fondo claro, texto oscuro) */
+.inv-nav__item.active {
+  background: var(--bg); /* Fondo beige claro (del contenido) */
+  color: var(--text); /* Texto café oscuro */
+  font-weight: 700;
+  border-color: var(--bg);
+}
+.inv-nav__item.active i {
+  color: var(--primary); /* Icono dorado */
+}
+
+/* --- ESTILOS PARA VISTA PREVIA DE IMÁGENES --- */
+#current-images-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  background-color: var(--bg); /* Fondo beige claro */
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: -10px; /* Pega al campo de subida */
+}
+
+#current-images-preview.hidden {
+  display: none; /* Oculta el contenedor si está vacío */
+}
+
+#current-images-preview .img-preview-wrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+#current-images-preview .img-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#current-images-preview .img-preview-wrapper {
+  position: relative; /* <--- Asegúrate de que tenga position: relative */
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+/* --- NUEVO: Botón de 'X' para borrar --- */
+.img-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.2s ease;
+}
+.img-delete-btn:hover {
+  background: var(--danger);
+}
+
+/* =========================================================
+   Estilos Adicionales para Gestión de Pedidos
+   ========================================================= */
+
+/* --- Colores de Estatus --- */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+  background-color: #eee;
+  color: #333;
+}
+.status-badge[data-status="Pagado"] {
+  background-color: #f3f4f6; /* Gris claro */
+  color: #4b5563;
+}
+.status-badge[data-status="En Preparación"] {
+  background-color: #e0e7ff; /* Azul claro */
+  color: #3730a3;
+}
+.status-badge[data-status="Enviado"] {
+  background-color: #d1fae5; /* Verde claro */
+  color: #065f46;
+}
+.status-badge[data-status="Entregado"] {
+  background-color: #e5e7eb; /* Gris (Terminado) */
+  color: #1f2937;
+}
+
+/* --- Modal de Gestión de Pedido --- */
+.order-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  font-size: 14px;
+}
+.order-details-grid .detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.order-details-grid .detail-item strong {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.order-details-grid .detail-item span {
+  color: var(--text);
+  font-size: 15px;
+}
+
+#order-products-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 15px;
+}
+
+.status-badge-product {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+  background-color: #eee;
+  color: #333;
+}
+/* Verde para Disponible */
+.status-badge-product[data-status="Disponible"] {
+  background-color: #d1fae5; 
+  color: #065f46;
+}
+/* Azul/Naranja para Pendiente */
+.status-badge-product[data-status="Pendiente de envío"] {
+  background-color: #e0e7ff; 
+  color: #3730a3;
+}
+/* Gris para Vendido */
+.status-badge-product[data-status="Vendido"] {
+  background-color: #e5e7eb; 
+  color: #1f2937;
+}
+
+/* --- ESTILOS PARA DASHBOARD DE VENTAS --- */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Gráfica de líneas más ancha */
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 350px; /* Altura fija para la gráfica */
+}
+
+/* Responsivo para el dashboard */
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr; /* Una columna en pantallas medianas */
+  }
+  .chart-container {
+    height: 300px; /* Un poco más bajo */
+  }
+}
+
+/* --- ESTILO PARA EL LOADER --- */
+#loader {
+  padding: 40px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 1.1em;
+}
+/* La pestaña de perfil está oculta por defecto, el JS la mostrará */
