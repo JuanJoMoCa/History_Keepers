@@ -339,7 +339,7 @@ app.get('/api/users', async (req, res) => {
   try {
     // Buscamos a todos los usuarios EXCEPTO los 'usuario comprador'
     const users = await User.find({ 
-      rol: { $ne: 'usuario comprador' } // $ne = Not Equal
+      rol: { $nin: ['usuario comprador', 'administrador'] } // $ne = Not Equal
     }).select('-password'); // Aún quitamos el password
 
     res.json(users);
