@@ -1,38 +1,57 @@
+// --- 1. Cargar variables de entorno (del .env) ---
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
 
+// --- 2. Importar Cloudinary ---
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
 // Importar TODOS los modelos
 const Product = require('./models/product.model.js');
 const Order = require('./models/order.model.js');
 const ReturnTicket = require('./models/return.model.js');
-const User = require('./models/user.model.js'); // <-- Importar nuevo modelo
+const User = require('./models/user.model.js');
 
 const app = express();
 const PORT = 3000;
 
 // --- Conexión a MongoDB (con Mongoose) ---
-// El nombre de la BD (history_keepers_db) va en la URI
 const MONGO_URI = "mongodb+srv://Salinas_user:rutabus123@rutabus.qdwcba8.mongodb.net/history_keepers_db?retryWrites=true&w=majority&appName=Rutabus";
 
-// Configuración de Multer (sin cambios)
-const fileStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'assets/uploads'),
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+// --- 3. Configurar Cloudinary ---
+// (Lee las claves de tu archivo .env)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
-const upload = multer({ storage: fileStorage });
+
+// --- 4. Configurar Multer para que suba a Cloudinary ---
+// (Reemplaza tu 'fileStorage' local)
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'HistoryKeepersProducts', // Nombre de la carpeta en Cloudinary
+    allowed_formats: ['jpg', 'png', 'webp']
+  }
+});
+const upload = multer({ storage: storage }); // 'upload' ahora usa Cloudinary
+
 
 // Middlewares
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname), { extensions: ['html'] }));
+// Ya no necesitamos servir 'assets/uploads', Cloudinary lo hace
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
 
 // --- RUTAS DE AUTENTICACIÓN (REESCRITAS CON MONGOOSE) ---
-
 app.post('/api/register', async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
@@ -40,13 +59,11 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ success: false, message: "Faltan campos obligatorios." });
     }
     
-    // Usar Mongoose para buscar
     const usuarioExistente = await User.findOne({ email });
     if (usuarioExistente) {
       return res.status(400).json({ success: false, message: "Este correo ya está registrado." });
     }
     
-    // Usar Mongoose para crear
     const nuevoUsuario = new User({ nombre, email, password, rol: 'usuario comprador' });
     await nuevoUsuario.save();
     
@@ -61,7 +78,6 @@ app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    // Usar Mongoose para buscar
     const usuario = await User.findOne({ email });
     if (!usuario) {
       return res.status(404).json({ success: false, message: "Usuario no encontrado." });
@@ -74,7 +90,6 @@ app.post('/api/login', async (req, res) => {
     res.json({
       success: true,
       message: `¡Bienvenido, ${usuario.nombre}!`,
-      // Enviar solo los datos seguros del usuario
       user: { _id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
     });
   } catch (error) {
@@ -83,9 +98,9 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// --- API DE PRODUCTOS (MODIFICADA PARA MULTER) ---
+// --- API DE PRODUCTOS (MODIFICADA PARA CLOUDINARY) ---
 
-// 1. OBTENER (GET) - Sin cambios
+// 1. OBTENER (GET) - (Sin cambios)
 app.get('/api/products', async (req, res) => {
   try {
     const { search = "", page = 1, limit = 10 } = req.query;
@@ -99,7 +114,7 @@ app.get('/api/products', async (req, res) => {
     const items = await Product.find(query)
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit))
-      .sort({ createdAt: -1 }); // Ordenar por más nuevo
+      .sort({ createdAt: -1 });
     const total = await Product.countDocuments(query);
     res.json({ items, total });
   } catch (error) {
@@ -117,22 +132,19 @@ app.get('/api/products/:id', async (req, res) => {
   }
 });
 
-// 2. CREAR (POST) - Modificado para recibir FormData y archivos
-// upload.array('images', 5) significa: "acepta hasta 5 archivos del campo 'images'"
+// 2. CREAR (POST) - (Modificado para Cloudinary)
 app.post('/api/products', upload.array('images', 5), async (req, res) => {
   try {
     const data = req.body;
     
-    // --- LÓGICA DE CÓDIGO DE BARRAS ---
-    // Genera un código único basado en el tiempo + 4 dígitos aleatorios
     const barcode = Date.now().toString().slice(3) + Math.floor(1000 + Math.random() * 9000);
     data.barcode = barcode;
-    
-    // Asigna el estatus inicial
     data.status = 'Disponible';
 
     if (req.files && req.files.length > 0) {
-      data.images = req.files.map(file => `/assets/uploads/${file.filename}`);
+      // --- CAMBIO ---
+      // 'file.path' ahora es la URL segura de Cloudinary
+      data.images = req.files.map(file => file.path); 
     }
     if (data.highlights) {
       data.highlights = data.highlights.split(',').map(h => h.trim()).filter(h => h);
@@ -146,7 +158,7 @@ app.post('/api/products', upload.array('images', 5), async (req, res) => {
   }
 });
 
-// 3. ACTUALIZAR (PUT) - Modificado para recibir FormData y archivos
+// 3. ACTUALIZAR (PUT) - (Modificado para Cloudinary)
 app.put('/api/products/:id', upload.array('images', 5), async (req, res) => {
   try {
     const { id } = req.params;
@@ -157,7 +169,9 @@ app.put('/api/products/:id', upload.array('images', 5), async (req, res) => {
 
     let images = existingProduct.images || [];
     if (req.files && req.files.length > 0) {
-      const newImages = req.files.map(file => `/assets/uploads/${file.filename}`);
+      // --- CAMBIO ---
+      // 'file.path' ahora es la URL segura de Cloudinary
+      const newImages = req.files.map(file => file.path);
       images = images.concat(newImages);
     }
     updateData.images = images;
@@ -173,13 +187,11 @@ app.put('/api/products/:id', upload.array('images', 5), async (req, res) => {
   }
 });
 
-// 4. ELIMINAR (DELETE) - Sin cambios
+// 4. ELIMINAR (DELETE) - (Sin cambios)
 app.delete('/api/products/:id', async (req, res) => {
   try {
     const deletedProduct = await Product.findByIdAndDelete(req.params.id);
     if (!deletedProduct) return res.status(404).json({ message: 'Producto no encontrado' });
-    
-    // (Opcional: borrar también las imágenes de /uploads)
     
     res.json({ ok: true, message: 'Producto eliminado' });
   } catch (error) {
@@ -187,19 +199,24 @@ app.delete('/api/products/:id', async (req, res) => {
   }
 });
 
+// 5. ELIMINAR (DELETE) una imagen - (Modificado para Cloudinary)
 app.delete('/api/products/:id/image', async (req, res) => {
   try {
     const { id } = req.params;
-    const { imagePath } = req.body;
+    const { imagePath } = req.body; // imagePath es la URL de Cloudinary
     if (!imagePath) return res.status(400).json({ message: 'No se especificó la ruta de la imagen.' });
 
     // 1. Quitar de MongoDB
     await Product.findByIdAndUpdate(id, { $pull: { images: imagePath } });
 
-    // 2. Borrar del servidor
-    const localPath = path.join(__dirname, imagePath);
-    fs.unlink(localPath, (err) => {
-      if (err) console.warn(`No se pudo borrar el archivo: ${localPath}.`);
+    // --- 2. Borrar de Cloudinary ---
+    // Extraer el 'public_id' de la URL (ej. HistoryKeepersProducts/filename)
+    const publicIdWithFolder = imagePath.split('/').slice(-2).join('/').split('.')[0];
+    
+    cloudinary.uploader.destroy(publicIdWithFolder, (error, result) => {
+      if (error) {
+        console.warn(`No se pudo borrar la imagen de Cloudinary: ${publicIdWithFolder}`, error);
+      }
     });
 
     res.json({ success: true, message: 'Imagen eliminada.' });
@@ -208,6 +225,7 @@ app.delete('/api/products/:id/image', async (req, res) => {
   }
 });
 
+// --- API DE PEDIDOS (Sin cambios) ---
 app.get('/api/orders', async (req, res) => {
   try {
     const orders = await Order.find()
@@ -221,21 +239,16 @@ app.get('/api/orders', async (req, res) => {
 
 app.post('/api/orders', async (req, res) => {
   try {
-    // Lógica para el futuro: el cliente envía su carrito
     const { customerDetails, products, subtotal, shippingCost, total, tipoVenta } = req.body;
     
-    // --- LÓGICA DE INVENTARIO ---
-    // 1. Generar número de pedido
     const orderNumber = `HK-${Date.now().toString().slice(5)}`;
     
-    // 2. Actualizar el status de los productos comprados
-    const productIds = products.map(p => p.product); // Asume que el carrito envía los IDs
+    const productIds = products.map(p => p.product);
     await Product.updateMany(
       { _id: { $in: productIds } },
       { $set: { status: 'Pendiente de envío' } }
     );
     
-    // 3. Crear el pedido
     const newOrder = new Order({
       orderNumber,
       customerDetails,
@@ -244,7 +257,7 @@ app.post('/api/orders', async (req, res) => {
       shippingCost,
       total,
       tipoVenta,
-      status: 'Pagado' // Inicia en "Pagado"
+      status: 'Pagado'
     });
     
     await newOrder.save();
@@ -267,17 +280,14 @@ app.put('/api/orders/:id/status', async (req, res) => {
       order.trackingNumber = trackingNumber;
     }
     
-    // --- LÓGICA DE INVENTARIO (Devolución/Cancelación) ---
-    // Si el admin (o el cliente) lo marca como "Cancelado"
     if (status === 'Cancelado') {
       const productIds = order.products.map(p => p.product);
       await Product.updateMany(
         { _id: { $in: productIds } },
-        { $set: { status: 'Disponible' } } // Vuelve a estar disponible
+        { $set: { status: 'Disponible' } }
       );
     }
     
-    // Si se marca como "Entregado", marcamos el producto como "Vendido"
     if (status === 'Entregado') {
        const productIds = order.products.map(p => p.product);
       await Product.updateMany(
@@ -293,11 +303,11 @@ app.put('/api/orders/:id/status', async (req, res) => {
   }
 });
 
+// --- API DE VENTAS (Sin cambios) ---
 app.get('/api/sales/summary', async (req, res) => {
   try {
-    // 1. Ventas por mes (últimos 12 meses)
     const salesByMonth = await Order.aggregate([
-      { $match: { status: { $in: ['Entregado', 'Vendido'] } } }, // Contar solo ventas completadas
+      { $match: { status: { $in: ['Entregado', 'Vendido'] } } },
       {
         $group: {
           _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
@@ -308,18 +318,16 @@ app.get('/api/sales/summary', async (req, res) => {
       { $limit: 12 }
     ]);
     
-    // 2. Ventas por tipo (Online vs Física)
     const salesByType = await Order.aggregate([
       { $match: { status: { $in: ['Entregado', 'Vendido'] } } },
       {
         $group: {
-          _id: "$tipoVenta", // 'Online' o 'Física'
+          _id: "$tipoVenta",
           totalSales: { $sum: "$total" }
         }
       }
     ]);
     
-    // 3. Pedidos por estatus (para la pestaña "Envíos")
     const ordersByStatus = await Order.aggregate([
       {
         $group: {
@@ -335,12 +343,12 @@ app.get('/api/sales/summary', async (req, res) => {
   }
 });
 
+// --- API DE GESTIÓN DE EMPLEADOS (Sin cambios) ---
 app.get('/api/users', async (req, res) => {
   try {
-    // Buscamos a todos los usuarios EXCEPTO los 'usuario comprador'
     const users = await User.find({ 
-      rol: { $nin: ['usuario comprador', 'administrador'] } // $ne = Not Equal
-    }).select('-password'); // Aún quitamos el password
+      rol: { $nin: ['usuario comprador', 'administrador'] }
+    }).select('-password');
 
     res.json(users);
   } catch (error) {
@@ -348,15 +356,13 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-// CREAR (POST) un nuevo empleado (lo usará el admin)
 app.post('/api/users', async (req, res) => {
   try {
     const { nombre, email, password, rol } = req.body;
     
-    // Validar que el rol sea uno de los permitidos
-    const validRoles = ['usuario comprador', 'trabajador', 'gerente', 'administrador'];
+    const validRoles = ['usuario comprador', 'trabajador', 'gerente']; // 'administrador' quitado
     if (!nombre || !email || !password || !validRoles.includes(rol)) {
-      return res.status(400).json({ message: 'Todos los campos (nombre, email, password, rol) son obligatorios y el rol debe ser válido.' });
+      return res.status(400).json({ message: 'Campos obligatorios o rol no válido.' });
     }
 
     const usuarioExistente = await User.findOne({ email });
@@ -367,7 +373,6 @@ app.post('/api/users', async (req, res) => {
     const nuevoUsuario = new User({ nombre, email, password, rol });
     await nuevoUsuario.save();
     
-    // Devolvemos el usuario sin el password
     const userResponse = nuevoUsuario.toObject();
     delete userResponse.password;
     
@@ -377,22 +382,21 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-// ACTUALIZAR (PUT) el ROL de un empleado
 app.put('/api/users/:id/role', async (req, res) => {
   try {
     const { id } = req.params;
     const { rol } = req.body;
 
-    const validRoles = ['usuario comprador', 'trabajador', 'gerente', 'administrador'];
+    const validRoles = ['usuario comprador', 'trabajador', 'gerente']; // 'administrador' quitado
     if (!validRoles.includes(rol)) {
       return res.status(400).json({ message: 'Rol no válido.' });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       id,
-      { $set: { rol: rol } }, // Solo actualizamos el rol
+      { $set: { rol: rol } },
       { new: true }
-    ).select('-password'); // Devolvemos el usuario actualizado sin password
+    ).select('-password');
 
     if (!updatedUser) {
       return res.status(404).json({ message: 'Usuario no encontrado.' });
@@ -404,7 +408,6 @@ app.put('/api/users/:id/role', async (req, res) => {
   }
 });
 
-// ELIMINAR (DELETE) un empleado
 app.delete('/api/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -423,7 +426,6 @@ app.delete('/api/users/:id', async (req, res) => {
 // --- INICIALIZACIÓN DEL SERVIDOR ---
 async function startServer() {
   try {
-    // 5. Conectar a Mongoose (esto es todo lo que se necesita)
     await mongoose.connect(MONGO_URI);
     console.log(`✅ Conectado a la base de datos con Mongoose`);
 
