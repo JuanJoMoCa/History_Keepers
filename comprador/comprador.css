@@ -432,3 +432,63 @@ footer {
     grid-template-columns: 1fr; /* Una columna */
   }
 }
+
+/* --- ESTILOS PARA CARRUSEL DE CATEGORÍAS --- */
+
+.category-carousel-container {
+  margin-top: 15px;
+}
+
+.category-carousel {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto; /* <-- La magia del scroll horizontal */
+  padding-bottom: 10px; /* Espacio para la barra de scroll */
+  scroll-snap-type: x mandatory; /* Deslizamiento suave */
+}
+
+/* Estilo de la barra de scroll */
+.category-carousel::-webkit-scrollbar {
+  height: 8px;
+}
+.category-carousel::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+
+/* Cada tarjeta de categoría en el carrusel */
+.category-tile {
+  /* Hacemos que cada tarjeta tenga un ancho fijo */
+  flex: 0 0 160px; /* No se encoge, no crece, base de 160px */
+  height: 200px;
+  
+  /* Reutilizamos el estilo de .category-card que ya tienes */
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: column;
+  padding: 14px;
+  background-size: cover;
+  background-position: center;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0,0,0,.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  scroll-snap-align: start; /* Fija la tarjeta al deslizar */
+}
+.category-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
+}
+.category-tile h3 {
+  position: relative; z-index: 2; margin: 0; font-size: 1.1rem;
+}
+.category-tile:hover {
+  transform: translateY(-5px);
+}

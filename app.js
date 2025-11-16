@@ -30,7 +30,10 @@ const THEMES = [
   { id: "beis", title: "Béisbol", test: (p, txt) => (p.category || "").toLowerCase() === "béisbol" || /b[ée]isbol|mlb|yankees|dodgers/.test(txt) },
   { id: "f1", title: "F1 / Automovilismo", test: (_, txt) => /f1|fórmula\s?1|formula\s?1|automovil|automotor|ferrar|mercedes|red\s?bull|verstappen|hamilton/.test(txt) },
   { id: "boxeo", title: "Boxeo", test: (_, txt) => /boxeo|canelo|tyson|boxer|wbc|wbo|ibf/.test(txt) },
-  
+  { id: "musica", title: "Música", test: (p, txt) => (p.category || "").toLowerCase() === "música" || /musica|concierto|banda|rock/.test(txt) },
+  { id: "pokemon", title: "Pokemon", test: (p, txt) => (p.category || "").toLowerCase() === "pokemon" || /pokemon|pikachu|charizard|tcg/.test(txt) },
+  { id: "f1", title: "F1", test: (p, txt) => (p.category || "").toLowerCase() === "fórmula 1" },
+  { id: "voleibol", title: "Voleibol", test: (p, txt) => (p.category || "").toLowerCase() === "voleibol" }
 ];
 
 function collectText(p) {
@@ -323,26 +326,46 @@ const sections = {
       <p class="small">Bienvenido a History Keepers. Usa las pestañas para explorar el sitio.</p>
     </div>
   `,
-  home: `
-    <div class="card section-center">
-      <h2>Explora por Deporte</h2>
-      <p class="small">Selecciona tu disciplina para ver los artículos de colección correspondientes.</p>
-      <div class="grid grid-center" style="margin-top:10px;">
-        <div class="card category-card" data-category="Fútbol" style="background-image: url('/assets/Categorias/futbol.jpg');">
-          <h3>Fútbol</h3>
-          <p class="small">Jerseys, balones y guantes históricos.</p>
-        </div>
-        <div class="card category-card" data-category="Básquetbol" style="background-image: url('/assets/Categorias/basket.jpg');">
-          <h3>Básquetbol</h3>
-          <p class="small">Tarjetas rookie y memorabilia.</p>
-        </div>
-        <div class="card category-card" data-category="Béisbol" style="background-image: url('/assets/Categorias/beisbol.jpg');">
-          <h3>Béisbol</h3>
-          <p class="small">(Próximamente)</p>
-        </div>
+ home: (() => {
+    // 1. Definir todas tus categorías y sus imágenes
+    const allCategories = [
+      { name: "Futbol", img: "/assets/Categorias/futbol.avif" },
+      { name: "Basquetbol", img: "/assets/Categorias/basket.jpg" },
+      { name: "Beisbol", img: "/assets/Categorias/beisbol.webp" },
+      { name: "Americano", img: "/assets/Categorias/americano.jpeg" },
+      { name: "Boxeo", img: "/assets/Categorias/boxeo.avif" },
+      { name: "Formula1", img: "/assets/Categorias/f1.jpg" },
+      { name: "Musica", img: "/assets/Categorias/musica.jpg" },
+      { name: "Pokemon", img: "/assets/Categorias/pokemon.jpg" },
+      { name: "Voleibol", img: "/assets/Categorias/voleibol.avif" }
+    ];
+
+    // 2. Generar el HTML para el carrusel
+    const categoryCarouselHTML = allCategories.map(cat => `
+      <div class="category-tile" data-category="${escape(cat.name)}" 
+           style="background-image: url('${escape(cat.img)}');">
+        <h3>${escape(cat.name)}</h3>
       </div>
-    </div>
-  `,
+    `).join("");
+
+    // 3. Devolver el HTML final para la sección
+    return `
+      <section class="card">
+        <div class="inv-card__head" style="border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px;">
+          <div class="inv-card__title">
+            <h2 style="margin: 0;">Explora por Categoría</h2>
+          </div>
+        </div>
+        <div class="inv-card__body">
+          <div class="category-carousel-container">
+            <div class="category-carousel">
+              ${categoryCarouselHTML}
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
+  })(),
   preguntas: `
     <div class="card">
       <h2>Preguntas Frecuentes (FAQ)</h2>
@@ -410,9 +433,11 @@ function setActive(key) {
   if (!content) return;
 
   if (key === "inicio") { renderInicio(); return; }
+  
   if (key === "home") {
     content.innerHTML = sections[key] || "";
-    content.querySelectorAll('.category-card').forEach(card => {
+    // CONECTAR LAS NUEVAS TARJETAS DEL CARRUSEL
+    content.querySelectorAll('.category-tile').forEach(card => {
       card.addEventListener('click', () => {
         const category = card.dataset.category;
         renderCatalog(category);
@@ -422,7 +447,6 @@ function setActive(key) {
       });
     });
     return;
-    
   }
     
   if (key === "catalogo"){ renderCatalog(); return; }
@@ -573,18 +597,6 @@ function renderInicio() {
       </section>
     </div>
 
-    <!-- Videojuegos antiguos -->
-    <section class="card h-card" style="margin-top:16px;">
-      <div class="section-head">
-        <h3>Videojuegos antiguos</h3>
-        <a href="#" data-key="catalogo">Ver más</a>
-      </div>
-      ${renderImageStrip([
-        ph("NES"), ph("SNES"), ph("Game Boy"), ph("N64"), ph("PS1"), ph("Dreamcast"),
-        ph("Arcade"), ph("Mega Drive")
-      ])}
-    </section>
-
     <!-- Solo imágenes -->
     <section class="card h-card" style="margin-top:16px;">
       <div class="section-head"><h3>Solo imágenes — lo más visual</h3></div>
@@ -600,18 +612,6 @@ function renderInicio() {
         <a href="#" data-key="catalogo">Ver más</a>
       </div>
       ${renderCarousel(destacados)}
-    </section>
-
-    <!-- Métodos de pago (queda al final) -->
-    <section class="card h-card" style="margin-top:16px;">
-      <div class="section-head"><h3>Descubre nuestros métodos de pago</h3></div>
-      <div class="pay-strip">
-        <div class="pay-item"><svg class="pay-icon" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><rect x="16" y="14" width="4" height="3" rx="1"/></svg>Crédito y débito</div>
-        <div class="pay-item"><svg class="pay-icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M5 9h0M19 9h0M5 15h0M19 15h0"/></svg>Efectivo</div>
-        <div class="pay-item"><svg class="pay-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>Pago a meses</div>
-        <div class="pay-item"><svg class="pay-icon" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="2"/><line x1="3" y1="14" x2="21" y2="14"/><line x1="12" y1="8" x2="12" y2="20"/><path d="M12 8c-1.6-.5-3-1.8-3-3a2 2 0 1 1 4 0c0 1.2-1.2 2.5-3 3 M12 8c1.6-.5 3-1.8 3-3a2 2 0 1 0-4 0c0 1.2 1.2 2.5 3 3"/></svg>Tarjeta de regalo</div>
-        <div class="pay-item"><svg class="pay-icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M8 12l-2 2 2 2"/><path d="M16 12l2-2-2-2"/><line x1="10" y1="14" x2="14" y2="10"/></svg>Transferencia</div>
-      </div>
     </section>
   `;
 

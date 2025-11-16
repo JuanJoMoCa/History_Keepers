@@ -298,15 +298,37 @@ async function renderInicioDashboard() {
   const content = document.querySelector("section.content");
   if (!content) return;
 
-  // 1. Mostrar saludo
+  // 1. Definir todas tus categorías y sus imágenes
+  const allCategories = [
+    { name: "Fútbol", img: "/assets/Categorias/futbol.avif" },
+    { name: "Básquetbol", img: "/assets/Categorias/basket.jpg" },
+    { name: "Béisbol", img: "/assets/Categorias/beisbol.webp" },
+    { name: "Fútbol Americano", img: "/assets/Categorias/americano.jpeg" },
+    { name: "Boxeo", img: "/assets/Categorias/boxeo.avif" },
+    { name: "Fórmula 1", img: "/assets/Categorias/f1.jpg" },
+    { name: "Música", img: "/assets/Categorias/musica.jpg" },
+    { name: "Pokemon", img: "/assets/Categorias/pokemon.jpg" },
+    { name: "Voleibol", img: "/assets/Categorias/voleibol.avif" }
+  ];
+
+  // 2. Generar el HTML para el carrusel
+  const categoryCarouselHTML = allCategories.map(cat => `
+    <div class="category-tile" data-category="${escape(cat.name)}" 
+         style="background-image: url('${escape(cat.img)}');">
+      <h3>${escape(cat.name)}</h3>
+    </div>
+  `).join("");
+
+  // 3. Mostrar saludo y layout
   content.innerHTML = `
     <div class="card section-center" style="margin-bottom: 20px;">
       <h2>Bienvenido, ${state.user.nombre.split(' ')[0]}</h2>
       <p class="small">Este es tu resumen. Desde aquí puedes ver tus pedidos o explorar el catálogo.</p>
     </div>
     
-    <div class="dashboard-grid-comprador">
-      <section class="inv-card">
+    <div class="dashboard-grid-comprador-full">
+      
+      <section class="inv-card" style="margin-bottom: 20px;">
         <div class="inv-card__head">
           <div class="inv-card__title">
             <h3>Mis Pedidos Recientes</h3>
@@ -332,19 +354,13 @@ async function renderInicioDashboard() {
       <section class="inv-card">
         <div class="inv-card__head">
           <div class="inv-card__title">
-            <h3>Explora por Deporte</h3>
+            <h3>Explora por Categoría</h3>
           </div>
         </div>
         <div class="inv-card__body" style="padding: 20px;">
-          <div class="grid grid-center" style="gap: 12px;">
-            <div class="card category-card" data-category="Fútbol" style="background-image: url('/assets/Categorias/futbol.jpg'); min-height: 120px;">
-              <h3>Fútbol</h3>
-            </div>
-            <div class="card category-card" data-category="Baloncesto" style="background-image: url('/assets/Categorias/basket.jpg'); min-height: 120px;">
-              <h3>Básquetbol</h3>
-            </div>
-            <div class="card category-card" data-category="Béisbol" style="background-image: url('/assets/Categorias/beisbol.jpg'); min-height: 120px;">
-              <h3>Béisbol</h3>
+          <div class="category-carousel-container">
+            <div class="category-carousel">
+              ${categoryCarouselHTML}
             </div>
           </div>
         </div>
@@ -352,8 +368,8 @@ async function renderInicioDashboard() {
     </div>
   `;
 
-  // 2. Conectar las tarjetas de categoría
-  content.querySelectorAll('.category-card').forEach(card => {
+  // 4. Conectar las tarjetas de categoría (sin cambios)
+  content.querySelectorAll('.category-tile').forEach(card => {
     card.addEventListener('click', () => {
       const category = card.dataset.category;
       renderCatalog(category);
@@ -363,10 +379,10 @@ async function renderInicioDashboard() {
     });
   });
 
-  // 3. Cargar y mostrar los pedidos
+  // 5. Cargar y mostrar los pedidos (sin cambios)
   try {
     const orders = await api.getMyOrders(state.user._id);
-    const recentOrders = orders.slice(0, 3); // Tomar solo los 3 más recientes
+    const recentOrders = orders.slice(0, 3);
     const tbody = $("#recent-orders-tbody");
 
     if (recentOrders.length > 0) {
