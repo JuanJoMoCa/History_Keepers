@@ -489,6 +489,146 @@ app.put('/api/password/:id', async (req, res) => {
   }
 });
 
+app.get('/api/my-orders/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // 1. Encontrar al usuario para obtener su email
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // 2. Buscar todos los pedidos que coincidan con ese email
+    // (Usamos el email como "llave" para vincular los pedidos)
+    const orders = await Order.find({ 
+      'customerDetails.email': user.email 
+    }).sort({ createdAt: -1 }); // Ordenar por más reciente
+
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get('/api/profile/:id/addresses', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).select('direccionesGuardadas');
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.json(user.direccionesGuardadas); // Devuelve solo el array de direcciones
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// AÑADIR (POST) una nueva dirección
+app.post('/api/profile/:id/addresses', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const newAddress = req.body; // El objeto de dirección viene en el body
+
+    // Validar campos (basado en tu user.model.js)
+    if (!newAddress.alias || !newAddress.calle || !newAddress.colonia || !newAddress.ciudad || !newAddress.cp) {
+       return res.status(400).json({ message: 'Faltan campos obligatorios para la dirección' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      { $push: { direccionesGuardadas: newAddress } }, // $push añade al array
+      { new: true } // Devuelve el usuario actualizado
+    ).select('direccionesGuardadas');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.status(201).json(user.direccionesGuardadas); // Devuelve el array actualizado
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ELIMINAR (DELETE) una dirección
+app.delete('/api/profile/:id/addresses/:addrId', async (req, res) => {
+  try {
+    const { id, addrId } = req.params;
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      { $pull: { direccionesGuardadas: { _id: addrId } } }, // $pull quita del array por ID
+      { new: true }
+    ).select('direccionesGuardadas');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.json(user.direccionesGuardadas); // Devuelve el array actualizado
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get('/api/profile/:id/payments', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).select('paymentMethods');
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.json(user.paymentMethods);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// AÑADIR (POST) un nuevo método de pago
+app.post('/api/profile/:id/payments', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const newPayment = req.body; // { alias, cardholderName, cardNumber, expiryDate }
+
+    // Validar campos
+    if (!newPayment.alias || !newPayment.cardholderName || !newPayment.cardNumber || !newPayment.expiryDate) {
+       return res.status(400).json({ message: 'Faltan campos obligatorios para el método de pago' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      { $push: { paymentMethods: newPayment } },
+      { new: true }
+    ).select('paymentMethods');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.status(201).json(user.paymentMethods);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ELIMINAR (DELETE) un método de pago
+app.delete('/api/profile/:id/payments/:payId', async (req, res) => {
+  try {
+    const { id, payId } = req.params;
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      { $pull: { paymentMethods: { _id: payId } } },
+      { new: true }
+    ).select('paymentMethods');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.json(user.paymentMethods);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // --- INICIALIZACIÓN DEL SERVIDOR ---
 async function startServer() {
   try {

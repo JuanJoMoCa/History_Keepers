@@ -230,3 +230,205 @@ footer {
 .status-badge[data-status="Entregado"] {
   background-color: #e5e7eb; color: #1f2937;
 }
+
+/* =========================================================
+   History Keepers — comprador.css
+   Estilos para el nuevo menú de perfil
+   ========================================================= */
+
+/* Contenedor principal */
+.profile-menu {
+  position: relative;
+  /* Importante: Asegura que los iconos de FontAwesome
+     (que añadimos en el HTML) se vean bien */
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* Botón de icono de perfil */
+.profile-btn {
+  background: var(--accent); /* Dorado (de styles.css) */
+  color: var(--text); /* Café (de styles.css) */
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform 0.2s ease;
+}
+.profile-btn:hover {
+  transform: scale(1.1);
+}
+
+/* El menú desplegable */
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 10px); /* Debajo del botón */
+  right: 0;
+  width: 220px;
+  background: var(--panel); /* Fondo beige (de styles.css) */
+  border: 1px solid var(--border);
+  border-radius: 16px; /* --radius no existe en styles.css, usamos 16px */
+  box-shadow: var(--shadow);
+  z-index: 100;
+  padding: 8px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.profile-dropdown.hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}
+
+/* Mensaje de bienvenida */
+#profile-welcome {
+  padding: 10px 12px;
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+/* Botones/Enlaces dentro del menú */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  font-size: 1em;
+  color: var(--muted);
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+}
+.dropdown-item:hover {
+  background: var(--bg); /* Fondo beige más oscuro (de styles.css) */
+  color: var(--text);
+}
+.dropdown-item i {
+  width: 18px;
+  text-align: center;
+  color: var(--muted); /* Color del icono */
+}
+.dropdown-item:hover i {
+  color: var(--accent); /* Color del icono al pasar el mouse */
+}
+
+/* --- ESTILOS PARA EL NUEVO DASHBOARD (INICIO) --- */
+
+.dashboard-grid-comprador {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* Pedidos (más anchos) | Categorías */
+  gap: 20px;
+}
+
+/* Tabla de pedidos (usa estilos de admin.css) */
+.inv-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.inv-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.inv-card__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.inv-card__title h3 {
+  margin: 0;
+}
+.inv-tablewrap {
+  padding: 8px 16px 0 16px;
+  overflow-x: auto;
+}
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+}
+.inv-table th,
+.inv-table td {
+  border-bottom: 1px solid var(--border); /* Más simple que admin */
+  padding: 12px 14px;
+  vertical-align: middle;
+  text-align: left;
+}
+.inv-table th {
+  background: var(--bg);
+  font-weight: 700;
+  font-size: 0.9em;
+  color: var(--muted);
+}
+.inv-table tbody tr:hover td {
+  background: var(--bg);
+}
+
+/* Tarjetas de categoría (usa estilos de styles.css) */
+.category-card {
+  position: relative;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 14px;
+  background-size: cover;
+  background-position: center;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0,0,0,.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 16px; /* Asegura bordes redondeados */
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+.category-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
+}
+.category-card h3 {
+  position: relative; z-index: 2; margin: 0;
+}
+.category-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Badges de estatus (copiado de admin.css) */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+}
+.status-badge[data-status="Pagado"] { background-color: #f3f4f6; color: #4b5563; }
+.status-badge[data-status="En Preparación"] { background-color: #e0e7ff; color: #3730a3; }
+.status-badge[data-status="Enviado"] { background-color: #d1fae5; color: #065f46; }
+.status-badge[data-status="Entregado"] { background-color: #e5e7eb; color: #1f2937; }
+.status-badge[data-status="Cancelado"] { background-color: #fee2e2; color: #991b1b; }
+
+/* Grid responsivo para el dashboard */
+@media (max-width: 960px) {
+  .dashboard-grid-comprador {
+    grid-template-columns: 1fr; /* Una columna */
+  }
+}

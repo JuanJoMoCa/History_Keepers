@@ -49,7 +49,6 @@
       </div>
 
       <div id="tab-perfil" class="tab-content hidden">
-        
         <section class="inv-card">
           <div class="inv-card__head">
             <div class="inv-card__title">
@@ -73,7 +72,6 @@
             <button id="save-profile" class="btn btn--primary">Guardar Cambios</button>
           </div>
         </section>
-
         <section class="inv-card" style="margin-top: 20px;">
           <div class="inv-card__head">
             <div class="inv-card__title">
@@ -94,7 +92,6 @@
             <button id="save-password" class="btn btn--primary">Actualizar Contraseña</button>
           </div>
         </section>
-
       </div>
 
       <div id="tab-direcciones" class="tab-content hidden">
@@ -107,9 +104,21 @@
               <button id="btnNewAddress" class="btn btn--success"><i class="fa-solid fa-plus"></i> Nueva Dirección</button>
             </div>
           </div>
-          <div class="inv-card__body" style="padding: 20px;">
-            <p>Aquí verás tu lista de direcciones.</p>
-            </div>
+          <div class="inv-tablewrap">
+            <table class="inv-table" id="address-table">
+              <thead>
+                <tr>
+                  <th>Alias</th>
+                  <th>Dirección</th>
+                  <th>Ciudad</th>
+                  <th>C.P.</th>
+                  <th style="width:100px; text-align:right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="address-tbody">
+                </tbody>
+            </table>
+          </div>
         </section>
       </div>
 
@@ -123,9 +132,23 @@
               <button id="btnNewPayment" class="btn btn--success"><i class="fa-solid fa-plus"></i> Nuevo Método</button>
             </div>
           </div>
-          <div class="inv-card__body" style="padding: 20px;">
-            <p>Aquí verás tu lista de tarjetas guardadas (simuladas).</p>
-            </div>
+          
+          <div class="inv-tablewrap">
+            <table class="inv-table" id="payment-table">
+              <thead>
+                <tr>
+                  <th>Alias</th>
+                  <th>Titular</th>
+                  <th>Número (simulado)</th>
+                  <th>Expira</th>
+                  <th style="width:100px; text-align:right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="payment-tbody">
+                </tbody>
+            </table>
+          </div>
+          
         </section>
       </div>
       
@@ -156,6 +179,71 @@
 
     </main>
   </div>
+
+  <dialog id="modalAddressForm" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal__dialog inv-card" style="width: min(600px, 96vw);">
+      <div class="modal__head">
+        <h3 id="address-form-title">Nueva Dirección</h3>
+        <button class="modal__close" data-close-address>&times;</button>
+      </div>
+      <div class="modal__body">
+        <form id="address-form" class="grid">
+          <input type="hidden" id="address-id">
+          <label class="grid-span-2">Alias (Ej. "Casa", "Oficina")
+            <input id="addr-alias" name="alias" class="input" required>
+          </label>
+          <label class="grid-span-2">Calle y Número
+            <input id="addr-calle" name="calle" class="input" required>
+          </label>
+          <label>Colonia
+            <input id="addr-colonia" name="colonia" class="input" required>
+          </label>
+          <label>Ciudad
+            <input id="addr-ciudad" name="ciudad" class="input" required>
+          </label>
+          <label class="grid-span-2">Código Postal (C.P.)
+            <input id="addr-cp" name="cp" class="input" required maxlength="5" inputmode="numeric">
+          </label>
+        </form>
+      </div>
+      <div class="modal__foot">
+        <button class="btn" data-close-address>Cancelar</button>
+        <button id="save-address" class="btn btn--primary">Guardar Dirección</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="modalPaymentForm" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal__dialog inv-card" style="width: min(600px, 96vw);">
+      <div class="modal__head">
+        <h3 id="payment-form-title">Nuevo Método de Pago</h3>
+        <button class="modal__close" data-close-payment>&times;</button>
+      </div>
+      <div class="modal__body">
+        
+        <form id="payment-form" class="grid">
+          <input type="hidden" id="payment-id">
+          <label class="grid-span-2">Alias (Ej. "Tarjeta personal")
+            <input id="pay-alias" name="alias" class="input" required>
+          </label>
+          <label class="grid-span-2">Nombre del Titular
+            <input id="pay-name" name="cardholderName" class="input" required>
+          </label>
+          <label>Número de Tarjeta (Simulado)
+            <input id="pay-number" name="cardNumber" class="input" required maxlength="19" placeholder="4242 4242 4242 4242">
+          </label>
+          <label>Fecha de Exp. (MM/AA)
+            <input id="pay-expiry" name="expiryDate" class="input" required maxlength="5" placeholder="MM/AA">
+          </label>
+        </form>
+        
+      </div>
+      <div class="modal__foot">
+        <button class="btn" data-close-payment>Cancelar</button>
+        <button id="save-payment" class="btn btn--primary">Guardar Método</button>
+      </div>
+    </div>
+  </dialog>
 
   <div id="toasts" class="toasts"></div>
   <script src="OpcionesComprador.js"></script> 
