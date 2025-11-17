@@ -224,18 +224,29 @@ async function loadProducts() {
 }
 
 async function initSlider() {
-  try {
-    const res = await fetch("/data/slides.json", { cache: "no-store" });
-    if (res.ok) state.slides = await res.json();
-  } catch (_) { /* fallback */ }
+  // 1. Validar que existan productos
+  if (!state.products || state.products.length === 0) return;
 
-  if (!Array.isArray(state.slides) || state.slides.length === 0) {
-    state.slides = state.products.map(p => ({
-      src: (p.images && p.images[0]) || ph(p.name),
+  // 2. Crear una copia y mezclarla aleatoriamente
+  // [...state.products] crea una copia para no desordenar el catálogo principal
+  // .sort(() => 0.5 - Math.random()) es un truco rápido para barajar el array
+  const mezclados = [...state.products].sort(() => 0.5 - Math.random());
+
+  // 3. Tomar los primeros 3 de la lista ya mezclada
+  const seleccionRandom = mezclados.slice(0, 3);
+
+  // 4. Mapear al formato del slider (igual que antes)
+  state.slides = seleccionRandom.map(p => ({
+      id: p._id,
+      // MODIFICACIÓN AQUÍ: Intentamos pedir una imagen más ancha a Cloudinary (si aplica)
+      // Ajusta 'w_1200' si necesitas otro ancho, o quita '.replace(...)' si tus URLs no lo usan
+      src: (p.images && p.images.length > 0) 
+            ? p.images[0].replace("/upload/", "/upload/w_1200,f_auto,q_auto/") // Añade transformaciones
+            : ph(p.name),
       title: p.name,
-      caption: p.description || "Artículo de colección"
+      caption: p.description ? p.description.substring(0, 60) + "..." : "Pieza de colección única",
+      price: formatPrice(p.price)
     }));
-  }
 
   buildSlider();
   startAuto();
@@ -258,14 +269,33 @@ function buildSlider() {
   if (!slidesWrap) return;
 
   slidesWrap.innerHTML = "";
+
   state.slides.forEach(s => {
     const el = document.createElement("div");
     el.className = "slide";
     el.style.backgroundImage = `url("${s.src}")`;
+    
+    // --- LÓGICA DEL CLIC ---
+    // Hacemos que el cursor sea una mano
+    el.style.cursor = "pointer";
+    
+    // Asignamos el evento click a todo el div del slide
+    el.onclick = function() {
+      console.log("Redirigiendo a producto:", s.id); // Para depuración en consola
+      window.location.href = `/producto/producto.html?id=${s.id}`;
+    };
+
+    // HTML interno del slide (Texto + Botón)
     el.innerHTML = `
       <div class="caption">
-        <h3>${s.title ?? ""}</h3>
-        <p>${s.caption ?? ""}</p>
+        <div style="text-align: left;">
+          <h3>${s.title}</h3>
+          <p>${s.caption}</p>
+          <span class="price-tag" style="display:inline-block; margin-top:8px; font-weight:bold; color: #ffd700; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px;">
+            ${s.price}
+          </span>
+        </div>
+        <button class="btn btn-primary">Ver Ahora</button>
       </div>
     `;
     slidesWrap.appendChild(el);
@@ -274,6 +304,7 @@ function buildSlider() {
   buildDots();
   updateSlider();
 }
+
 function buildDots() {
   const dots = document.querySelector(".dots");
   if (!dots) return;
@@ -282,27 +313,44 @@ function buildDots() {
     const d = document.createElement("button");
     d.className = "dot";
     d.setAttribute("aria-label", `Ir a slide ${i + 1}`);
-    d.addEventListener("click", () => go(i));
+    d.addEventListener("click", (e) => {
+      e.stopPropagation(); // Evita que el click en el punto dispare el click del slide
+      go(i);
+    });
     dots.appendChild(d);
   });
 }
+
 function wireSliderControls() {
   const slider = document.querySelector(".slider");
   if (!slider) return;
+  
+  // Detener rotación al pasar el mouse
   slider.addEventListener("mouseenter", stopAuto);
   slider.addEventListener("mouseleave", startAuto);
-  document.querySelector(".ctrl.prev")?.addEventListener("click", prev);
-  document.querySelector(".ctrl.next")?.addEventListener("click", next);
+
+  // Flechas (Usamos stopPropagation para que no activen el link del slide)
+  document.querySelector(".ctrl.prev")?.addEventListener("click", (e) => {
+    e.stopPropagation(); 
+    prev();
+  });
+  document.querySelector(".ctrl.next")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    next();
+  });
+
   window.addEventListener("keydown", (e) => {
     if (e.key === "ArrowRight") next();
     if (e.key === "ArrowLeft") prev();
   });
 }
+
 function go(i) {
   state.index = (i + state.slides.length) % state.slides.length;
   updateSlider();
   restartAuto();
 }
+
 function updateSlider() {
   const slidesWrap = document.querySelector(".slides");
   if (!slidesWrap) return;
@@ -329,22 +377,22 @@ const sections = {
  home: (() => {
     // 1. Definir todas tus categorías y sus imágenes
     const allCategories = [
-      { name: "Futbol", img: "/assets/Categorias/futbol.avif" },
-      { name: "Basquetbol", img: "/assets/Categorias/basket.jpg" },
-      { name: "Beisbol", img: "/assets/Categorias/beisbol.webp" },
-      { name: "Americano", img: "/assets/Categorias/americano.jpeg" },
+      { name: "Fútbol", img: "/assets/Categorias/futbol.avif" },
+      { name: "Baloncesto", img: "/assets/Categorias/basket.jpg" }, 
+      { name: "Béisbol", img: "/assets/Categorias/beisbol.webp" },
+      { name: "Fútbol Americano", img: "/assets/Categorias/americano.jpeg" },
       { name: "Boxeo", img: "/assets/Categorias/boxeo.avif" },
-      { name: "Formula1", img: "/assets/Categorias/f1.jpg" },
-      { name: "Musica", img: "/assets/Categorias/musica.jpg" },
+      { name: "Fórmula 1", img: "/assets/Categorias/f1.jpg" },  
+      { name: "Música", img: "/assets/Categorias/musica.jpg" },
       { name: "Pokemon", img: "/assets/Categorias/pokemon.jpg" },
       { name: "Voleibol", img: "/assets/Categorias/voleibol.avif" }
     ];
 
     // 2. Generar el HTML para el carrusel
     const categoryCarouselHTML = allCategories.map(cat => `
-      <div class="category-tile" data-category="${escape(cat.name)}" 
-           style="background-image: url('${escape(cat.img)}');">
-        <h3>${escape(cat.name)}</h3>
+      <div class="category-tile" data-category="${cat.name}" 
+           style="background-image: url('${cat.img}');">
+        <h3>${cat.name}</h3>
       </div>
     `).join("");
 
@@ -398,7 +446,7 @@ function buildMenu() {
 
   const items = [
     { key: "inicio",   label: "Inicio" },
-    { key: "home", label: "Deportes" },
+    { key: "home", label: "Categorías" },
     { key: "catalogo", label: "Catálogo" },
     { key: "buscar", label: "Buscar" }
   ];
@@ -560,7 +608,7 @@ function renderInicio() {
         </div>
         <p class="small">Compra en cualquier categoría y encuentra piezas históricas.</p>
         <div style="aspect-ratio:3/2; border-radius:12px; border:1px solid var(--border);
-             background:url('/assets/Categorias/futbol.jpg') center/cover no-repeat;"></div>
+             background:url('/assets/Categorias/futbol2.avif') center/cover no-repeat;"></div>
       </section>
 
       <!-- Explora por categoría (a todo el ancho, más abajo) -->
@@ -568,11 +616,11 @@ function renderInicio() {
         <div class="section-head"><h3>Explora por categoría</h3></div>
         <div class="tile-grid">
           <div class="tile" data-category="Fútbol"
-               style="background-image:url('/assets/Categorias/futbol.jpg');"><h4>Fútbol</h4></div>
+               style="background-image:url('/assets/Categorias/futbol.avif');"><h4>Fútbol</h4></div>
           <div class="tile" data-category="Básquetbol"
                style="background-image:url('/assets/Categorias/basket.jpg');"><h4>Básquetbol</h4></div>
           <div class="tile" data-category="Béisbol"
-               style="background-image:url('/assets/Categorias/beisbol.jpg');"><h4>Béisbol</h4></div>
+               style="background-image:url('/assets/Categorias/beisbol.webp');"><h4>Béisbol</h4></div>
         </div>
       </section>
     </div>

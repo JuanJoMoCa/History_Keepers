@@ -301,7 +301,7 @@ async function renderInicioDashboard() {
   // 1. Definir todas tus categorías y sus imágenes
   const allCategories = [
     { name: "Fútbol", img: "/assets/Categorias/futbol.avif" },
-    { name: "Básquetbol", img: "/assets/Categorias/basket.jpg" },
+    { name: "Baloncesto", img: "/assets/Categorias/basket.jpg" },
     { name: "Béisbol", img: "/assets/Categorias/beisbol.webp" },
     { name: "Fútbol Americano", img: "/assets/Categorias/americano.jpeg" },
     { name: "Boxeo", img: "/assets/Categorias/boxeo.avif" },
@@ -313,17 +313,16 @@ async function renderInicioDashboard() {
 
   // 2. Generar el HTML para el carrusel
   const categoryCarouselHTML = allCategories.map(cat => `
-    <div class="category-tile" data-category="${escape(cat.name)}" 
-         style="background-image: url('${escape(cat.img)}');">
-      <h3>${escape(cat.name)}</h3>
+    <div class="category-tile" data-category="${cat.name}" 
+         style="background-image: url('${cat.img}');">
+      <h3>${cat.name}</h3>
     </div>
   `).join("");
 
   // 3. Mostrar saludo y layout
   content.innerHTML = `
     <div class="card section-center" style="margin-bottom: 20px;">
-      <h2>Bienvenido, ${state.user.nombre.split(' ')[0]}</h2>
-      <p class="small">Este es tu resumen. Desde aquí puedes ver tus pedidos o explorar el catálogo.</p>
+      <h2>Bienvenido/a, ${state.user.nombre.split(' ')[0]}</h2>
     </div>
     
     <div class="dashboard-grid-comprador-full">
@@ -398,11 +397,14 @@ async function renderInicioDashboard() {
         </tr>
       `).join("");
     } else {
-      tbody.innerHTML = `<tr><td colspan="3" class="muted" style="padding: 20px; text-align: center;">No tienes pedidos recientes.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="3" class="muted" style="padding: 20px; text-align: center;">No hay pedidos existentes</td></tr>`;
     }
   } catch (err) {
-    $("#recent-orders-tbody").innerHTML = `<tr><td colspan="3" class="muted" style="padding: 20px; text-align: center;">Error al cargar pedidos.</td></tr>`;
-    showToast(err.message, 'err');
+    console.error("Error cargando pedidos dashboard:", err);
+    const tbody = document.getElementById("recent-orders-tbody");
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="3" class="muted" style="padding: 20px; text-align: center;">No hay pedidos existentes</td></tr>`;
+    }
   }
 }
 

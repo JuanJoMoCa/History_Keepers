@@ -799,3 +799,116 @@ section.content { padding: 14px 0 50px; }
 .category-tile:hover {
   transform: translateY(-5px);
 }
+
+.hero {
+  position: relative;
+  width: 100%;
+  height: 400px; /* Puedes ajustar esta altura a tu gusto */
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: var(--shadow-small);
+  margin-bottom: 20px;
+}
+
+.slides-container {
+  display: flex;
+  height: 100%;
+  transition: transform 0.5s ease-in-out;
+}
+
+.slide {
+  min-width: 100%;
+  height: 100%;
+  background-size: cover; /* Asegura que la imagen cubra todo el slide */
+  background-position: center; /* Centra la imagen de fondo */
+  background-repeat: no-repeat; /* Evita que la imagen se repita */
+  position: relative;
+  display: flex; /* Usamos flexbox para centrar contenido */
+  justify-content: center; /* Centra horizontalmente el caption */
+  align-items: flex-end; /* Alinea el caption en la parte inferior */
+  padding-bottom: 30px; /* Espacio desde abajo para el caption */
+  box-sizing: border-box; /* Incluye padding en la altura total */
+  cursor: pointer; /* Indica que es clicable */
+}
+
+/* Oscurecer un poco más la imagen para que el texto resalte */
+.slide::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Degradado para mejorar la visibilidad del texto en la parte inferior */
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+  z-index: 1; /* Asegura que el degradado esté sobre la imagen pero debajo del caption */
+}
+
+.caption {
+  position: relative; /* Cambiado de absolute a relative para que el z-index funcione correctamente dentro del slide */
+  z-index: 2; /* Asegura que el caption esté encima del degradado */
+  
+  /* Mantener el resto de tus estilos de Glassmorphism */
+  left: auto; /* Anulamos el left: 50% anterior */
+  bottom: auto; /* Anulamos el bottom: 30px anterior */
+  transform: none; /* Anulamos el translateX(-50%) anterior */
+  width: 90%;
+  max-width: 700px; /* Un poco más ancho para mejor legibilidad */
+  
+  background: rgba(20, 10, 5, 0.75); 
+  backdrop-filter: blur(8px); /* Blur un poco más fuerte */
+  -webkit-backdrop-filter: blur(8px);
+  
+  border: 1px solid rgba(183, 136, 47, 0.7); /* Borde dorado más visible */
+  border-radius: 16px;
+  padding: 16px 24px;
+  
+  display: flex;
+  flex-direction: row; /* Asegura que estén en fila por defecto */
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); /* Sombra más pronunciada */
+  
+  opacity: 0;
+  animation: slideUpFade 0.8s forwards 0.3s;
+}
+
+/* Ajustes para el texto dentro del caption para que siempre se vea bien */
+.caption h3, .caption p, .caption span {
+  color: #fff; /* Texto blanco para contraste */
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9); /* Sombra más fuerte para el texto */
+}
+
+.caption h3 {
+  font-size: 1.6rem; /* Título un poco más grande */
+}
+
+.caption p {
+  font-size: 1.1rem; /* Descripción más legible */
+}
+
+/* Animación de entrada (sin cambios, solo para referencia) */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(20px); } /* Solo translateY, ya que no usamos translateX */
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ajuste para móviles */
+@media (max-width: 768px) { /* Ajustar el breakpoint si es necesario */
+  .hero {
+    height: 300px; /* Menor altura en móviles */
+  }
+  .caption {
+    flex-direction: column;
+    text-align: center;
+    align-items: stretch;
+    bottom: 15px;
+    padding: 12px;
+    max-width: 95%; /* Ocupa más ancho en pantallas pequeñas */
+  }
+  .caption div { text-align: center !important; }
+  .caption button { width: 100%; margin-top: 8px; }
+}
+
+@media (max-width: 480px) {
+  .caption h3 { font-size: 1.3rem; }
+  .caption p { font-size: 0.95rem; }
+}
