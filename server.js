@@ -241,9 +241,27 @@ app.post('/api/orders', async (req, res) => {
   try {
     const { customerDetails, products, subtotal, shippingCost, total, tipoVenta } = req.body;
     
+    // 1. VALIDACIÓN DE STOCK (CRÍTICO)
+    // Obtenemos los IDs de los productos que el cliente quiere comprar
+    const productIds = products.map(p => p.product);
+    
+    // Buscamos esos productos en la base de datos real
+    const dbProducts = await Product.find({ _id: { $in: productIds } });
+    
+    // Verificamos si alguno NO está disponible
+    const unavailableProduct = dbProducts.find(p => p.status !== 'Disponible');
+    
+    if (unavailableProduct) {
+      return res.status(409).json({ // 409 Conflict
+        success: false,
+        message: `Lo sentimos, el artículo "${unavailableProduct.name}" ya no está disponible (se vendió hace un momento).`
+      });
+    }
+
+    // 2. Si todo está disponible, procedemos
     const orderNumber = `HK-${Date.now().toString().slice(5)}`;
     
-    const productIds = products.map(p => p.product);
+    // Actualizamos el estatus a 'Pendiente de envío' para bloquearlos inmediatamente
     await Product.updateMany(
       { _id: { $in: productIds } },
       { $set: { status: 'Pendiente de envío' } }
@@ -257,12 +275,14 @@ app.post('/api/orders', async (req, res) => {
       shippingCost,
       total,
       tipoVenta,
-      status: 'Pagado'
+      status: 'Pagado' // Simulamos pago exitoso
     });
     
     await newOrder.save();
     res.status(201).json(newOrder);
+
   } catch (error) {
+    console.error("Error al crear orden:", error);
     res.status(500).json({ message: error.message });
   }
 });
