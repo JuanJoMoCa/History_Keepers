@@ -647,7 +647,7 @@ function renderInicio() {
 
     <!-- Solo imágenes -->
     <section class="card h-card" style="margin-top:16px;">
-      <div class="section-head"><h3>Solo imágenes — lo más visual</h3></div>
+      <div class="section-head"><h3>lo más visual</h3></div>
       ${renderImageStrip((imgsAll.length ? imgsAll : [
         ph("Jersey"), ph("Balón"), ph("Tarjeta"), ph("Guantes"), ph("Poster")
       ]).slice(0,12))}
