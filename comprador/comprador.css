@@ -327,8 +327,10 @@ footer {
 
 .dashboard-grid-comprador {
   display: grid;
-  grid-template-columns: 2fr 1fr; /* Pedidos (más anchos) | Categorías */
+  /* EL TRUCO CLAVE: minmax(0, 1fr) evita que el contenido expanda el grid */
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
+  width: 100%;
 }
 
 /* Tabla de pedidos (usa estilos de admin.css) */
@@ -337,6 +339,9 @@ footer {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  /* Importante para contener hijos rebeldes */
+  max-width: 100%;
+  overflow: hidden; 
 }
 .inv-card__head {
   display: flex;
@@ -355,13 +360,15 @@ footer {
   margin: 0;
 }
 .inv-tablewrap {
+  width: 100%;
+  overflow-x: auto; /* Scroll horizontal solo aquí */
   padding: 8px 16px 0 16px;
-  overflow-x: auto;
+  box-sizing: border-box;
 }
 .inv-table {
   width: 100%;
+  min-width: 600px; /* Opcional: asegura que no se aplaste demasiado */
   border-collapse: collapse;
-  background: var(--card);
 }
 .inv-table th,
 .inv-table td {
@@ -434,9 +441,9 @@ footer {
 }
 
 /* --- ESTILOS PARA CARRUSEL DE CATEGORÍAS --- */
-
 .category-carousel-container {
-  margin-top: 15px;
+  width: 100%;
+  overflow: hidden; /* Evita desbordes indeseados */
 }
 
 .category-carousel {

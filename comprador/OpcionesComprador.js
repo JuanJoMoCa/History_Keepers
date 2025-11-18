@@ -316,29 +316,60 @@ async function loadMyAddresses() {
 function renderAddressTable(addresses = []) {
   const tbody = el.addressTbody;
   if (!tbody) return;
+  
   if (addresses.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5">No tienes direcciones guardadas.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center; padding:20px;">No tienes direcciones guardadas.</td></tr>';
     return;
   }
+
   tbody.innerHTML = addresses.map(addr => `
     <tr>
       <td><strong>${escape(addr.alias)}</strong></td>
       <td>${escape(addr.calle)}</td>
       <td>${escape(addr.ciudad)}</td>
       <td>${escape(addr.cp)}</td>
-      <td class="row-actions">
-        <button class="btn btn--danger" data-delete-address="${addr._id}">Eliminar</button>
+      <td>
+        <div class="row-actions">
+          <button class="btn" data-edit-address='${JSON.stringify(addr)}' title="Editar">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button class="btn btn--danger" data-delete-address="${addr._id}" title="Eliminar">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
       </td>
     </tr>
   `).join("");
+
+  // Conectar Eliminar
   tbody.querySelectorAll('[data-delete-address]').forEach(b => {
     b.addEventListener('click', () => handleDeleteAddress(b.dataset.deleteAddress));
   });
+
+  // Conectar Editar (NUEVO)
+  tbody.querySelectorAll('[data-edit-address]').forEach(b => {
+    b.addEventListener('click', () => openAddressModal(JSON.parse(b.dataset.editAddress)));
+  });
 }
-function openAddressModal() {
+function openAddressModal(addressData = null) {
   el.addressForm.reset();
-  $("#address-id").value = "";
-  el.addressFormTitle.textContent = "Nueva Dirección";
+  
+  if (addressData) {
+    // MODO EDICIÓN
+    $("#address-id").value = addressData._id;
+    $("#addr-alias").value = addressData.alias;
+    $("#addr-calle").value = addressData.calle;
+    $("#addr-colonia").value = addressData.colonia;
+    $("#addr-ciudad").value = addressData.ciudad;
+    $("#addr-cp").value = addressData.cp;
+    el.addressFormTitle.textContent = "Editar Dirección";
+    el.saveAddressBtn.textContent = "Actualizar";
+  } else {
+    // MODO CREACIÓN
+    $("#address-id").value = "";
+    el.addressFormTitle.textContent = "Nueva Dirección";
+    el.saveAddressBtn.textContent = "Guardar Dirección";
+  }
   el.modalAddressForm.classList.remove('hidden');
 }
 function closeAddressModal() {
@@ -347,12 +378,22 @@ function closeAddressModal() {
 async function saveAddress() {
   const formData = new FormData(el.addressForm);
   const data = Object.fromEntries(formData.entries());
+  const id = $("#address-id").value; // Verificar si hay ID
+
   if (!data.alias || !data.calle || !data.colonia || !data.ciudad || !data.cp) {
     showToast("Todos los campos son obligatorios.", "err"); return;
   }
+
   try {
-    await api.addAddress(state.userId, data);
-    showToast("Dirección guardada", "ok");
+    if (id) {
+
+      await api.deleteAddress(state.userId, id); // Borrar viejo
+      await api.addAddress(state.userId, data); // Crear nuevo
+      showToast("Dirección actualizada", "ok");
+    } else {
+      await api.addAddress(state.userId, data);
+      showToast("Dirección guardada", "ok");
+    }
     closeAddressModal();
     loadMyAddresses();
   } catch (err) {
@@ -398,12 +439,11 @@ function renderPaymentTable(payments = []) {
   if (!tbody) return;
 
   if (payments.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5">No tienes métodos de pago guardados.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center; padding:20px;">No tienes métodos de pago guardados.</td></tr>';
     return;
   }
 
   tbody.innerHTML = payments.map(pay => {
-    // Simular "XXXX XXXX XXXX 1234"
     const lastFour = escape(pay.cardNumber).slice(-4);
     const maskedNumber = `**** **** **** ${lastFour}`;
     
@@ -413,26 +453,52 @@ function renderPaymentTable(payments = []) {
         <td>${escape(pay.cardholderName)}</td>
         <td>${maskedNumber}</td>
         <td>${escape(pay.expiryDate)}</td>
-        <td class="row-actions">
-          <button class="btn btn--danger" data-delete-payment="${pay._id}">Eliminar</button>
+        <td>
+          <div class="row-actions">
+            <button class="btn" data-edit-payment='${JSON.stringify(pay)}' title="Editar">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button class="btn btn--danger" data-delete-payment="${pay._id}" title="Eliminar">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
         </td>
       </tr>
     `;
   }).join("");
 
-  // Conectar botones de "Eliminar"
+  // Conectar Eliminar
   tbody.querySelectorAll('[data-delete-payment]').forEach(b => {
     b.addEventListener('click', () => handleDeletePayment(b.dataset.deletePayment));
+  });
+
+  // Conectar Editar (NUEVO)
+  tbody.querySelectorAll('[data-edit-payment]').forEach(b => {
+    b.addEventListener('click', () => openPaymentModal(JSON.parse(b.dataset.editPayment)));
   });
 }
 
 /**
  * Abre el modal de pago (para crear)
  */
-function openPaymentModal() {
+function openPaymentModal(paymentData = null) {
   el.paymentForm.reset();
-  $("#payment-id").value = "";
-  el.modalPaymentForm.querySelector('h3').textContent = "Nuevo Método de Pago";
+  
+  if (paymentData) {
+    // MODO EDICIÓN
+    $("#payment-id").value = paymentData._id;
+    $("#pay-alias").value = paymentData.alias;
+    $("#pay-name").value = paymentData.cardholderName;
+    $("#pay-number").value = paymentData.cardNumber;
+    $("#pay-expiry").value = paymentData.expiryDate;
+    el.modalPaymentForm.querySelector('h3').textContent = "Editar Método de Pago";
+    el.savePaymentBtn.textContent = "Actualizar";
+  } else {
+    // MODO CREACIÓN
+    $("#payment-id").value = "";
+    el.modalPaymentForm.querySelector('h3').textContent = "Nuevo Método de Pago";
+    el.savePaymentBtn.textContent = "Guardar Método";
+  }
   el.modalPaymentForm.classList.remove('hidden');
 }
 
@@ -449,23 +515,24 @@ function closePaymentModal() {
 async function savePayment() {
   const formData = new FormData(el.paymentForm);
   const data = Object.fromEntries(formData.entries());
+  const id = $("#payment-id").value;
 
   if (!data.alias || !data.cardholderName || !data.cardNumber || !data.expiryDate) {
-    showToast("Todos los campos son obligatorios.", "err");
-    return;
-  }
-  
-  // Pequeña validación de fecha (ej. 12/25)
-  if (!/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(data.expiryDate)) {
-    showToast("Usa el formato MM/AA para la fecha.", "err");
-    return;
+    showToast("Todos los campos son obligatorios.", "err"); return;
   }
 
   try {
-    await api.addPayment(state.userId, data);
-    showToast("Método de pago guardado", "ok");
+    if (id) {
+      // Misma lógica de "Borrar y Crear" si no hay endpoint PUT específico
+      await api.deletePayment(state.userId, id);
+      await api.addPayment(state.userId, data);
+      showToast("Método actualizado", "ok");
+    } else {
+      await api.addPayment(state.userId, data);
+      showToast("Método guardado", "ok");
+    }
     closePaymentModal();
-    loadMyPayments(); // Recargar la tabla
+    loadMyPayments();
   } catch (err) {
     showToast(err.message, "err");
   }
