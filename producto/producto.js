@@ -1,5 +1,5 @@
 /* =========================================================
-   History Keepers — producto.js (Conectado a la API)
+   History Keepers — producto.js (FINAL - Auth Persistente)
    ========================================================= */
 
 // ------------------------------
@@ -48,8 +48,29 @@ function showToast(message, type = "success") {
 }
 
 // ------------------------------
-// Modales + Auth (REAL)
+// Modales + Auth (PERSISTENTE)
 // ------------------------------
+
+// --- NUEVA FUNCIÓN: Verificar sesión al cargar (Igual que en carrito) ---
+async function checkAuth() {
+  const userId = localStorage.getItem('hk-user-id');
+  if (!userId) return; // No hay sesión guardada
+
+  try {
+    const res = await fetch(`/api/profile/${userId}`);
+    if (res.ok) {
+      const userData = await res.json();
+      globalState.isAuthenticated = true;
+      globalState.user = userData;
+      updateUIForAuthState(); // Actualiza el header visualmente
+    } else {
+      localStorage.removeItem('hk-user-id'); // Sesión inválida
+    }
+  } catch (e) {
+    console.error("Error verificando sesión:", e);
+  }
+}
+
 function closeAnyModal() {
   document.querySelectorAll("dialog[open]").forEach((d) => {
     const form = d.querySelector("form");
@@ -96,7 +117,7 @@ function wireAuthForms() {
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
 
-  // Registro (Conectado a la API)
+  // Registro
   registerForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(registerForm);
@@ -127,7 +148,7 @@ function wireAuthForms() {
     }
   });
 
-  // Login (Conectado a la API y con redirección)
+  // Login
   loginForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(loginForm);
@@ -150,28 +171,20 @@ function wireAuthForms() {
         closeAnyModal();
         showToast(result.message || `Bienvenido(a), ${result.user.nombre.split(" ")[0]}!`, "success");
         
-        // --- AÑADIDO: Guardar ID en localStorage ---
+        // GUARDAR SESIÓN
         localStorage.setItem('hk-user-id', result.user._id);
 
         setTimeout(() => {
+          // Redirección según rol
           const userRole = result.user.rol;
-          switch (userRole) {
-            case 'usuario comprador':
-              window.location.href = '/comprador/comprador.html';
-              break;
-            case 'trabajador':
-              window.location.href = '/trabajador/trabajador.html';
-              break;
-            case 'gerente':
-              window.location.href = '/gerente/gerente.html';
-              break;
-            case 'administrador':
-              window.location.href = '/assets/admin/admin.html';
-              break;
-            default:
-              globalState.isAuthenticated = true;
-              globalState.user = result.user;
-              updateUIForAuthState();
+          if(userRole.includes('admin')) window.location.href = '/assets/admin/admin.html';
+          else if(userRole.includes('gerente')) window.location.href = '/gerente/gerente.html';
+          else if(userRole.includes('trabajador')) window.location.href = '/trabajador/trabajador.html';
+          else {
+             // Si es usuario normal, nos quedamos aquí pero actualizamos estado
+             globalState.isAuthenticated = true;
+             globalState.user = result.user;
+             updateUIForAuthState();
           }
         }, 1000); 
 
@@ -213,10 +226,7 @@ function updateUIForAuthState() {
 function handleLogout() {
   globalState.isAuthenticated = false;
   globalState.user = { rol: "invitado", nombre: "Invitado" };
-  
-  // --- AÑADIDO: Borrar ID de localStorage ---
   localStorage.removeItem('hk-user-id');
-  
   updateUIForAuthState();
   showToast("Sesión cerrada correctamente.", "success");
 }
@@ -224,10 +234,15 @@ function handleLogout() {
 // ------------------------------
 // Init de la página
 // ------------------------------
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   wireTopbarModals();
   wireAuthForms();
-  updateUIForAuthState(); // (Esto puede cambiar si hay un token guardado, pero por ahora está bien)
+  
+  // 1. VERIFICAR SESIÓN AL INICIO
+  await checkAuth();
+  
+  // 2. Si ya estábamos logueados, la UI se actualizó arriba
+  // updateUIForAuthState(); // (checkAuth ya lo llama si es necesario)
 
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeAnyModal();
@@ -236,12 +251,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const yearSpan = document.getElementById("y");
   if (yearSpan) yearSpan.textContent = new Date().getFullYear();
 
-  // Lógica específica de producto
   initProductPage();
 });
 
 // ------------------------------
-// Página de producto (CONECTADA A API)
+// Lógica de Producto
 // ------------------------------
 async function initProductPage() {
   const params = new URLSearchParams(window.location.search);
@@ -253,16 +267,10 @@ async function initProductPage() {
   }
 
   try {
-    // Pide el producto a la API que creamos en server.js
     const response = await fetch(`/api/products/${productId}`);
-    
-    if (!response.ok) {
-      throw new Error('Producto no encontrado en la base de datos');
-    }
-    
+    if (!response.ok) throw new Error('Producto no encontrado');
     const product = await response.json();
     
-    // Si todo sale bien, renderiza el producto
     renderProduct(product);
     wireProductActions(product);
 
@@ -278,19 +286,17 @@ function showNotFound() {
 }
 
 function renderProduct(product) {
-  // Título, migas y textos
   document.title = `${product.name} — History Keepers`;
   document.getElementById("bc-name").textContent = product.name;
   document.getElementById("p-title").textContent = product.name;
   document.getElementById("p-desc").textContent = product.description;
 
-  // --- NUEVA LÓGICA DE PRECIO ---
+  // Precio
   const priceContainer = document.getElementById("p-price-container");
   const price = product.price;
   const discount = product.discount || 0;
 
   if (discount > 0) {
-    // Si hay descuento
     const newPrice = price * (1 - discount / 100);
     priceContainer.innerHTML = `
       <span class="price-current">${formatPrice(newPrice)}</span>
@@ -298,12 +304,10 @@ function renderProduct(product) {
       <span class="price-discount-badge">${discount}% OFF</span>
     `;
   } else {
-    // Si no hay descuento
     priceContainer.innerHTML = `
       <span class="price-current">${formatPrice(price)}</span>
     `;
   }
-  // --- FIN DE LÓGICA DE PRECIO ---
 
   // Highlights
   const hList = document.getElementById("p-highlights");
@@ -345,57 +349,54 @@ function renderProduct(product) {
     mainImg.src = ph(product.name);
   }
 
-  // Mostrar contenido
   document.getElementById("product-view").hidden = false;
 }
 
 function wireProductActions(product) {
-  
-  // --- Calcular el precio final ---
+  // Calcular precio final para el carrito
   const price = product.price;
   const discount = product.discount || 0;
   const finalPrice = (discount > 0) ? price * (1 - discount / 100) : price;
 
+  // Acción "Agregar al Carrito"
   document.getElementById("add-cart")?.addEventListener("click", () => {
-    // El qty ya no existe en el HTML, lo forzamos a 1 (pieza única)
+    // SIEMPRE AGREGAMOS 1 (Ignoramos selectores de cantidad si los hubiera)
     const qty = 1; 
-    const cart = JSON.parse(localStorage.getItem("hk_cart") || "[]");
     
+    const cart = JSON.parse(localStorage.getItem("hk_cart") || "[]");
     const existing = cart.find((i) => i.id === product._id); 
     
     if (existing) {
-      existing.qty += qty;
+       showToast(`"${product.name}" ya está en tu carrito.`, "success");
     } else {
       cart.push({ 
         id: product._id, 
         name: product.name, 
-        price: finalPrice, // <-- USA EL PRECIO FINAL
-        qty,
+        price: finalPrice,
+        qty: qty,
         image: (product.images && product.images[0]) ? product.images[0] : ph(product.name)
       });
+      localStorage.setItem("hk_cart", JSON.stringify(cart));
+      showToast(`Se agregó "${product.name}" al carrito.`, "success");
     }
-    localStorage.setItem("hk_cart", JSON.stringify(cart));
-    showToast(`Se agregó "${product.name}" al carrito.`, "success");
   });
 
+  // Acción "Comprar Ahora"
   document.getElementById("buy-now")?.addEventListener("click", () => {
-    const qty = 1; // Pieza única
+    const qty = 1;
     const cart = JSON.parse(localStorage.getItem("hk_cart") || "[]");
-    
     const existing = cart.find((i) => i.id === product._id);
     
-    if (existing) {
-      existing.qty += qty;
-    } else {
+    if (!existing) {
       cart.push({ 
         id: product._id, 
         name: product.name, 
-        price: finalPrice, // <-- USA EL PRECIO FINAL
-        qty,
+        price: finalPrice,
+        qty: qty,
         image: (product.images && product.images[0]) ? product.images[0] : ph(product.name)
       });
+      localStorage.setItem("hk_cart", JSON.stringify(cart));
     }
-    localStorage.setItem("hk_cart", JSON.stringify(cart));
     window.location.href = "/carrito/carrito.html";
   });
 }

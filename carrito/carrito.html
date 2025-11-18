@@ -68,21 +68,36 @@
 
             <div id="step-address" class="checkout-step" hidden>
               <form id="address-form" class="checkout-form" novalidate>
+                <div id="saved-addresses-wrapper" style="margin-bottom: 15px;" hidden>
+                  <label for="saved-address-select" style="color: var(--accent);">📍 Usar una dirección guardada</label>
+                  <select id="saved-address-select" class="input">
+                    <option value="">-- Seleccionar dirección --</option>
+                  </select>
+                  <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 0;">
+                </div>
+
                 <label for="addr-calle">Dirección de Envío</label>
-                <input id="addr-calle" name="addr-calle" class="input" type="text" placeholder="Calle y Número" required>
+                <input id="addr-calle" name="calle" class="input" type="text" placeholder="Calle y Número" required>
 
                 <label for="addr-colonia">Colonia</label>
-                <input id="addr-colonia" name="addr-colonia" class="input" type="text" placeholder="Colonia / Municipio" required>
+                <input id="addr-colonia" name="colonia" class="input" type="text" placeholder="Colonia / Municipio" required>
+                
+                <input type="hidden" name="alias" value="Nueva Dirección">
 
                 <div class="form-grid">
                   <div>
                     <label for="addr-ciudad">Ciudad</label>
-                    <input id="addr-ciudad" name="addr-ciudad" class="input" type="text" placeholder="Ciudad" required>
+                    <input id="addr-ciudad" name="ciudad" class="input" type="text" placeholder="Ciudad" required>
                   </div>
                   <div>
                     <label for="addr-cp">C.P.</label>
-                    <input id="addr-cp" name="addr-cp" class="input" type="text" placeholder="C.P." maxlength="5" inputmode="numeric" required>
+                    <input id="addr-cp" name="cp" class="input" type="text" placeholder="C.P." maxlength="5" inputmode="numeric" required>
                   </div>
+                </div>
+                
+                <div id="save-address-div" style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                  <input type="checkbox" id="save-address-check" style="width: 16px; height: 16px;">
+                  <label for="save-address-check" style="margin:0; font-weight: 400; font-size: 0.9rem;">Guardar esta dirección en mi cuenta</label>
                 </div>
 
                 <button id="btn-to-payment" type="button" class="btn btn-primary" style="width:100%; margin-top:20px;">
@@ -93,6 +108,14 @@
 
             <div id="step-payment" class="checkout-step" hidden>
               <form id="payment-form" class="checkout-form" novalidate>
+                <div id="saved-payments-wrapper" style="margin-bottom: 15px;" hidden>
+                  <label for="saved-payment-select" style="color: var(--accent);">💳 Usar una tarjeta guardada</label>
+                  <select id="saved-payment-select" class="input">
+                    <option value="">-- Seleccionar tarjeta --</option>
+                  </select>
+                  <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 0;">
+                </div>
+
                 <label for="pay-nombre">Nombre en la tarjeta</label>
                 <input id="pay-nombre" class="input" type="text" placeholder="Como aparece en la tarjeta" required>
 
@@ -108,6 +131,11 @@
                     <label for="pay-cvv">CVV</label>
                     <input id="pay-cvv" class="input" type="text" placeholder="CVV" maxlength="4" inputmode="numeric" required>
                   </div>
+                </div>
+
+                <div id="save-payment-div" style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                  <input type="checkbox" id="save-payment-check" style="width: 16px; height: 16px;">
+                  <label for="save-payment-check" style="margin:0; font-weight: 400; font-size: 0.9rem;">Guardar tarjeta para futuras compras</label>
                 </div>
 
                 <button id="btn-pay" type="button" class="btn btn-primary" style="width:100%; margin-top:20px;">
