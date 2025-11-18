@@ -536,148 +536,84 @@ function renderInicio() {
   const content = document.querySelector("section.content");
   if (!content) return;
 
-  const imgsAll = state.products.flatMap(p => getImages(p));
-  const img1 = imgsAll[0] || ph("Ofertas");
-  const img2 = imgsAll[1] || ph("Primera compra");
-  const img3 = imgsAll[2] || ph("Esenciales");
-  const img4 = imgsAll[3] || ph("Favoritos");
-
-  const withOffer = state.products.filter(p => getOffer(p).discountPct);
-  const ofertas    = withOffer.length ? withOffer : state.products.slice(0, 6);
-  const destacados = state.products.slice(0, 10);
-  const visualImgs = (imgsAll.length ? imgsAll : [
-    ph("Jersey"), ph("Balón"), ph("Tarjeta"), ph("Guantes"), ph("Poster")
-  ]).slice(0, 12);
-
   content.innerHTML = `
-    <!-- NUEVA franja superior (4 paneles) -->
     <section class="tpanels">
-      <article class="tpanel">
+      
+      <article class="tpanel" data-mode="theme" data-filter="destacados">
         <div class="tp-copy">
           <small>DESTACADOS</small>
-          <h3>Ofertas en tendencia</h3>
-          <a class="tp-link" href="#" data-key="catalogo">Ver más</a>
+          <h3>OFERTAS EN TENDENCIA</h3>
+          <span class="tp-link">VER MÁS</span>
         </div>
-        <div class="tp-img" style="background-image:url('${img1}')"></div>
       </article>
 
-      <article class="tpanel">
+      <article class="tpanel" data-mode="catalog" data-filter="">
         <div class="tp-copy">
           <small>NUEVO</small>
-          <h3>Tu primera compra</h3>
-          <a class="tp-link" href="#" data-key="catalogo">Explorar catálogo</a>
+          <h3>TU PRIMERA COMPRA</h3>
+          <span class="tp-link">EXPLORAR CATÁLOGO</span>
         </div>
-        <div class="tp-img" style="background-image:url('${img2}')"></div>
       </article>
 
-      <article class="tpanel">
+      <article class="tpanel" data-mode="theme" data-filter="ofertas">
         <div class="tp-copy">
           <small>PROMOS</small>
-          <h3>Hasta 25% en coleccionables</h3>
-          <a class="tp-link" href="#" data-key="catalogo">Descubrir</a>
+          <h3>HASTA 25% EN COLECCIONABLES</h3>
+          <span class="tp-link">DESCUBRIR</span>
         </div>
-        <div class="tp-img" style="background-image:url('${img3}')"></div>
       </article>
 
-      <article class="tpanel">
+      <article class="tpanel" data-mode="theme" data-filter="firmados">
         <div class="tp-copy">
           <small>TUS FAVORITOS</small>
-          <h3>Colecciones más vistas</h3>
-          <a class="tp-link" href="#" data-key="catalogo">Ver ahora</a>
+          <h3>COLECCIONES MÁS VISTAS</h3>
+          <span class="tp-link">VER AHORA</span>
         </div>
-        <div class="tp-img" style="background-image:url('${img4}')"></div>
       </article>
-    </section>
 
-    <!-- Grilla principal -->
-    <div class="home-sections">
-      <!-- Ofertas en tendencia (más ancho) -->
-      <section class="card h-card h-span-2">
-        <div class="section-head">
-          <h3>Ofertas en tendencia</h3>
-          <a href="#" data-key="catalogo">Ver más</a>
-        </div>
-        ${renderCarousel(ofertas)}
-      </section>
-
-      <!-- Comienza con tu elección -->
-      <section class="card h-card">
-        <div class="section-head">
-          <h3>Comienza con tu elección</h3>
-          <a href="#" data-key="catalogo">Explorar catálogo</a>
-        </div>
-        <p class="small">Compra en cualquier categoría y encuentra piezas históricas.</p>
-        <div style="aspect-ratio:3/2; border-radius:12px; border:1px solid var(--border);
-             background:url('/assets/Categorias/futbol2.avif') center/cover no-repeat;"></div>
-      </section>
-
-      <!-- Explora por categoría (a todo el ancho, más abajo) -->
-      <section class="card h-card h-span-3">
-        <div class="section-head"><h3>Explora por categoría</h3></div>
-        <div class="tile-grid">
-          <div class="tile" data-category="Fútbol"
-               style="background-image:url('/assets/Categorias/futbol.avif');"><h4>Fútbol</h4></div>
-          <div class="tile" data-category="Básquetbol"
-               style="background-image:url('/assets/Categorias/basket.jpg');"><h4>Básquetbol</h4></div>
-          <div class="tile" data-category="Béisbol"
-               style="background-image:url('/assets/Categorias/beisbol.webp');"><h4>Béisbol</h4></div>
-        </div>
-      </section>
-    </div>
-
-    <!-- (MOVIDOS ABAJO) Banners “dos mitades” -->
-    <div class="promo-row">
-      <section class="promo">
-        <div class="p-copy">
-          <small class="muted">ENVÍOS DESDE USA</small>
-          <h3>Mundo gamer — hasta 40% OFF</h3>
-          <a class="p-link" href="#" data-key="catalogo">Ver más</a>
-        </div>
-        <div class="p-img" style="background-image:url('${imgsAll[4] || ph("Gamer")}');"></div>
-      </section>
-      <section class="promo">
-        <div class="p-copy">
-          <small class="muted">OFERTAS</small>
-          <h3>Hasta 50% de descuento</h3>
-          <a class="p-link" href="#" data-key="catalogo">Ver más</a>
-        </div>
-        <div class="p-img" style="background-image:url('${imgsAll[5] || ph("Ofertas")}');"></div>
-      </section>
-    </div>
-
-    <!-- Solo imágenes -->
-    <section class="card h-card" style="margin-top:16px;">
-      <div class="section-head"><h3>lo más visual</h3></div>
-      ${renderImageStrip((imgsAll.length ? imgsAll : [
-        ph("Jersey"), ph("Balón"), ph("Tarjeta"), ph("Guantes"), ph("Poster")
-      ]).slice(0,12))}
-    </section>
-
-    <!-- Nuevos y destacados -->
-    <section class="card h-card" style="margin-top:16px;">
-      <div class="section-head">
-        <h3>Nuevos y destacados</h3>
-        <a href="#" data-key="catalogo">Ver más</a>
-      </div>
-      ${renderCarousel(destacados)}
     </section>
   `;
 
-  // Navegación desde “Inicio”
-  content.querySelectorAll('[data-key="catalogo"]').forEach(a => {
-    a.addEventListener('click', e => { e.preventDefault(); setActive('catalogo'); });
-  });
-  content.querySelectorAll('.tile[data-category]').forEach(t => {
-    t.addEventListener('click', () => {
-      renderCatalog(t.dataset.category);
-      document.querySelectorAll("nav.menu a").forEach(a =>
-        a.classList.toggle("active", a.dataset.key === 'catalogo'));
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Lógica de redirección al hacer clic en los paneles
+  content.querySelectorAll('.tpanel').forEach(panel => {
+    panel.addEventListener('click', () => {
+      const mode = panel.dataset.mode;     
+      const filter = panel.dataset.filter; 
+
+      // Ajustar la pestaña activa en el menú
+      document.querySelectorAll("nav.menu a").forEach(a => {
+        a.classList.toggle("active", a.dataset.key === 'catalogo');
+      });
+
+      if (mode === 'theme') {
+        // Modo Temática
+        state.catalogoLayout = "themed";
+        renderCatalog();
+        setTimeout(() => {
+          const targetSection = document.getElementById(`t-${filter}`);
+          if (targetSection) {
+            // Scroll ajustado para temáticas
+            const y = targetSection.getBoundingClientRect().top + window.scrollY - 100;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          }
+        }, 100);
+      } else {
+        // Modo Catálogo General
+        state.catalogoLayout = "flat";
+        renderCatalog(filter || null);
+        
+        // --- FIX SCROLL: Ir directo al contenido sin que el header lo tape ---
+        setTimeout(() => {
+          const contentSection = document.querySelector("section.content");
+          if (contentSection) {
+            // Calculamos: Posición del elemento + Scroll Actual - Altura Header (90px) - Margen extra (20px)
+            const y = contentSection.getBoundingClientRect().top + window.scrollY - 110;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          }
+        }, 50);
+      }
     });
   });
-
-  // Hover-carrusel para mini-products
-  wireProductCardHover(content);
 }
 
 
@@ -988,8 +924,8 @@ function wireTopbarModals() {
 function wireAuthForms() {
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
-
-  // Registro (Conectado a la API)
+  
+  // 1. REGISTRO (Este sí funciona con submit porque no le cambiamos el botón)
   registerForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(registerForm);
@@ -1017,44 +953,58 @@ function wireAuthForms() {
     }
   });
 
-  // Login real + redirect por rol
-  loginForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const fd = new FormData(loginForm);
-    const email = fd.get("email");
-    const password = fd.get("password");
+  // 2. LOGIN (CORREGIDO: Usamos click en el botón en vez de submit)
+  const btnLogin = document.getElementById("btn-login-submit");
+  
+  if (btnLogin) {
+    // Clonamos el botón para eliminar listeners viejos si se recarga
+    const newBtn = btnLogin.cloneNode(true);
+    btnLogin.parentNode.replaceChild(newBtn, btnLogin);
+    
+    newBtn.addEventListener("click", async (e) => {
+      e.preventDefault(); // Evita recargas
+      
+      // LEER DATOS DIRECTAMENTE POR ID (Esto es lo que faltaba)
+      const emailVal = document.getElementById("log-email")?.value.trim();
+      const passVal = document.getElementById("log-password")?.value;
 
-    try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        showToast(data.message || "No se pudo iniciar sesión.", "error");
+      if (!emailVal || !passVal) {
+        showToast("Por favor, ingresa correo y contraseña.", "error");
         return;
       }
 
-      state.isAuthenticated = true;
-      state.user = { ...data.user };
-      
-      // --- AÑADIDO: Guardar ID en localStorage ---
-      localStorage.setItem('hk-user-id', state.user._id); 
-      
-      document.getElementById("dlg-login")?.close();
-      updateUIForAuthState();
-      showToast(`¡Bienvenido(a), ${state.user.nombre.split(" ")[0]}!`, "success");
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: emailVal, password: passVal }),
+        });
+        const data = await res.json();
 
-      setTimeout(() => {
-        redirectByRole(state.user.rol);
-      }, 1000);
+        if (!res.ok || !data.success) {
+          showToast(data.message || "Credenciales incorrectas.", "error");
+          return;
+        }
 
-    } catch {
-      showToast("Error de red al iniciar sesión.", "error");
-    }
-  });
+        // Éxito
+        state.isAuthenticated = true;
+        state.user = { ...data.user };
+        localStorage.setItem('hk-user-id', state.user._id); 
+        
+        document.getElementById("dlg-login")?.close();
+        updateUIForAuthState();
+        showToast(`¡Bienvenido(a), ${state.user.nombre.split(" ")[0]}!`, "success");
+
+        setTimeout(() => {
+          redirectByRole(state.user.rol);
+        }, 1000);
+
+      } catch (err) {
+        console.error(err);
+        showToast("Error de conexión con el servidor.", "error");
+      }
+    });
+  }
 }
 
 function redirectByRole(rol = "") {
@@ -1115,35 +1065,36 @@ function wireProductCardHover(scopeEl) {
 
 
 function updateUIForAuthState() {
-  const actionsContainer = document.querySelector(".actions");
+  // Buscamos el contenedor de la derecha (donde están Login/Registro)
+  const actionsContainer = document.querySelector(".header-right");
   if (!actionsContainer) return;
 
-  const cartIcon = `<a href="/carrito/carrito.html" class="cart-icon" aria-label="Ir al carrito de compras">🛒</a>`;
-
   if (state.isAuthenticated) {
+    // --- USUARIO LOGUEADO ---
     const userName = state.user?.nombre?.split(" ")[0] || state.user?.rol || "Usuario";
-
     let panelHref = "/index.html";
+    
     const r = (state.user?.rol || "").toLowerCase();
     if (r.includes("admin")) panelHref = "/assets/admin/admin.html";
     else if (r.includes("gerente")) panelHref = "/gerente/gerente.html";
     else if (r.includes("trabajador")) panelHref = "/trabajador/trabajador.html";
     else if (r.includes("comprador") || r.includes("usuario")) panelHref = "/comprador/comprador.html";
-
+    
+    // SOLO mostramos "MI PANEL" y "SALIR". ¡Ya no agregamos el carrito aquí!
     actionsContainer.innerHTML = `
-      ${cartIcon}
-      <a class="btn top-btn ghost" href="${panelHref}">Mi panel</a>
-      <span class="welcome-message">Hola, ${userName}!</span>
-      <button class="btn top-btn ghost" data-action="logout">Cerrar Sesión</button>
+      <a class="top-btn" href="${panelHref}" style="text-decoration:none;">MI PANEL</a>
+      <button class="top-btn" data-action="logout">SALIR</button>
     `;
     actionsContainer.querySelector('[data-action="logout"]')?.addEventListener("click", handleLogout);
+    
   } else {
+    // --- USUARIO NO LOGUEADO ---
+    // SOLO mostramos Login y Registro.
     actionsContainer.innerHTML = `
-      ${cartIcon}
-      <button class="btn top-btn" data-open="login">Login</button>
-      <button class="btn top-btn" data-open="register">Registrarse</button>
+      <button class="top-btn" data-open="login">LOGIN</button>
+      <button class="top-btn" data-open="register">REGISTRARSE</button>
     `;
-    // El listener para data-open se añade en wireTopbarModals
+    // Reconectamos los eventos de los modales
     wireTopbarModals(); 
   }
 }
