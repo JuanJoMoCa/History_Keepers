@@ -1181,4 +1181,21 @@ document.addEventListener("DOMContentLoaded", () => {
       behavior: "smooth" // Deslizamiento suave
     });
   });
+
+  // ===== CÓDIGO NUEVO: Activar enlaces del Footer =====
+  const footerLinks = document.querySelectorAll('footer a[data-key]');
+  footerLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault(); // Evita que la página salte arriba
+      const key = link.getAttribute('data-key');
+      
+      // Llama a tu función de navegación existente
+      setActive(key);
+      
+      // Sube suavemente al inicio para ver el contenido
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+  // ====================================================
+
 });

@@ -177,8 +177,35 @@ footer {
   flex-wrap: wrap;
   gap: 15px;
 }
-.footer-link { color: var(--accent); text-decoration: none; font-weight: 500; }
-.footer-link:hover { text-decoration: underline; }
+/*.footer-link { color: var(--accent); text-decoration: none; font-weight: 500; }
+.footer-link:hover { text-decoration: underline; }*/
+
+/* Enlaces del Footer (Corregido) */
+.footer-links {
+  list-style: none; /* Quita los puntos */
+  padding: 0;       /* ¡ESTO ES LA CLAVE! Quita el espacio a la izquierda */
+  margin: 0;        /* Quita márgenes extra */
+  text-align: left; /* Asegura que el texto se alinee a la izquierda */
+}
+
+.footer-links li {
+  margin-bottom: 12px;
+  display: block;   /* Asegura que cada enlace ocupe su propia línea */
+}
+
+.footer-links a {
+  color: #d6cbb8;
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.3s ease;
+  display: flex;       /* Usamos flex para alinear mejor si agregamos íconos después */
+  align-items: center;
+}
+
+/* Efecto Hover mejorado */
+.footer-links a:hover {
+  color: var(--accent);
+  transform: translateX(5px); /* Pequeño movimiento a la derecha al pasar el mouse */
+}
 
 /* =========================================================
    Hero / Slider
@@ -911,4 +938,68 @@ section.content { padding: 14px 0 50px; }
 @media (max-width: 480px) {
   .caption h3 { font-size: 1.3rem; }
   .caption p { font-size: 0.95rem; }
+}
+
+
+/* =========================================================
+   ESTILOS DE LA SECCIÓN DE PREGUNTAS (FAQ)
+   ========================================================= */
+
+/* El contenedor de la lista */
+.faq-container {
+  max-width: 800px; /* Que no sea demasiado ancho para leer mejor */
+  margin: 0 auto;   /* Centrado */
+}
+
+/* Cada ítem de la lista */
+.faq-item {
+  border-bottom: 1px solid #e0e0e0; /* Línea divisoria sutil */
+  padding: 15px 0;
+  transition: background-color 0.3s ease;
+}
+
+/* El título de la pregunta (lo que se clickea) */
+.faq-item summary {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #333;
+  cursor: pointer;
+  list-style: none; /* Quita el triángulo por defecto feo */
+  display: flex;
+  justify-content: space-between; /* Pone el ícono a la derecha */
+  align-items: center;
+  padding: 5px 0;
+}
+
+/* Truco para quitar el triángulo en Chrome/Safari */
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Agregamos un signo de + personalizado */
+.faq-item summary::after {
+  content: '+'; 
+  font-size: 1.5rem;
+  color: var(--accent); /* Tu color dorado */
+  font-weight: 400;
+  transition: transform 0.3s ease;
+}
+
+/* Cuando la pregunta está abierta */
+.faq-item[open] summary::after {
+  transform: rotate(45deg); /* El + gira para parecer una x */
+}
+
+.faq-item[open] summary {
+  color: var(--accent); /* El título se pone dorado */
+  margin-bottom: 10px;
+}
+
+/* El texto de la respuesta */
+.faq-item p {
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+  padding-left: 10px; /* Un pequeño sangrado */
+  border-left: 2px solid var(--accent); /* Línea decorativa a la izquierda */
 }
