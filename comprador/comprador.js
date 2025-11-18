@@ -331,7 +331,6 @@ async function renderInicioDashboard() {
           <div class="inv-card__title">
             <h3>Mis Pedidos Recientes</h3>
           </div>
-          <a href="/comprador/OpcionesComprador.html" class="small" style="font-weight: 600; color: var(--accent);">Ver todos</a>
         </div>
         <div class="inv-tablewrap">
           <table class="inv-table">
