@@ -101,7 +101,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function checkAuth() {
   const userId = localStorage.getItem('hk-user-id');
   if (!userId) {
-    alert("Necesitas iniciar sesión para ver esta página.");
     window.location.href = '/index.html';
     return;
   }
@@ -114,15 +113,15 @@ async function checkAuth() {
     state.isAuthenticated = true;
     state.user = user;
     
-    const welcome = document.getElementById('profile-welcome');
-    if (welcome) welcome.textContent = `Hola, ${user.nombre.split(' ')[0]}`;
+    renderHeaderMenu(); // <--- Solo llamamos a esto y listo.
 
   } catch (err) {
-    alert("Tu sesión ha expirado. Por favor, inicia sesión de nuevo.");
     localStorage.removeItem('hk-user-id');
     window.location.href = '/index.html';
   }
 }
+
+
 
 /**
  * Conecta el menú de perfil
@@ -255,6 +254,32 @@ function setActive(key) {
   content.innerHTML = sections[key] || "";
 }
 
+function renderHeaderMenu() {
+  const actionsContainer = document.querySelector(".header-right");
+  if (!actionsContainer) return;
+
+  const userName = state.user.nombre.split(" ")[0];
+
+  // Solo inyectamos el HTML, SIN listeners aquí
+  actionsContainer.innerHTML = `
+    <div class="profile-menu">
+      <button id="profile-menu-btn" class="profile-btn" aria-label="Menú">
+        <i class="fa-solid fa-user"></i>
+      </button>
+      
+      <div id="profile-menu-dropdown" class="profile-dropdown hidden">
+        <div id="profile-welcome">Hola, ${userName}</div>
+        <a href="/comprador/OpcionesComprador.html" class="dropdown-item">
+          <i class="fa-solid fa-gear"></i> Opciones
+        </a>
+        <button id="logout-btn" class="dropdown-item">
+          <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 // --- Lógica de renderizado (copiada de app.js) ---
 
 function createProductCard(p) {
@@ -321,28 +346,33 @@ async function renderInicioDashboard() {
   // 2. Renderizar la estructura del Dashboard
   // NOTA: Asegúrate de que el ID del tbody sea 'recent-orders-tbody'
   content.innerHTML = `
-    <div class="card section-center" style="margin-bottom: 20px;">
-      <h2>Bienvenido/a, ${state.user.nombre.split(' ')[0]}</h2>
+    <div class="dashboard-header" style="margin-bottom: 40px; text-align: center;">
+      <h2 style="font-size: 2rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px;">
+        HOLA, ${state.user.nombre.split(' ')[0]}
+      </h2>
+      <p style="color: var(--muted); font-size: 0.9rem;">Bienvenido a tu panel personal.</p>
     </div>
     
     <div class="dashboard-grid-comprador"> 
-      <section class="inv-card" style="margin-bottom: 20px;">
+      
+      <section class="inv-card">
         <div class="inv-card__head">
           <div class="inv-card__title">
-            <h3>Mis Pedidos Recientes</h3>
+            <h3>PEDIDOS RECIENTES</h3>
           </div>
+          <a href="/comprador/OpcionesComprador.html" class="view-all-link">VER TODOS</a>
         </div>
         <div class="inv-tablewrap">
           <table class="inv-table">
             <thead>
               <tr>
-                <th>N° Pedido</th>
-                <th>Total</th>
-                <th>Estatus</th>
+                <th>N° PEDIDO</th>
+                <th>TOTAL</th>
+                <th>ESTATUS</th>
               </tr>
             </thead>
             <tbody id="recent-orders-tbody">
-              <tr><td colspan="3" class="muted" style="padding: 20px; text-align: center;">Cargando pedidos...</td></tr>
+              <tr><td colspan="3" style="padding:30px; text-align:center; color:#999;">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -351,10 +381,10 @@ async function renderInicioDashboard() {
       <section class="inv-card">
         <div class="inv-card__head">
           <div class="inv-card__title">
-            <h3>Explora por Categoría</h3>
+            <h3>EXPLORAR COLECCIONES</h3>
           </div>
         </div>
-        <div class="inv-card__body" style="padding: 20px;">
+        <div class="inv-card__body" style="padding: 20px 0;">
           <div class="category-carousel-container">
             <div class="category-carousel">
               ${categoryCarouselHTML}
@@ -362,6 +392,7 @@ async function renderInicioDashboard() {
           </div>
         </div>
       </section>
+
     </div>
   `;
 
@@ -576,3 +607,30 @@ function wireProductCardHover(scopeEl) {
     card.addEventListener('focusout', stop);
   });
 }
+
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('#profile-menu-btn');
+  const dropdown = document.getElementById('profile-menu-dropdown');
+  const logout = e.target.closest('#logout-btn');
+
+  // 1. Abrir/Cerrar menú
+  if (btn) {
+    e.stopPropagation();
+    if (dropdown) dropdown.classList.toggle('hidden');
+    return;
+  }
+
+  // 2. Cerrar sesión
+  if (logout) {
+    localStorage.removeItem('hk-user-id');
+    window.location.href = '/index.html';
+    return;
+  }
+
+  // 3. Cerrar al dar clic fuera
+  if (dropdown && !dropdown.classList.contains('hidden')) {
+    if (!e.target.closest('#profile-menu-dropdown')) {
+      dropdown.classList.add('hidden');
+    }
+  }
+});

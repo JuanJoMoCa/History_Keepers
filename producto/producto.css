@@ -157,6 +157,7 @@ a { color: inherit; text-decoration: none; }
   margin-bottom: 15px;
   /* Truncar si es mucho texto */
   display: -webkit-box;
+  line-clamp: 3;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
