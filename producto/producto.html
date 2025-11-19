@@ -5,123 +5,117 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title id="doc-title">Producto — History Keepers</title>
   <meta name="description" content="Detalle de producto de History Keepers." />
-
-  <!-- Rutas absolutas (desde la raíz del proyecto) -->
   <link rel="icon" href="/assets/logo.png" />
+  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/producto/producto.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 <body>
+  
   <header class="topbar">
     <div class="container wrap">
-      <a href="/index.html" aria-label="Volver al inicio">
-        <img src="/assets/logo.png" alt="Logo History Keepers" class="logo" />
+      <div class="header-left">
+        <a href="/carrito/carrito.html" class="cart-icon">
+          <img src="/assets/briefcase-icon.png" alt="Cart">
+        </a>
+      </div>
+      
+      <a href="/index.html" class="header-center">
+        <span class="logo logo-text">HISTORY KEEPERS</span>
       </a>
-      <div class="actions">
-        <a href="/carrito/carrito.html" class="cart-icon" aria-label="Ir al carrito de compras">🛒</a>
-        <button class="btn top-btn" data-open="login">Login</button>
-        <button class="btn top-btn" data-open="register">Registrarse</button>
+      
+      <div class="header-right actions">
+        <button class="top-btn" data-open="login">LOGIN</button>
+        <button class="top-btn" data-open="register">REGISTRARSE</button>
       </div>
     </div>
   </header>
 
   <main class="container">
-    <nav class="small" style="margin:12px 0;">
-      <a href="/index.html" class="small">Inicio</a> &nbsp;/&nbsp; <span id="bc-name">Producto</span>
+    <nav class="breadcrumb-nav">
+      <a href="/index.html">Inicio</a> <span>/</span> <a href="#" id="bc-cat">Catálogo</a> <span>/</span> <span id="bc-name" class="active">Producto</span>
     </nav>
 
-    <!-- Vista de producto -->
     <div class="product-layout" id="product-view" hidden>
-      <!-- Galería -->
+      
       <section class="product-gallery">
-        <div class="thumbs" id="p-thumbs"></div>
-        <div class="main">
-          <img id="p-main" src="" alt="Imagen del producto" />
+        <div class="main-image-wrapper">
+          <img id="p-main" src="" alt="Producto Principal" />
         </div>
+        <div class="thumbs-grid" id="p-thumbs">
+          </div>
       </section>
 
-      <!-- Aside: info y compra -->
-      <aside class="card product-info">
-        <h1 class="title" id="p-title">Nombre del producto</h1>
-        <div class="small muted" id="p-sub">Nuevo • Artículo de colección</div>
-        <div class="price-container" id="p-price-container">
+      <aside class="product-details">
+        <div class="product-header">
+          <h1 id="p-title">Nombre del Producto</h1>
+          <div class="product-meta">
+            <span id="p-category" class="meta-tag">Categoría</span>
+            <span class="meta-divider">•</span>
+            <span class="meta-tag">Auténtico</span>
+          </div>
+        </div>
+
+        <div class="price-wrapper" id="p-price-container">
           <span class="price-current">$0</span>
         </div>
 
-        <div class="small">
-          <div>Entrega rápida y protegida.</div>
-          <div class="muted">Devolución en 30 días.</div>
+        <div class="product-description">
+          <h3>Detalles</h3>
+          <p id="p-desc">Descripción del producto...</p>
+          <ul id="p-highlights" class="highlights-list"></ul>
         </div>
 
-        <hr class="sep" />
-
-        <div class="seller small">
-          <div>Tienda oficial <strong>History Keepers</strong></div>
+        <div class="purchase-actions">
+          <button class="btn btn-primary btn-block" id="add-cart">AGREGAR AL CARRITO</button>
+          <button class="btn btn-secondary btn-block" id="buy-now">COMPRAR AHORA</button>
         </div>
 
-        <!-- Descripción -->
-        <div class="details">
-          <h3>Descripción</h3>
-          <p id="p-desc">—</p>
-          <ul class="small" id="p-highlights"></ul>
-        </div>
-
-        <!-- BOTONES ABAJO DE LA DESCRIPCIÓN -->
-        <div class="actions actions-bottom">
-          <button class="btn btn-primary" id="buy-now">Comprar ahora</button>
-          <button class="btn" id="add-cart">Agregar al carrito</button>
+        <div class="product-guarantee">
+          <div class="pg-item"><i class="fa-solid fa-shield-halved"></i> Autenticidad Garantizada</div>
+          <div class="pg-item"><i class="fa-solid fa-truck-fast"></i> Envío Asegurado</div>
         </div>
       </aside>
     </div>
 
-    <!-- Estado: producto no encontrado -->
-    <div class="card" id="not-found" style="margin-top:16px;" hidden>
-      <h2>Producto no encontrado</h2>
-      <p class="small">Verifica el enlace o regresa al <a href="/index.html">catálogo</a>.</p>
+    <div id="not-found" class="not-found-state" hidden>
+      <h2>Producto no disponible</h2>
+      <a href="/index.html" class="btn btn-primary">Volver al catálogo</a>
     </div>
+
   </main>
 
   <footer>
-    <div class="container small">© <span id="y"></span> History Keepers</div>
+    <div class="container small">
+      © <span id="y"></span> History Keepers.
+    </div>
   </footer>
 
-  <!-- Modales -->
   <dialog id="dlg-register" class="modal">
-    <form method="dialog" class="card modal-card modal-card-dark" id="register-form">
-      <img src="/assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
-      <h2>Crea tu cuenta</h2>
-      <p class="modal-subtitle">Regístrate para acceder a todas las funciones.</p>
-
-      <label for="reg-nombre">Nombre Completo</label>
-      <input class="input" type="text" id="reg-nombre" name="nombre" required />
-
-      <label for="reg-email">Correo Electrónico</label>
-      <input class="input" type="email" id="reg-email" name="email" required />
-
-      <label for="reg-password">Contraseña</label>
-      <input class="input" type="password" id="reg-password" name="password" required />
-
-      <button type="submit" class="btn btn-primary">Crear Cuenta</button>
-      <p class="modal-link">¿Ya tienes una cuenta? <a href="#" data-switch="login">Inicia sesión</a></p>
+    <form method="dialog" id="register-form" class="modal-card-body">
+      <div class="modal-logo logo-text">HK</div>
+      <h2>CREAR CUENTA</h2>
+      <input class="input" type="text" id="reg-nombre" name="nombre" placeholder="NOMBRE COMPLETO" required />
+      <input class="input" type="email" id="reg-email" name="email" placeholder="EMAIL" required />
+      <input class="input" type="password" id="reg-password" name="password" placeholder="CONTRASEÑA" required />
+      <button type="submit" class="btn btn-primary">REGISTRARSE</button>
+      <p class="modal-link">¿Ya tienes cuenta? <a href="#" data-switch="login">INICIA SESIÓN</a></p>
     </form>
   </dialog>
 
   <dialog id="dlg-login" class="modal">
-    <form method="dialog" class="card modal-card modal-card-dark" id="login-form">
-      <img src="/assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
-      <h2>Bienvenido</h2>
-      <p class="modal-subtitle">Inicia sesión para continuar.</p>
-
-      <label for="log-email">Correo Electrónico</label>
-      <input class="input" type="email" id="log-email" name="email" required />
-
-      <label for="log-password">Contraseña</label>
-      <input class="input" type="password" id="log-password" name="password" required />
-
-      <button type="submit" class="btn btn-primary">Entrar</button>
-      <p class="modal-link">¿No tienes cuenta? <a href="#" data-switch="register">Regístrate aquí</a></p>
+    <form method="dialog" id="login-form" class="modal-card-body">
+      <div class="modal-logo logo-text">HK</div>
+      <h2>BIENVENIDO</h2>
+      <input class="input" type="email" id="log-email" name="email" placeholder="EMAIL" required />
+      <input class="input" type="password" id="log-password" name="password" placeholder="CONTRASEÑA" required />
+      <button type="button" id="btn-login-submit" class="btn btn-primary">ENTRAR</button>
+      <p class="modal-link">¿Nuevo aquí? <a href="#" data-switch="register">CREAR CUENTA</a></p>
     </form>
   </dialog>
 

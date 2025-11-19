@@ -114,28 +114,25 @@ function wireTopbarModals() {
 }
 
 function wireAuthForms() {
-  const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
+  const btnLoginSubmit = document.getElementById("btn-login-submit"); 
 
-  // Registro
+  // 1. REGISTRO (Se mantiene igual, evento submit)
   registerForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(registerForm);
-    const nombre = (fd.get("nombre") || "").toString().trim();
-    const email = (fd.get("email") || "").toString().trim();
-    const password = (fd.get("password") || "").toString();
-
-    if (!nombre || !email || !password) {
-      showToast("Todos los campos son obligatorios.", "error");
-      return;
-    }
+    const payload = {
+      nombre: fd.get("nombre"),
+      email: fd.get("email"),
+      password: fd.get("password"),
+    };
     try {
-      const resp = await fetch("/api/register", {
+      const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, email, password })
+        body: JSON.stringify(payload)
       });
-      const result = await resp.json();
+      const result = await res.json();
       if (result?.success) {
         showToast(result.message || "Cuenta creada.", "success");
         closeAnyModal();
@@ -148,78 +145,122 @@ function wireAuthForms() {
     }
   });
 
-  // Login
-  loginForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const fd = new FormData(loginForm);
-    const email = (fd.get("email") || "").toString().trim();
-    const password = (fd.get("password") || "").toString();
+  // 2. LOGIN (CORREGIDO: Escucha el CLIC del botón)
+  if (btnLoginSubmit) {
+      // Clonamos el botón para limpiar listeners viejos
+      const newBtn = btnLoginSubmit.cloneNode(true);
+      btnLoginSubmit.parentNode.replaceChild(newBtn, btnLoginSubmit);
+      
+      newBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
 
-    if (!email || !password) {
-      showToast("Introduce tu correo y contraseña.", "error");
-      return;
-    }
-    try {
-      const resp = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
-      const result = await resp.json();
+        // Lectura directa de inputs
+        const emailVal = document.getElementById("log-email")?.value.trim();
+        const passVal = document.getElementById("log-password")?.value;
 
-      if (result?.success) {
-        closeAnyModal();
-        showToast(result.message || `Bienvenido(a), ${result.user.nombre.split(" ")[0]}!`, "success");
-        
-        // GUARDAR SESIÓN
-        localStorage.setItem('hk-user-id', result.user._id);
+        if (!emailVal || !passVal) {
+          showToast("Introduce tu correo y contraseña.", "error");
+          return;
+        }
 
-        setTimeout(() => {
-          // Redirección según rol
-          const userRole = result.user.rol;
-          if(userRole.includes('admin')) window.location.href = '/assets/admin/admin.html';
-          else if(userRole.includes('gerente')) window.location.href = '/gerente/gerente.html';
-          else if(userRole.includes('trabajador')) window.location.href = '/trabajador/trabajador.html';
-          else {
-             // Si es usuario normal, nos quedamos aquí pero actualizamos estado
-             globalState.isAuthenticated = true;
-             globalState.user = result.user;
-             updateUIForAuthState();
+        try {
+          const res = await fetch("/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: emailVal, password: passVal })
+          });
+          const result = await res.json();
+
+          if (result?.success) {
+            closeAnyModal();
+            showToast(`¡Bienvenido(a), ${result.user.nombre.split(" ")[0]}!`, "success");
+            
+            // GUARDAR SESIÓN
+            globalState.isAuthenticated = true;
+            globalState.user = result.user;
+            localStorage.setItem('hk-user-id', result.user._id);
+
+            // Actualizar UI inmediatamente
+            updateUIForAuthState();
+          } else {
+            showToast(result?.message || "Credenciales incorrectas.", "error");
           }
-        }, 1000); 
-
-      } else {
-        showToast(result?.message || "Credenciales incorrectas.", "error");
-      }
-    } catch {
-      showToast("Error de conexión con el servidor.", "error");
-    }
-  });
+        } catch (err) {
+          console.error(err);
+          showToast("Error de conexión con el servidor.", "error");
+        }
+      });
+  }
 }
 
 function updateUIForAuthState() {
-  const actionsContainer = document.querySelector(".actions");
+  const actionsContainer = document.querySelector(".header-right");
+  // 1. Seleccionamos el enlace del logo
+  const logoLink = document.querySelector(".header-center"); 
+  
   if (!actionsContainer) return;
-
-  const cartIconHTML = `<a href="/carrito/carrito.html" class="cart-icon" aria-label="Ir al carrito de compras">🛒</a>`;
 
   if (globalState.isAuthenticated) {
     const userName = globalState.user.nombre.split(" ")[0] || globalState.user.rol;
+    
+    // Lógica para determinar la 'Home' del usuario según su rol
+    let panelHref = "/index.html";
+    const r = (globalState.user.rol || "").toLowerCase();
+    if (r.includes("admin")) panelHref = "/assets/admin/admin.html";
+    else if (r.includes("gerente")) panelHref = "/gerente/gerente.html";
+    else if (r.includes("trabajador")) panelHref = "/trabajador/trabajador.html";
+    else if (r.includes("comprador") || r.includes("usuario")) panelHref = "/comprador/comprador.html";
+    
+    // 2. CAMBIO CLAVE: Si está logueado, el logo lleva a SU panel
+    if (logoLink) logoLink.href = panelHref;
+
     actionsContainer.innerHTML = `
-      ${cartIconHTML}
-      <span class="welcome-message">Hola, ${userName}!</span>
-      <button class="btn top-btn ghost" data-action="logout">Cerrar Sesión</button>
+      <div class="profile-menu">
+        <button id="profile-menu-btn" class="profile-btn" aria-label="Menú">
+          <i class="fa-solid fa-user"></i>
+        </button>
+        
+        <div id="profile-menu-dropdown" class="profile-dropdown hidden">
+          <div id="profile-welcome">Hola, ${userName}</div>
+          
+          <a href="${panelHref}" class="dropdown-item">
+            <i class="fa-solid fa-gear"></i> Mi Panel
+          </a>
+          
+          <button id="logout-btn" class="dropdown-item">
+            <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
+          </button>
+        </div>
+      </div>
     `;
-    actionsContainer
-      .querySelector('[data-action="logout"]')
-      ?.addEventListener("click", handleLogout);
+    
+    // ... (Lógica de listeners del menú) ...
+    const btn = document.getElementById('profile-menu-btn');
+    const dropdown = document.getElementById('profile-menu-dropdown');
+    const logout = document.getElementById('logout-btn');
+    
+    if(btn && dropdown) {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('hidden');
+      });
+      document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && e.target !== btn) {
+          dropdown.classList.add('hidden');
+        }
+      });
+      if(logout) logout.addEventListener('click', handleLogout);
+    }
+
   } else {
+    // Si NO está logueado, el logo lleva al index normal
+    if (logoLink) logoLink.href = "/index.html";
+
     actionsContainer.innerHTML = `
-      ${cartIconHTML}
-      <button class="btn top-btn" data-open="login">Login</button>
-      <button class="btn top-btn" data-open="register">Registrarse</button>
+      <button class="top-btn" data-open="login">LOGIN</button>
+      <button class="top-btn" data-open="register">REGISTRARSE</button>
     `;
-    wireTopbarModals();
+    wireTopbarModals(); 
   }
 }
 
