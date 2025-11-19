@@ -281,7 +281,7 @@ function renderOrdersTable(list = []) {
       <td>
         <div class="row-actions">
           <button class="btn" data-manage-order="${p._id}" title="Gestionar Pedido">
-            <i class="fa-solid fa-pen-to-square"></i> Gestionar
+            <i class="fa-solid fa-pen-to-square"></i> 
           </button>
         </div>
       </td>
@@ -517,7 +517,7 @@ function renderUsersTable(list = []) {
       <td>
         <div class="row-actions">
           <button class="btn" data-manage-user="${u._id}" title="Gestionar Rol">
-            <i class="fa-solid fa-pen-to-square"></i> Gestionar
+            <i class="fa-solid fa-pen-to-square"></i> 
           </button>
           <button class="btn btn--danger" data-del-user="${u._id}" title="Eliminar Empleado">
             <i class="fa-solid fa-trash"></i>
