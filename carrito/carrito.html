@@ -10,31 +10,35 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/carrito/carrito.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 <body>
-  <header class="topbar">
+<header class="topbar">
     <div class="container wrap">
-      <a href="/index.html" aria-label="Volver al inicio" style="line-height:0;">
-        <img src="/assets/logo.png" alt="Logo History Keepers" class="logo" />
+      <div class="header-left">
+        <a href="/carrito/carrito.html" class="cart-icon" aria-label="Carrito">
+          <img src="/assets/briefcase-icon.png" alt="Carrito" />
+        </a>
+      </div>
+
+      <a href="/index.html" class="header-center">
+        <span class="logo logo-text">HISTORY KEEPERS</span>
       </a>
-      <div class="actions">
-        <a href="/carrito/carrito.html" class="cart-icon" aria-label="Ir al carrito de compras">🛒</a>
-        <button class="btn top-btn" data-open="login">Login</button>
-        <button class="btn top-btn" data-open="register">Registrarse</button>
+
+      <div class="header-right actions">
+        <button class="top-btn" data-open="login">LOGIN</button>
+        <button class="top-btn" data-open="register">REGISTRARSE</button>
       </div>
     </div>
   </header>
 
   <main class="container">
     <nav class="small breadcrumb">
-      <div class="crumbs">
-        <a href="/index.html" class="small">Inicio</a> &nbsp;/&nbsp; <span>Carrito</span>
-      </div>
       <a href="#" id="go-back" class="small back-link">← Regresar</a>
     </nav>
 
     <section class="cart-page" style="padding:20px 0 50px;">
-      <h2>🛒 Tu Carrito de Compras</h2>
+      <h2>Tu Carrito de Compras</h2>
 
       <div id="cart-empty" class="card" style="margin-top:20px;" hidden>
         <p>Tu carrito está vacío.</p>
@@ -69,7 +73,7 @@
             <div id="step-address" class="checkout-step" hidden>
               <form id="address-form" class="checkout-form" novalidate>
                 <div id="saved-addresses-wrapper" style="margin-bottom: 15px;" hidden>
-                  <label for="saved-address-select" style="color: var(--accent);">📍 Usar una dirección guardada</label>
+                  <label for="saved-address-select" style="color: var(--accent);">Usar una dirección guardada</label>
                   <select id="saved-address-select" class="input">
                     <option value="">-- Seleccionar dirección --</option>
                   </select>
@@ -146,7 +150,9 @@
 
             <div id="step-confirmation" class="checkout-step" hidden>
               <p>¡Gracias por tu compra! Te enviaremos un correo con los detalles.</p>
-              <p style="margin-top:15px;"><a href="/index.html" class="btn">Volver al inicio</a></p>
+              <p style="margin-top:15px;">
+                <a href="/comprador/comprador.html" class="btn btn-primary">Volver al inicio</a>
+              </p>
             </div>
           </div>
         </div>
@@ -159,39 +165,32 @@
   </footer>
 
   <dialog id="dlg-register" class="modal">
-    <form method="dialog" class="card modal-card modal-card-dark" id="register-form">
-      <img src="/assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
-      <h2>Crea tu cuenta</h2>
-      <p class="modal-subtitle">Regístrate para acceder a todas las funciones.</p>
+    <form method="dialog" id="register-form" class="modal-card-body">
+      <div class="modal-logo logo-text">HK</div>
+      <h2>CREAR CUENTA</h2>
+      <p class="modal-subtitle">Regístrate para finalizar tu compra.</p>
 
-      <label for="reg-nombre">Nombre Completo</label>
-      <input class="input" type="text" id="reg-nombre" name="nombre" required />
+      <input class="input" type="text" id="reg-nombre" name="nombre" placeholder="NOMBRE COMPLETO" required />
+      <input class="input" type="email" id="reg-email" name="email" placeholder="EMAIL" required />
+      <input class="input" type="password" id="reg-password" name="password" placeholder="CONTRASEÑA" required />
 
-      <label for="reg-email">Correo Electrónico</label>
-      <input class="input" type="email" id="reg-email" name="email" required />
-
-      <label for="reg-password">Contraseña</label>
-      <input class="input" type="password" id="reg-password" name="password" required />
-
-      <button type="submit" class="btn btn-primary">Crear Cuenta</button>
-      <p class="modal-link">¿Ya tienes una cuenta? <a href="#" data-switch="login">Inicia sesión</a></p>
+      <button type="submit" class="btn btn-primary">REGISTRARSE</button>
+      <p class="modal-link">¿Ya tienes cuenta? <a href="#" data-switch="login">INICIA SESIÓN</a></p>
     </form>
   </dialog>
 
   <dialog id="dlg-login" class="modal">
-    <form method="dialog" class="card modal-card modal-card-dark" id="login-form">
-      <img src="/assets/logo.png" alt="Logo History Keepers" class="modal-logo" />
-      <h2>Bienvenido</h2>
+    <form method="dialog" id="login-form" class="modal-card-body">
+      <div class="modal-logo logo-text">HK</div>
+      <h2>BIENVENIDO</h2>
       <p class="modal-subtitle">Inicia sesión para continuar.</p>
 
-      <label for="log-email">Correo Electrónico</label>
-      <input class="input" type="email" id="log-email" name="email" required />
+      <input class="input" type="email" id="log-email" name="email" placeholder="EMAIL" required />
+      <input class="input" type="password" id="log-password" name="password" placeholder="CONTRASEÑA" required />
 
-      <label for="log-password">Contraseña</label>
-      <input class="input" type="password" id="log-password" name="password" required />
+      <button type="button" id="btn-login-submit" class="btn btn-primary">ENTRAR</button>
 
-      <button type="submit" class="btn btn-primary">Entrar</button>
-      <p class="modal-link">¿No tienes cuenta? <a href="#" data-switch="register">Regístrate aquí</a></p>
+      <p class="modal-link">¿Nuevo aquí? <a href="#" data-switch="register">CREAR CUENTA</a></p>
     </form>
   </dialog>
 
