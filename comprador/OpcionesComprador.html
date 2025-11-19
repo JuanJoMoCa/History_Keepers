@@ -1,95 +1,93 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mi Cuenta - History Keepers</title>
+  <link rel="icon" href="/assets/logo.png" />
   
+  <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="OpcionesComprador.css"> 
-  
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 
 <body>
+
   <div class="inv-layout">
+    
     <aside class="inv-sidebar">
       <div class="inv-sidebar__header">
         <span class="inv-logo">HK</span>
-        <h2 class="inv-appname">Mi Cuenta</h2>
+        <h2 class="inv-appname">CONFIGURACIÓN</h2>
       </div>
 
       <nav class="inv-nav">
         <a href="#" class="inv-nav__item active" data-tab="perfil">
-          <i class="fa-solid fa-user-pen"></i> Perfil
+          <i class="fa-solid fa-user-pen"></i> PERFIL
         </a>
         <a href="#" class="inv-nav__item" data-tab="direcciones">
-          <i class="fa-solid fa-map-location-dot"></i> Direcciones
+          <i class="fa-solid fa-map-location-dot"></i> DIRECCIONES
         </a>
         <a href="#" class="inv-nav__item" data-tab="pagos">
-          <i class="fa-solid fa-credit-card"></i> Métodos de Pago
+          <i class="fa-solid fa-credit-card"></i> MÉTODOS DE PAGO
         </a>
         <a href="#" class="inv-nav__item" data-tab="pedidos">
-          <i class="fa-solid fa-box-open"></i> Mis Pedidos
+          <i class="fa-solid fa-box-open"></i> MIS PEDIDOS
         </a>
       </nav>
 
       <div class="inv-sidebar__footer">
         <a href="/comprador/comprador.html" class="inv-nav__item inv-nav__item--muted">
-          <i class="fa-solid fa-store"></i> Volver a la Tienda
+          <i class="fa-solid fa-arrow-left"></i> Pagína principal
         </a>
       </div>
     </aside>
 
     <main class="inv-main">
 
-      <div id="loader" class="inv-card" style="padding: 40px; text-align: center; color: var(--muted);">
-        <p style="font-size: 1.1em;">Cargando tu información...</p>
+      <div id="loader" class="inv-card" style="padding: 40px; text-align: center; border: none; box-shadow: none;">
+        <p style="font-size: 1.1em; color: var(--muted);">CARGANDO TU INFORMACIÓN...</p>
       </div>
 
       <div id="tab-perfil" class="tab-content hidden">
         <section class="inv-card">
           <div class="inv-card__head">
-            <div class="inv-card__title">
-              <h2>Información Personal</h2>
-            </div>
+            <div class="inv-card__title"><h2>INFORMACIÓN PERSONAL</h2></div>
           </div>
-          <div class="inv-card__body" style="padding: 20px;">
+          <div class="inv-card__body">
             <form id="profile-form" class="grid">
-              <label class="grid-span-2">Nombre Completo
+              <label class="grid-span-2">NOMBRE COMPLETO
                 <input id="profile-nombre" name="nombre" class="input" type="text" required>
               </label>
-              <label>Email
+              <label>EMAIL
                 <input id="profile-email" name="email" class="input" type="email" required>
               </label>
-              <label>Teléfono (Opcional)
-                <input id="profile-telefono" name="telefono" class="input" type="tel" placeholder="Ej. 2281234567">
+              <label>TELÉFONO (OPCIONAL)
+                <input id="profile-telefono" name="telefono" class="input" type="tel">
               </label>
             </form>
           </div>
           <div class="modal__foot">
-            <button id="save-profile" class="btn btn--primary">Guardar Cambios</button>
+            <button id="save-profile" class="btn btn--primary">GUARDAR CAMBIOS</button>
           </div>
         </section>
-        <section class="inv-card" style="margin-top: 20px;">
+
+        <section class="inv-card" style="margin-top: 30px;">
           <div class="inv-card__head">
-            <div class="inv-card__title">
-              <h2>Cambiar Contraseña</h2>
-            </div>
+            <div class="inv-card__title"><h2>CAMBIAR CONTRASEÑA</h2></div>
           </div>
-          <div class="inv-card__body" style="padding: 20px;">
+          <div class="inv-card__body">
             <form id="password-form" class="grid">
-              <label>Nueva Contraseña
+              <label>NUEVA CONTRASEÑA
                 <input id="pass-new" name="newPassword" class="input" type="password" required minlength="6">
               </label>
-              <label>Confirmar Nueva Contraseña
+              <label>CONFIRMAR CONTRASEÑA
                 <input id="pass-confirm" name="confirmPassword" class="input" type="password" required minlength="6">
               </label>
             </form>
           </div>
           <div class="modal__foot">
-            <button id="save-password" class="btn btn--primary">Actualizar Contraseña</button>
+            <button id="save-password" class="btn btn--primary">ACTUALIZAR CONTRASEÑA</button>
           </div>
         </section>
       </div>
@@ -97,26 +95,23 @@
       <div id="tab-direcciones" class="tab-content hidden">
         <section class="inv-card">
           <div class="inv-card__head">
-            <div class="inv-card__title">
-              <h2>Mis Direcciones Guardadas</h2>
-            </div>
+            <div class="inv-card__title"><h2>MIS DIRECCIONES</h2></div>
             <div class="inv-actions">
-              <button id="btnNewAddress" class="btn btn--success"><i class="fa-solid fa-plus"></i> Nueva Dirección</button>
+              <button id="btnNewAddress" class="btn btn--success"><i class="fa-solid fa-plus"></i> NUEVA DIRECCIÓN</button>
             </div>
           </div>
           <div class="inv-tablewrap">
             <table class="inv-table" id="address-table">
               <thead>
                 <tr>
-                  <th>Alias</th>
-                  <th>Dirección</th>
-                  <th>Ciudad</th>
+                  <th>ALIAS</th>
+                  <th>DIRECCIÓN</th>
+                  <th>CIUDAD</th>
                   <th>C.P.</th>
-                  <th style="width:100px; text-align:right;">Acciones</th>
+                  <th style="text-align:right;">ACCIONES</th>
                 </tr>
               </thead>
-              <tbody id="address-tbody">
-                </tbody>
+              <tbody id="address-tbody"></tbody>
             </table>
           </div>
         </section>
@@ -125,53 +120,45 @@
       <div id="tab-pagos" class="tab-content hidden">
         <section class="inv-card">
           <div class="inv-card__head">
-            <div class="inv-card__title">
-              <h2>Mis Métodos de Pago</h2>
-            </div>
+            <div class="inv-card__title"><h2>MÉTODOS DE PAGO</h2></div>
             <div class="inv-actions">
-              <button id="btnNewPayment" class="btn btn--success"><i class="fa-solid fa-plus"></i> Nuevo Método</button>
+              <button id="btnNewPayment" class="btn btn--success"><i class="fa-solid fa-plus"></i> NUEVO MÉTODO</button>
             </div>
           </div>
-          
           <div class="inv-tablewrap">
             <table class="inv-table" id="payment-table">
               <thead>
                 <tr>
-                  <th>Alias</th>
-                  <th>Titular</th>
-                  <th>Número (simulado)</th>
-                  <th>Expira</th>
-                  <th style="width:100px; text-align:right;">Acciones</th>
+                  <th>ALIAS</th>
+                  <th>TITULAR</th>
+                  <th>NÚMERO</th>
+                  <th>EXPIRA</th>
+                  <th style="text-align:right;">ACCIONES</th>
                 </tr>
               </thead>
-              <tbody id="payment-tbody">
-                </tbody>
+              <tbody id="payment-tbody"></tbody>
             </table>
           </div>
-          
         </section>
       </div>
       
       <div id="tab-pedidos" class="tab-content hidden">
         <section class="inv-card">
           <div class="inv-card__head">
-            <div class="inv-card__title">
-              <h2>Mis Pedidos</h2>
-            </div>
+            <div class="inv-card__title"><h2>HISTORIAL DE PEDIDOS</h2></div>
           </div>
           <div class="inv-tablewrap">
             <table class="inv-table" id="orders-table">
               <thead>
                 <tr>
-                  <th>N° Pedido</th>
-                  <th>Fecha</th>
-                  <th>Total</th>
-                  <th>Estatus</th>
-                  <th>Acciones</th>
+                  <th>N° PEDIDO</th>
+                  <th>FECHA</th>
+                  <th>TOTAL</th>
+                  <th>ESTATUS</th>
+                  <th style="text-align:right;">ACCIONES</th>
                 </tr>
               </thead>
-              <tbody id="orders-tbody">
-                </tbody>
+              <tbody id="orders-tbody"></tbody>
             </table>
           </div>
         </section>
@@ -180,67 +167,47 @@
     </main>
   </div>
 
-  <dialog id="modalAddressForm" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal__dialog inv-card" style="width: min(600px, 96vw);">
+  <dialog id="modalAddressForm" class="modal hidden">
+    <div class="modal__dialog">
       <div class="modal__head">
-        <h3 id="address-form-title">Nueva Dirección</h3>
+        <h3 id="address-form-title">NUEVA DIRECCIÓN</h3>
         <button class="modal__close" data-close-address>&times;</button>
       </div>
       <div class="modal__body">
         <form id="address-form" class="grid">
           <input type="hidden" id="address-id">
-          <label class="grid-span-2">Alias (Ej. "Casa", "Oficina")
-            <input id="addr-alias" name="alias" class="input" required>
-          </label>
-          <label class="grid-span-2">Calle y Número
-            <input id="addr-calle" name="calle" class="input" required>
-          </label>
-          <label>Colonia
-            <input id="addr-colonia" name="colonia" class="input" required>
-          </label>
-          <label>Ciudad
-            <input id="addr-ciudad" name="ciudad" class="input" required>
-          </label>
-          <label class="grid-span-2">Código Postal (C.P.)
-            <input id="addr-cp" name="cp" class="input" required maxlength="5" inputmode="numeric">
-          </label>
+          <label class="grid-span-2">ALIAS <input id="addr-alias" name="alias" class="input" required></label>
+          <label class="grid-span-2">CALLE Y NÚMERO <input id="addr-calle" name="calle" class="input" required></label>
+          <label>COLONIA <input id="addr-colonia" name="colonia" class="input" required></label>
+          <label>CIUDAD <input id="addr-ciudad" name="ciudad" class="input" required></label>
+          <label class="grid-span-2">C.P. <input id="addr-cp" name="cp" class="input" required maxlength="5"></label>
         </form>
       </div>
       <div class="modal__foot">
-        <button class="btn" data-close-address>Cancelar</button>
-        <button id="save-address" class="btn btn--primary">Guardar Dirección</button>
+        <button class="btn" data-close-address>CANCELAR</button>
+        <button id="save-address" class="btn btn--primary">GUARDAR</button>
       </div>
     </div>
   </dialog>
 
-  <dialog id="modalPaymentForm" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal__dialog inv-card" style="width: min(600px, 96vw);">
+  <dialog id="modalPaymentForm" class="modal hidden">
+    <div class="modal__dialog">
       <div class="modal__head">
-        <h3 id="payment-form-title">Nuevo Método de Pago</h3>
+        <h3 id="payment-form-title">NUEVO MÉTODO</h3>
         <button class="modal__close" data-close-payment>&times;</button>
       </div>
       <div class="modal__body">
-        
         <form id="payment-form" class="grid">
           <input type="hidden" id="payment-id">
-          <label class="grid-span-2">Alias (Ej. "Tarjeta personal")
-            <input id="pay-alias" name="alias" class="input" required>
-          </label>
-          <label class="grid-span-2">Nombre del Titular
-            <input id="pay-name" name="cardholderName" class="input" required>
-          </label>
-          <label>Número de Tarjeta (Simulado)
-            <input id="pay-number" name="cardNumber" class="input" required maxlength="19" placeholder="4242 4242 4242 4242">
-          </label>
-          <label>Fecha de Exp. (MM/AA)
-            <input id="pay-expiry" name="expiryDate" class="input" required maxlength="5" placeholder="MM/AA">
-          </label>
+          <label class="grid-span-2">ALIAS <input id="pay-alias" name="alias" class="input" required></label>
+          <label class="grid-span-2">TITULAR <input id="pay-name" name="cardholderName" class="input" required></label>
+          <label>TARJETA <input id="pay-number" name="cardNumber" class="input" required maxlength="19"></label>
+          <label>EXPIRA <input id="pay-expiry" name="expiryDate" class="input" required maxlength="5"></label>
         </form>
-        
       </div>
       <div class="modal__foot">
-        <button class="btn" data-close-payment>Cancelar</button>
-        <button id="save-payment" class="btn btn--primary">Guardar Método</button>
+        <button class="btn" data-close-payment>CANCELAR</button>
+        <button id="save-payment" class="btn btn--primary">GUARDAR</button>
       </div>
     </div>
   </dialog>
