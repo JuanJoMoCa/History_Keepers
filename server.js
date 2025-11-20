@@ -7,6 +7,9 @@ const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
 
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+
 // --- 2. Importar Cloudinary ---
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
@@ -19,6 +22,33 @@ const User = require('./models/user.model.js');
 
 const app = express();
 const PORT = 3000;
+
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+
+// --- Transporter de Nodemailer  ---
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, 
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS
+  },
+  tls: {
+    
+    rejectUnauthorized: false
+  }
+});
+
+// Opcional, para ver si arranca bien:
+transporter.verify((err, success) => {
+  if (err) {
+    console.error('❌ Error configurando Nodemailer:', err);
+  } else {
+    console.log('📧 Servidor de correo listo');
+  }
+});
+
 
 // --- Conexión a MongoDB (con Mongoose) ---
 const MONGO_URI = "mongodb+srv://Salinas_user:rutabus123@rutabus.qdwcba8.mongodb.net/history_keepers_db?retryWrites=true&w=majority&appName=Rutabus";
@@ -50,6 +80,55 @@ app.use(express.static(path.join(__dirname), { extensions: ['html'] }));
 // Ya no necesitamos servir 'assets/uploads', Cloudinary lo hace
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
+async function sendVerificationEmail(user) {
+  if (!user.verificationToken) return;
+
+  const confirmUrl = `${BASE_URL}/auth/verify-email?token=${user.verificationToken}&action=confirm`;
+  const rejectUrl  = `${BASE_URL}/auth/verify-email?token=${user.verificationToken}&action=reject`;
+
+  const firstName = user.nombre.split(' ')[0];
+
+  const mailOptions = {
+    from: `"History Keepers" <${process.env.GMAIL_USER}>`,
+    to: user.email,
+    subject: 'Verifica tu cuenta en History Keepers',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; border: 1px solid #eee;">
+        <h2>Hola, ${firstName} 👋</h2>
+        <p>Gracias por registrarte en <strong>History Keepers</strong>.</p>
+        <p>Por seguridad, necesitamos que confirmes que este correo realmente te pertenece.</p>
+
+        <p style="margin-top: 20px;">Da clic en el siguiente botón para <strong>activar tu cuenta de comprador</strong>:</p>
+
+        <p style="text-align: center; margin: 24px 0;">
+          <a href="${confirmUrl}"
+             style="background:#000;color:#fff;padding:12px 20px;text-decoration:none;font-weight:bold;text-transform:uppercase;border-radius:4px;">
+            Verificar correo
+          </a>
+        </p>
+
+        <hr style="margin: 24px 0;"/>
+
+        <p style="font-size: 0.9rem; color: #555;">
+          Si tú <strong>no</strong> iniciaste este registro, puedes cancelar todo haciendo clic aquí:
+        </p>
+        <p style="text-align: center; margin: 16px 0;">
+          <a href="${rejectUrl}"
+             style="color:#b00020;font-weight:bold;">
+            No reconozco este registro
+          </a>
+        </p>
+
+        <p style="font-size: 0.8rem; color: #999; margin-top: 24px;">
+          Este enlace es válido por 24 horas. Si expira, podrás registrarte de nuevo con el mismo correo.
+        </p>
+      </div>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+}
+
 
 // --- RUTAS DE AUTENTICACIÓN (REESCRITAS CON MONGOOSE) ---
 app.post('/api/register', async (req, res) => {
@@ -63,16 +142,45 @@ app.post('/api/register', async (req, res) => {
     if (usuarioExistente) {
       return res.status(400).json({ success: false, message: "Este correo ya está registrado." });
     }
-    
-    const nuevoUsuario = new User({ nombre, email, password, rol: 'usuario comprador' });
+
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const nuevoUsuario = new User({
+      nombre,
+      email,
+      password,
+      rol: 'usuario comprador',
+      isVerified: false,
+      verificationToken,
+      verificationExpires
+    });
+
     await nuevoUsuario.save();
+
     
-    res.status(201).json({ success: true, message: "¡Registro exitoso! Ya puedes iniciar sesión." });
+    try {
+      await sendVerificationEmail(nuevoUsuario);
+    } catch (mailErr) {
+      console.error("Error enviando correo de verificación:", mailErr);
+
+      return res.status(500).json({
+        success: false,
+        message: "No se pudo enviar el correo de verificación. Intenta más tarde."
+      });
+    }
+    
+    return res.status(201).json({
+      success: true,
+      message: "Registro exitoso. Te enviamos un correo para verificar tu cuenta."
+    });
+
   } catch (error) {
     console.error("Error en el registro:", error);
     res.status(500).json({ success: false, message: "Ocurrió un error en el servidor." });
   }
 });
+
 
 app.post('/api/login', async (req, res) => {
   try {
@@ -86,6 +194,14 @@ app.post('/api/login', async (req, res) => {
     if (usuario.password !== password) {
       return res.status(401).json({ success: false, message: "Contraseña incorrecta." });
     }
+
+    
+    if (usuario.rol === 'usuario comprador' && !usuario.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada."
+      });
+    }
     
     res.json({
       success: true,
@@ -97,6 +213,74 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ success: false, message: "Ocurrió un error en el servidor." });
   }
 });
+
+
+// --- Verificación de correo  ---
+app.get('/auth/verify-email', async (req, res) => {
+  try {
+    const { token, action } = req.query;
+
+    if (!token) {
+      return res.status(400).send('<h1>Solicitud inválida</h1><p>Falta el token.</p>');
+    }
+
+    const user = await User.findOne({ verificationToken: token });
+    if (!user) {
+      return res.status(400).send('<h1>Enlace inválido</h1><p>El enlace ya fue usado o no existe.</p>');
+    }
+
+    // Verificar vigencia
+    if (user.verificationExpires && user.verificationExpires < new Date()) {
+      
+      await User.deleteOne({ _id: user._id });
+      return res
+        .status(400)
+        .send('<h1>Enlace expirado</h1><p>El enlace de verificación ha expirado. Vuelve a registrarte.</p>');
+    }
+
+    
+    if (action === 'reject') {
+      await User.deleteOne({ _id: user._id });
+      return res.send(`
+        <html>
+          <head><meta charset="utf-8"><title>Registro cancelado</title></head>
+          <body style="font-family: Arial, sans-serif;">
+            <h1>Registro cancelado</h1>
+            <p>Hemos eliminado los datos asociados a este correo.</p>
+          </body>
+        </html>
+      `);
+    }
+
+    
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationExpires = undefined;
+    await user.save();
+
+    return res.send(`
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Correo verificado</title>
+          <meta http-equiv="refresh" content="5;url=/index.html">
+        </head>
+        <body style="font-family: Arial, sans-serif; text-align:center; padding: 40px;">
+          <h1>¡Correo verificado correctamente!</h1>
+          <p>Tu cuenta de comprador ha sido activada.</p>
+          <p>Ahora puedes iniciar sesión con tu correo y contraseña.</p>
+          <p>Te redirigiremos al inicio en unos segundos...</p>
+          <p><a href="/index.html">Ir ahora a History Keepers</a></p>
+        </body>
+      </html>
+    `);
+
+  } catch (error) {
+    console.error("Error en verificación de correo:", error);
+    return res.status(500).send('<h1>Error del servidor</h1><p>Intenta más tarde.</p>');
+  }
+});
+
 
 // --- API DE PRODUCTOS (MODIFICADA PARA CLOUDINARY) ---
 

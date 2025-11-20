@@ -925,7 +925,7 @@ function wireAuthForms() {
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
   
-  // 1. REGISTRO (Este sí funciona con submit porque no le cambiamos el botón)
+  // 1. REGISTRO 
   registerForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(registerForm);
@@ -945,13 +945,18 @@ function wireAuthForms() {
         showToast(data.message || "No se pudo registrar.", "error");
         return;
       }
-      showToast("Registro exitoso. Inicia sesión.", "success");
+
+      
+      showToast("Te enviamos un correo para verificar tu cuenta.", "success");
+      alert("Te enviamos un correo de verificación. Debes confirmarlo para poder iniciar sesión.");
+
       document.getElementById("dlg-register")?.close();
-      document.getElementById("dlg-login")?.showModal();
+      
     } catch {
       showToast("Error de red al registrar.", "error");
     }
   });
+
 
   // 2. LOGIN (CORREGIDO: Usamos click en el botón en vez de submit)
   const btnLogin = document.getElementById("btn-login-submit");
