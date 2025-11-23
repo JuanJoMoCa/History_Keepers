@@ -25,12 +25,16 @@ const PORT = process.env.PORT || 3000;
 
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
+
+
+const SKIP_EMAIL_VERIFICATION = process.env.SKIP_EMAIL_VERIFICATION === 'true';
+
 // --- Transporter de Nodemailer  ---
 const transporter = nodemailer.createTransport({
-  // service: 'gmail', <--- IMPORTANTE: ELIMINA O COMENTA ESTA LÍNEA
-  host: 'smtp.gmail.com', // Definimos el servidor explícitamente
-  port: 587,              // Puerto estándar para la nube
-  secure: false,          // false para el puerto 587
+  
+  host: 'smtp.gmail.com', 
+  port: 587,              
+  secure: false,          
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASS
@@ -40,12 +44,12 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Opcional, para ver si arranca bien:
+
 transporter.verify((err, success) => {
   if (err) {
-    console.error('❌ Error configurando Nodemailer:', err);
+    console.error(' Error configurando Nodemailer:', err);
   } else {
-    console.log('📧 Servidor de correo listo');
+    console.log(' Servidor de correo listo');
   }
 });
 
@@ -145,33 +149,38 @@ app.post('/api/register', async (req, res) => {
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
+    // En Render se marca verificado desde el inicio
     const nuevoUsuario = new User({
       nombre,
       email,
       password,
       rol: 'usuario comprador',
-      isVerified: false,
-      verificationToken,
-      verificationExpires
+      isVerified: SKIP_EMAIL_VERIFICATION ? true : false,
+      verificationToken: SKIP_EMAIL_VERIFICATION ? undefined : verificationToken,
+      verificationExpires: SKIP_EMAIL_VERIFICATION ? undefined : verificationExpires
     });
 
     await nuevoUsuario.save();
 
-    
-    try {
-      await sendVerificationEmail(nuevoUsuario);
-    } catch (mailErr) {
-      console.error("Error enviando correo de verificación:", mailErr);
+    // Solo intentamos enviar correo si NO estamos en modo “skip”
+    if (!SKIP_EMAIL_VERIFICATION) {
+      try {
+        await sendVerificationEmail(nuevoUsuario);
+      } catch (mailErr) {
+        console.error("Error enviando correo de verificación:", mailErr);
 
-      return res.status(500).json({
-        success: false,
-        message: "No se pudo enviar el correo de verificación. Intenta más tarde."
-      });
+        return res.status(500).json({
+          success: false,
+          message: "No se pudo enviar el correo de verificación. Intenta más tarde."
+        });
+      }
     }
     
     return res.status(201).json({
       success: true,
-      message: "Registro exitoso. Te enviamos un correo para verificar tu cuenta."
+      message: SKIP_EMAIL_VERIFICATION
+        ? "Registro exitoso. (Verificación por correo desactivada en este entorno)."
+        : "Registro exitoso. Te enviamos un correo para verificar tu cuenta."
     });
 
   } catch (error) {
@@ -179,6 +188,7 @@ app.post('/api/register', async (req, res) => {
     res.status(500).json({ success: false, message: "Ocurrió un error en el servidor." });
   }
 });
+
 
 
 app.post('/api/login', async (req, res) => {
@@ -195,7 +205,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     
-    if (usuario.rol === 'usuario comprador' && !usuario.isVerified) {
+    if (!SKIP_EMAIL_VERIFICATION && usuario.rol === 'usuario comprador' && !usuario.isVerified) {
       return res.status(403).json({
         success: false,
         message: "Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada."
