@@ -228,8 +228,7 @@ async function initSlider() {
   if (!state.products || state.products.length === 0) return;
 
   // 2. Crear una copia y mezclarla aleatoriamente
-  // [...state.products] crea una copia para no desordenar el catálogo principal
-  // .sort(() => 0.5 - Math.random()) es un truco rápido para barajar el array
+
   const mezclados = [...state.products].sort(() => 0.5 - Math.random());
 
   // 3. Tomar los primeros 3 de la lista ya mezclada
@@ -238,8 +237,7 @@ async function initSlider() {
   // 4. Mapear al formato del slider (igual que antes)
   state.slides = seleccionRandom.map(p => ({
       id: p._id,
-      // MODIFICACIÓN AQUÍ: Intentamos pedir una imagen más ancha a Cloudinary (si aplica)
-      // Ajusta 'w_1200' si necesitas otro ancho, o quita '.replace(...)' si tus URLs no lo usan
+
       src: (p.images && p.images.length > 0) 
             ? p.images[0].replace("/upload/", "/upload/w_1200,f_auto,q_auto/") // Añade transformaciones
             : ph(p.name),
@@ -314,7 +312,7 @@ function buildDots() {
     d.className = "dot";
     d.setAttribute("aria-label", `Ir a slide ${i + 1}`);
     d.addEventListener("click", (e) => {
-      e.stopPropagation(); // Evita que el click en el punto dispare el click del slide
+      e.stopPropagation(); 
       go(i);
     });
     dots.appendChild(d);
@@ -365,7 +363,6 @@ function startAuto() { stopAuto(); state.timer = setInterval(() => next(), 4500)
 function stopAuto() { if (state.timer) clearInterval(state.timer); state.timer = null; }
 function restartAuto() { stopAuto(); startAuto(); }
 
-// ================================================================
 // Menú + Secciones (index)
 const sections = {
   inicio: `
@@ -508,10 +505,6 @@ function createProductCard(p) {
   const { finalPrice, oldPrice, discountPct } = getOffer(p); // Usar la nueva lógica
   const primary = imgs[0];
 
-  // IMPORTANTE:
-  // 1. data-id ahora usa p._id
-  // 2. El <a> ahora usa p._id
-  // 3. Los precios usan finalPrice y oldPrice
   return `
     <div class="card product-card" data-id="${p._id}" tabindex="0">
       <div class="pc-media">
@@ -886,8 +879,6 @@ function renderBuscar() {
 }
 
 
-
-// ================================================================
 // Modales + Auth (solo lo que existe en index.html)
 function closeAnyModal() {
   document.querySelectorAll("dialog[open]").forEach(d => d.close("cancel"));
@@ -1038,7 +1029,7 @@ function wireProductCardHover(scopeEl) {
   const cards = scopeEl.querySelectorAll('.product-card');
   cards.forEach(card => {
     const id = card.dataset.id;
-    const p = state.products.find(x => x._id === id); // <-- CORREGIDO a _id
+    const p = state.products.find(x => x._id === id); 
     if (!p) return; // Producto no encontrado
 
     const imgs = getImages(p);
