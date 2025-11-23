@@ -21,7 +21,7 @@ const ReturnTicket = require('./models/return.model.js');
 const User = require('./models/user.model.js');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
@@ -51,8 +51,7 @@ transporter.verify((err, success) => {
 
 
 // --- Conexión a MongoDB (con Mongoose) ---
-const MONGO_URI = "mongodb+srv://Salinas_user:rutabus123@rutabus.qdwcba8.mongodb.net/history_keepers_db?retryWrites=true&w=majority&appName=Rutabus";
-
+const MONGO_URI = process.env.MONGO_URI;
 // --- 3. Configurar Cloudinary ---
 // (Lee las claves de tu archivo .env)
 cloudinary.config({
