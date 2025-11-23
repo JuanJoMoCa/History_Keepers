@@ -917,20 +917,29 @@ function wireTopbarModals() {
 }
 
 function wireAuthForms() {
-  const loginForm = document.getElementById("login-form");
-  const registerForm = document.getElementById("register-form");
+  const loginForm      = document.getElementById("login-form");
+  const registerForm   = document.getElementById("register-form");
   const dlgRegisterInfo = document.getElementById("dlg-register-info");
   const dlgUnverified   = document.getElementById("dlg-unverified");
 
   // 1. REGISTRO
   registerForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const fd = new FormData(registerForm);
     const payload = {
-      nombre: fd.get("nombre"),
-      email: fd.get("email"),
-      password: fd.get("password"),
+      nombre: fd.get("nombre")?.toString().trim(),
+      email:  fd.get("email")?.toString().trim(),
+      password: fd.get("password")?.toString(),
     };
+
+    // Validación básica antes de mandar al backend
+    if (!payload.nombre || !payload.email || !payload.password) {
+      showToast("Por favor, completa todos los campos.", "error");
+      return;
+    }
+
+    console.log("Enviando registro:", payload);
 
     try {
       const res = await fetch("/api/register", {
@@ -938,7 +947,9 @@ function wireAuthForms() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
+
+      const data = await res.json().catch(() => ({}));
+      console.log("Respuesta /api/register:", res.status, data);
 
       if (!res.ok || !data.success) {
         showToast(data.message || "No se pudo registrar.", "error");
@@ -950,7 +961,8 @@ function wireAuthForms() {
       registerForm.reset?.();
       dlgRegisterInfo?.showModal();
 
-    } catch {
+    } catch (err) {
+      console.error("Error de red al registrar:", err);
       showToast("Error de red al registrar.", "error");
     }
   });
@@ -974,13 +986,17 @@ function wireAuthForms() {
         return;
       }
 
+      console.log("Intento de login:", { email: emailVal });
+
       try {
         const res = await fetch("/api/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: emailVal, password: passVal }),
         });
-        const data = await res.json();
+
+        const data = await res.json().catch(() => ({}));
+        console.log("Respuesta /api/login:", res.status, data);
 
         if (!res.ok || !data.success) {
           // 403 = comprador no verificado
@@ -1006,12 +1022,13 @@ function wireAuthForms() {
         }, 1000);
 
       } catch (err) {
-        console.error(err);
+        console.error("Error de conexión con el servidor:", err);
         showToast("Error de conexión con el servidor.", "error");
       }
     });
   }
 }
+
 
 function redirectByRole(rol = "") {
   const r = (rol || "").toLowerCase();
