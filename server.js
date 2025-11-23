@@ -837,13 +837,13 @@ app.delete('/api/profile/:id/payments/:payId', async (req, res) => {
 async function startServer() {
   try {
     await mongoose.connect(MONGO_URI);
-    console.log(`✅ Conectado a la base de datos con Mongoose`);
+    console.log(`Conectado a la base de datos con Mongoose`);
 
     app.listen(PORT, () => {
-      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+      console.log(`Servidor corriendo en http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error("❌ Error al conectar a MongoDB. La aplicación no puede iniciar.", error);
+    console.error("Error al conectar a MongoDB. La aplicación no puede iniciar.", error);
     process.exit(1);
   }
 }
