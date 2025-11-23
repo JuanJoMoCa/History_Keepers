@@ -27,15 +27,15 @@ const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
 // --- Transporter de Nodemailer  ---
 const transporter = nodemailer.createTransport({
+  service: 'gmail', // Agregamos esto para mayor compatibilidad
   host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, 
+  port: 587,        // CAMBIO 1: Usamos el puerto 587
+  secure: false,    // CAMBIO 2: Ponemos false (necesario para puerto 587)
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASS
   },
   tls: {
-    
     rejectUnauthorized: false
   }
 });
