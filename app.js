@@ -892,10 +892,12 @@ function renderBuscar() {
 function closeAnyModal() {
   document.querySelectorAll("dialog[open]").forEach(d => d.close("cancel"));
 }
+
 function wireTopbarModals() {
   const dlgLogin = document.getElementById("dlg-login");
   const dlgRegister = document.getElementById("dlg-register");
 
+  // Botones LOGIN / REGISTRARSE de la barra superior
   document.querySelectorAll('.actions [data-open]').forEach(btn => {
     btn.addEventListener('click', () => {
       const which = btn.getAttribute('data-open');
@@ -904,6 +906,7 @@ function wireTopbarModals() {
     });
   });
 
+  // Cerrar al hacer click fuera del contenido
   [dlgLogin, dlgRegister].forEach(dlg => {
     if (!dlg) return;
     dlg.addEventListener("click", (e) => {
@@ -911,10 +914,11 @@ function wireTopbarModals() {
     });
   });
 
+  // Links para cambiar entre login / registro
   document.querySelectorAll("[data-switch]").forEach(link => {
     link.addEventListener("click", (e) => {
       e.preventDefault();
-      const target = link.dataset.switch;
+      const target = link.dataset.switch; // "login" o "register"
       closeAnyModal();
       document.getElementById(`dlg-${target}`)?.showModal();
     });
@@ -924,8 +928,10 @@ function wireTopbarModals() {
 function wireAuthForms() {
   const loginForm = document.getElementById("login-form");
   const registerForm = document.getElementById("register-form");
-  
-  // 1. REGISTRO 
+  const dlgRegisterInfo = document.getElementById("dlg-register-info");
+  const dlgUnverified   = document.getElementById("dlg-unverified");
+
+  // 1. REGISTRO
   registerForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const fd = new FormData(registerForm);
@@ -934,6 +940,7 @@ function wireAuthForms() {
       email: fd.get("email"),
       password: fd.get("password"),
     };
+
     try {
       const res = await fetch("/api/register", {
         method: "POST",
@@ -941,37 +948,35 @@ function wireAuthForms() {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
+
       if (!res.ok || !data.success) {
         showToast(data.message || "No se pudo registrar.", "error");
         return;
       }
 
-      
-      showToast("Te enviamos un correo para verificar tu cuenta.", "success");
-      alert("Te enviamos un correo de verificación. Debes confirmarlo para poder iniciar sesión.");
-
+      // Cerrar formulario y mostrar aviso de verificación
       document.getElementById("dlg-register")?.close();
-      
+      registerForm.reset?.();
+      dlgRegisterInfo?.showModal();
+
     } catch {
       showToast("Error de red al registrar.", "error");
     }
   });
 
-
-  // 2. LOGIN (CORREGIDO: Usamos click en el botón en vez de submit)
+  // 2. LOGIN 
   const btnLogin = document.getElementById("btn-login-submit");
   
   if (btnLogin) {
-    // Clonamos el botón para eliminar listeners viejos si se recarga
+    // Clonamos el botón para limpiar listeners anteriores
     const newBtn = btnLogin.cloneNode(true);
     btnLogin.parentNode.replaceChild(newBtn, btnLogin);
     
     newBtn.addEventListener("click", async (e) => {
-      e.preventDefault(); // Evita recargas
-      
-      // LEER DATOS DIRECTAMENTE POR ID (Esto es lo que faltaba)
+      e.preventDefault(); // Evita recarga del dialog
+
       const emailVal = document.getElementById("log-email")?.value.trim();
-      const passVal = document.getElementById("log-password")?.value;
+      const passVal  = document.getElementById("log-password")?.value;
 
       if (!emailVal || !passVal) {
         showToast("Por favor, ingresa correo y contraseña.", "error");
@@ -987,15 +992,20 @@ function wireAuthForms() {
         const data = await res.json();
 
         if (!res.ok || !data.success) {
-          showToast(data.message || "Credenciales incorrectas.", "error");
+          // 403 = comprador no verificado
+          if (res.status === 403) {
+            dlgUnverified?.showModal();
+          } else {
+            showToast(data.message || "Credenciales incorrectas.", "error");
+          }
           return;
         }
 
         // Éxito
         state.isAuthenticated = true;
         state.user = { ...data.user };
-        localStorage.setItem('hk-user-id', state.user._id); 
-        
+        localStorage.setItem('hk-user-id', state.user._id);
+
         document.getElementById("dlg-login")?.close();
         updateUIForAuthState();
         showToast(`¡Bienvenido(a), ${state.user.nombre.split(" ")[0]}!`, "success");
@@ -1152,6 +1162,5 @@ document.addEventListener("DOMContentLoaded", () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   });
-  // ====================================================
 
 });

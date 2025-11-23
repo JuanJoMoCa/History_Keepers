@@ -94,8 +94,8 @@ async function sendVerificationEmail(user) {
     subject: 'Verifica tu cuenta en History Keepers',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; border: 1px solid #eee;">
-        <h2>Hola, ${firstName} 👋</h2>
-        <p>Gracias por registrarte en <strong>History Keepers</strong>.</p>
+        <h2>Hola, ${firstName} </h2>
+        <p>Comieza a coleccionar y gracias por registrarte en <strong>History Keepers</strong>.</p>
         <p>Por seguridad, necesitamos que confirmes que este correo realmente te pertenece.</p>
 
         <p style="margin-top: 20px;">Da clic en el siguiente botón para <strong>activar tu cuenta de comprador</strong>:</p>

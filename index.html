@@ -115,6 +115,7 @@
     </div>
   </footer>
 
+    <!-- Modales de registro / verificación / login -->
   <dialog id="dlg-register" class="modal">
     <form method="dialog" id="register-form" class="modal-card-body">
       <div class="modal-logo logo-text">HK</div>
@@ -131,11 +132,47 @@
       <input class="input" type="password" id="reg-password" name="password" required />
 
       <button type="submit" class="btn btn-primary">CREAR CUENTA</button>
-      <p class="modal-link">¿Ya tienes una cuenta? <a href="#" data-switch="login">INICIA SESIÓN</a></p>
+      <p class="modal-link">¿Ya tienes una cuenta? 
+        <a href="#" data-switch="login">INICIA SESIÓN</a>
+      </p>
     </form>
   </dialog>
 
-  
+  <!-- Aviso después de registrarse -->
+  <dialog id="dlg-register-info" class="modal">
+    <form method="dialog" class="modal-card-body">
+      <div class="modal-logo logo-text">HK</div>
+      <h2>VERIFICA TU CUENTA</h2>
+      <p class="modal-subtitle">
+        Te enviamos un correo para verificar tu cuenta de comprador.
+      </p>
+      <p class="modal-subtitle">
+        Abre tu correo electrónico, busca el mensaje de 
+        <strong>History Keepers</strong> y da clic en el botón 
+        <strong>"Verificar correo"</strong> para activar tu cuenta.
+      </p>
+      <button type="submit" class="btn btn-primary" autofocus>ENTENDIDO</button>
+    </form>
+  </dialog>
+
+  <!-- Aviso al intentar iniciar sesión sin verificar -->
+  <dialog id="dlg-unverified" class="modal">
+    <form method="dialog" class="modal-card-body">
+      <div class="modal-logo logo-text">HK</div>
+      <h2>CUENTA NO VERIFICADA</h2>
+      <p class="modal-subtitle">
+        Tu cuenta aún no ha sido verificada ni cancelada.
+      </p>
+      <p class="modal-subtitle">
+        Ve a tu correo y elige una de las dos opciones del mensaje:
+        <strong>"Verificar correo"</strong> para activar tu cuenta
+        o <strong>"No reconozco este registro"</strong> para eliminarla.
+      </p>
+      <button type="submit" class="btn btn-primary" autofocus>ENTENDIDO</button>
+    </form>
+  </dialog>
+
+  <!-- Login -->
   <dialog id="dlg-login" class="modal">
     <form method="dialog" id="login-form" class="modal-card-body">
       <div class="modal-logo logo-text">HK</div>
@@ -150,12 +187,15 @@
 
       <button type="button" id="btn-login-submit" class="btn btn-primary">ENTRAR</button>
 
-      <p class="modal-link">¿No tienes cuenta? <a href="#" data-switch="register">REGÍSTRATE AQUÍ</a></p>
+      <p class="modal-link">¿No tienes cuenta? 
+        <a href="#" data-switch="register">REGÍSTRATE AQUÍ</a>
+      </p>
     </form>
   </dialog>
 
-  <!-- Toast -->
-  <div id="toast-notification" class="toast"></div>
+  <!-- Toast  -->
+  <div id="toast-notification" class="toast hidden"></div>
+
 
   <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
   <script src="/app.js"></script>
