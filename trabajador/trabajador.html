@@ -1,18 +1,119 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de Trabajador - History Keepers</title>
-  
-    <link rel="stylesheet" href="trabajador.css">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS Trabajador - History Keepers</title>
+  <link rel="stylesheet" href="/styles.css"> <link rel="stylesheet" href="trabajador.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Panel del Trabajador</h1>
-    <p>Desde aquí podrías gestionar el inventario y las órdenes pendientes.</p>
-    <a href="/index.html">Cerrar Sesión</a>
-  </div>
+
+  <div style="background:#eee; padding:10px; display:flex; justify-content:space-between; align-items:center;">
+    <div class="worker-nav">
+      <button class="worker-tab active" onclick="switchTab('pos')">NUEVA VENTA</button>
+      <button class="worker-tab" onclick="switchTab('history')">MI HISTORIAL</button>
+    </div>
+    <div>
+      <span id="worker-name" style="font-weight:bold; margin-right:10px;">Trabajador</span>
+      <a href="/index.html" class="btn btn--danger" style="padding:5px 10px; font-size:0.7rem;">SALIR</a>
+    </div>
+  </div>
+
+  <div id="view-pos" class="pos-layout">
+    
+    <div class="pos-catalog">
+      <div class="pos-header">
+        <div class="search-bar-large">
+          <input type="text" id="pos-search" placeholder="Buscar por Nombre o Código de Barras..." autofocus>
+          <button class="btn btn--primary" id="btn-search-pos"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+      </div>
+      
+      <div id="pos-grid" class="pos-grid">
+        <p style="text-align:center; width:100%; color:#777;">Cargando inventario...</p>
+      </div>
+    </div>
+
+    <div class="pos-ticket">
+      <div class="ticket-header">
+        TICKET DE VENTA
+      </div>
+      
+      <div id="ticket-items" class="ticket-items">
+        <div style="padding:20px; text-align:center; color:#999;">
+          Escanea o selecciona productos
+        </div>
+      </div>
+
+      <div class="ticket-footer">
+        <div class="total-row">
+          <span>TOTAL:</span>
+          <span id="ticket-total">$0.00</span>
+        </div>
+        <div class="pay-actions">
+          <button class="btn-pay btn-cash" onclick="initCheckout('Efectivo')">
+            <i class="fa-solid fa-money-bill-wave"></i> EFECTIVO
+          </button>
+          <button class="btn-pay btn-card" onclick="initCheckout('Tarjeta')">
+            <i class="fa-regular fa-credit-card"></i> TARJETA
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-history">
+    <div class="container">
+      <h2>Mis Ventas del Día</h2>
+      <button class="btn" onclick="loadMyHistory()"><i class="fa-solid fa-sync"></i> Actualizar</button>
+      <br><br>
+      <table class="inv-table" style="width:100%; background:#fff; border:1px solid #ccc;">
+        <thead>
+          <tr>
+            <th>Pedido</th>
+            <th>Cliente</th>
+            <th>Pago</th>
+            <th>Total</th>
+            <th>Hora</th>
+          </tr>
+        </thead>
+        <tbody id="history-tbody">
+          <tr><td colspan="5">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <dialog id="modal-customer" class="modal">
+    <div class="modal__dialog" style="width:400px; padding:20px;">
+      <h3 style="text-align:center; margin-bottom:20px;">DATOS DEL CLIENTE</h3>
+      
+      <label>Correo Electrónico</label>
+      <div style="display:flex; gap:5px; margin-bottom:15px;">
+        <input type="email" id="cust-email" class="input" placeholder="cliente@email.com">
+        <button class="btn btn--primary" id="btn-check-user">Verificar</button>
+      </div>
+
+      <div id="user-found-msg" style="margin-bottom:15px; font-weight:bold; color:green; display:none;">
+        ¡Usuario Encontrado! <br> <span id="found-name"></span>
+      </div>
+
+      <div id="user-not-found-msg" style="margin-bottom:15px; color:#d32f2f; font-size:0.9rem; display:none;">
+        Usuario no registrado. Se hará venta genérica.
+      </div>
+
+      <label>Nombre (Para el ticket)</label>
+      <input type="text" id="cust-name" class="input" placeholder="Nombre del cliente">
+
+      <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
+      
+      <button id="btn-confirm-sale" class="btn btn--success" style="width:100%; padding:15px;">CONFIRMAR VENTA</button>
+      <button class="btn" style="width:100%; margin-top:10px;" onclick="document.getElementById('modal-customer').close()">Cancelar</button>
+    </div>
+  </dialog>
+
+  <div id="toast-notification" class="toast"></div>
+
+  <script src="trabajador.js"></script>
 </body>
 </html>

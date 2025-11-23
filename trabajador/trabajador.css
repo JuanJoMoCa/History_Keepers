@@ -1,44 +1,116 @@
 /* =========================================================
-   History Keepers — trabajador.css (Página de Trabajador)
+   History Keepers — trabajador.css (Punto de Venta POS)
    ========================================================= */
+   @import url('../assets/admin/admin.css'); /* Heredamos estilos base */
 
-/* Variables del tema usadas en esta página */
-:root {
-  --bg: #f5efe6;
-  --text: #2b1d1a;
-  --panel: #fffaf2;
-  --accent: #b7882f;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-}
-
-/* Reseteo básico */
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  height: 100%;
-}
-
-/* Estilos específicos de la página */
-body {
-  font-family: system-ui, sans-serif;
-  background-color: var(--bg);
-  color: var(--text);
-  display: grid;
-  place-items: center;
-  margin: 0;
-}
-
-.container {
-  text-align: center;
-  background: var(--panel);
-  padding: 40px;
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-}
-
-a {
-  color: var(--accent);
-}
+   :root {
+     --pos-sidebar-width: 350px; /* Ancho del ticket */
+   }
+   
+   /* Layout específico del POS */
+   .pos-layout {
+     display: grid;
+     grid-template-columns: 1fr var(--pos-sidebar-width);
+     height: 100vh;
+     overflow: hidden;
+   }
+   
+   /* Izquierda: Catálogo */
+   .pos-catalog {
+     padding: 20px;
+     overflow-y: auto;
+     background-color: #f4f4f4;
+     display: flex;
+     flex-direction: column;
+     gap: 20px;
+   }
+   
+   .pos-header {
+     display: flex; justify-content: space-between; align-items: center;
+     background: #fff; padding: 15px; border: 1px solid #ddd;
+   }
+   
+   .search-bar-large {
+     display: flex; gap: 10px; flex-grow: 1; max-width: 600px;
+   }
+   .search-bar-large input {
+     font-size: 1.1rem; padding: 15px;
+   }
+   
+   .pos-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+     gap: 15px;
+   }
+   
+   /* Tarjeta de producto simplificada para click rápido */
+   .pos-card {
+     background: #fff; border: 1px solid #ddd; cursor: pointer;
+     transition: transform 0.1s; text-align: center; padding-bottom: 10px;
+   }
+   .pos-card:active { transform: scale(0.98); border-color: #000; }
+   
+   .pos-card img {
+     width: 100%; height: 140px; object-fit: cover; background: #eee;
+   }
+   .pos-card-info { padding: 10px; }
+   .pos-card-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 5px; }
+   .pos-card-price { color: #000; font-weight: 800; font-size: 1rem; }
+   
+   /* Derecha: Ticket de Venta */
+   .pos-ticket {
+     background: #fff;
+     border-left: 2px solid #000;
+     display: flex; flex-direction: column;
+     height: 100%;
+   }
+   
+   .ticket-header {
+     background: #000; color: #fff; padding: 20px;
+     text-align: center; font-weight: 800; letter-spacing: 1px;
+   }
+   
+   .ticket-items {
+     flex-grow: 1; overflow-y: auto; padding: 0;
+   }
+   
+   .ticket-item {
+     display: flex; justify-content: space-between; align-items: center;
+     padding: 15px; border-bottom: 1px solid #eee;
+   }
+   .ticket-item-info { text-align: left; }
+   .ticket-item-title { font-weight: 700; display: block; font-size: 0.9rem; }
+   .ticket-item-price { font-size: 0.85rem; color: #666; }
+   
+   .ticket-footer {
+     padding: 20px; background: #f9f9f9; border-top: 1px solid #ddd;
+   }
+   
+   .total-row {
+     display: flex; justify-content: space-between;
+     font-size: 1.5rem; font-weight: 900; margin-bottom: 20px;
+   }
+   
+   .pay-actions {
+     display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+   }
+   
+   .btn-pay {
+     padding: 20px; font-size: 1rem; font-weight: 800; text-transform: uppercase;
+     border: 2px solid #000; cursor: pointer;
+   }
+   .btn-cash { background: #fff; color: #000; }
+   .btn-card { background: #000; color: #fff; }
+   
+   /* Pestañas Superiores */
+   .worker-nav {
+     display: flex; gap: 10px; margin-bottom: 10px;
+   }
+   .worker-tab {
+     padding: 10px 20px; background: #ddd; border: none; cursor: pointer; font-weight: 700;
+   }
+   .worker-tab.active { background: #000; color: #fff; }
+   
+   /* Historial (Oculto por defecto) */
+   #view-history { padding: 20px; overflow-y: auto; height: 100vh; display: none; }
+   #view-history.active { display: block; }

@@ -291,7 +291,8 @@ app.get('/api/products', async (req, res) => {
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
-        { category: { $regex: search, $options: 'i' } }
+        { category: { $regex: search, $options: 'i' } },
+        { barcode: search }
       ];
     }
     const items = await Product.find(query)
@@ -458,7 +459,7 @@ app.post('/api/orders', async (req, res) => {
       shippingCost,
       total,
       tipoVenta,
-      status: 'Pagado' // Simulamos pago exitoso
+      status: initialStatus // <--- Usamos la variable dinámica
     });
     
     await newOrder.save();
@@ -621,6 +622,23 @@ app.delete('/api/users/:id', async (req, res) => {
     }
     
     res.json({ success: true, message: 'Usuario eliminado.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get('/api/users/lookup', async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ message: "Falta el email" });
+
+    const user = await User.findOne({ email: email });
+    if (user) {
+      // Devolvemos solo datos seguros
+      res.json({ found: true, name: user.nombre, email: user.email });
+    } else {
+      res.json({ found: false });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
