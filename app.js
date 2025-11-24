@@ -200,8 +200,34 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   buildMenu();
   wireFooterLinks();
-  setActive("inicio"); // Cargar la pestaña de inicio por defecto
-  
+
+// ===== CÓDIGO NUEVO: Detectar enlaces directos a Preguntas =====
+  const params = new URLSearchParams(window.location.search);
+  const section = params.get('sec'); // ¿A qué sección ir?
+  const faqId = params.get('faq');   // ¿Qué pregunta abrir?
+
+  if (section === 'preguntas') {
+    setActive('preguntas'); // Abre preguntas
+    
+    if (faqId) {
+      setTimeout(() => {
+        const targetQuestion = document.getElementById(faqId);
+        if (targetQuestion) {
+          targetQuestion.open = true; 
+          targetQuestion.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Efecto visual
+          targetQuestion.style.border = "2px solid var(--accent)";
+          setTimeout(() => targetQuestion.style.border = "", 2000);
+        }
+      }, 300);
+    }
+
+  } else {
+    // ESTO ES LO NUEVO: El "else"
+    // Solo carga el inicio si NO se pidió otra sección
+    setActive("home"); 
+  }
+
   // 4. Listener global de 'Escape'
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeAnyModal();
@@ -411,27 +437,44 @@ const sections = {
       </section>
     `;
   })(),
+  
   preguntas: `
     <div class="card">
-      <h2>Preguntas Frecuentes (FAQ)</h2>
-      <p class="small">Encuentra respuestas a las dudas más comunes sobre nuestros productos y servicios.</p>
-      <div class="faq-container" style="margin-top: 20px;">
-        <details class="faq-item">
-          <summary>¿Los productos son originales?</summary>
-          <p>Sí, todos nuestros artículos son 100% originales y certificados. Nos especializamos en memorabilia auténtica y trabajamos directamente con proveedores verificados.</p>
+      <h2>Preguntas Frecuentes</h2>
+      <p class="small">Resolvemos tus dudas sobre coleccionismo, envíos y autenticidad.</p>
+      
+      <div class="faq-container" style="margin-top: 30px;">
+        
+        <details class="faq-item" id="faq-auth">
+          <summary>¿Cómo sé que los artículos son originales?</summary>
+          <p>Es nuestra prioridad número uno. Todos los artículos firmados incluyen su certificado oficial de agencias reconocidas. Para los artículos "vintage", nuestro equipo de expertos verifica etiquetas, costuras y materiales antes de ponerlos a la venta.</p>
         </details>
+
         <details class="faq-item">
-          <summary>¿Cómo funciona el envío?</summary>
-          <p>Realizamos envíos a todo el país. El costo y tiempo de entrega dependen de tu ubicación y se calculan al finalizar la compra. Todos los artículos se envían con protección especial para coleccionistas.</p>
+          <summary>¿En qué estado vienen los productos?</summary>
+          <p>Al ser piezas de colección, el estado varía. Siempre somos transparentes con las fotos.</p>
         </details>
+
         <details class="faq-item">
-          <summary>¿Puedo devolver un producto?</summary>
-          <p>Aceptamos devoluciones hasta 30 días después de la compra, siempre y cuando el producto se encuentre en el mismo estado en que fue enviado y conserve sus etiquetas y certificados.</p>
+          <summary>¿Cómo protegen el envío para que no se dañe?</summary>
+          <p>Sabemos que son tesoros. Usamos cajas reforzadas y plástico burbuja de alta densidad. Las tarjetas y fotos viajan en protectores rígidos para que lleguen perfectas a tus manos.</p>
         </details>
+
+        <details class="faq-item" id="faq-envio">
+          <summary>¿Cuánto tiempo tarda en llegar mi pedido?</summary>
+          <p>Normalmente procesamos tu paquete en 24 horas.</p>
+        </details>
+
         <details class="faq-item">
-          <summary>¿Tienen tienda física?</summary>
-          <p>Si contamos tambien con tienda fisica y entregas en fisico dentro de la ciudad.</p>
+          <summary>¿Aceptan cambios o devoluciones?</summary>
+          <p>Sí. Si el producto no es lo que esperabas o difiere de la descripción, tienes 15 días para contactarnos y solicitar la devolución. Queremos que estés 100% feliz con tu nueva pieza.</p>
         </details>
+
+        <details class="faq-item">
+          <summary>Tengo una colección, ¿ustedes compran artículos?</summary>
+          <p>¡Sí! Siempre buscamos joyas deportivas. Mándanos fotos de tus artículos. Si cumplen con nuestros estándares de calidad y autenticidad, te haremos una oferta en efectivo.</p>
+        </details>
+
       </div>
     </div>
   `
@@ -498,6 +541,12 @@ function setActive(key) {
   if (key === "buscar")  { renderBuscar();  return; }
 
   content.innerHTML = sections[key] || "";
+
+  const slider = document.querySelector(".slider"); // Buscamos el slider
+  if (slider) {
+    // Si la sección es "home", lo mostramos. Si no, lo ocultamos.
+    slider.style.display = (key === "home") ? "block" : "none";
+  }
 }
 
 function createProductCard(p) {

@@ -98,6 +98,8 @@ function renderProduct(p){
       main.src = imgs[idx] || imgs[0];
       thumbs.querySelectorAll(".thumb").forEach(b=>b.classList.remove("active"));
       btn.classList.add("active");
+      // LÍNEA NUEVA: Actualizar la imagen de la lupa
+      setTimeout(() => document.dispatchEvent(new Event('updateMagnifier')), 50);
     });
   });
 
@@ -119,9 +121,12 @@ function renderProduct(p){
     showToast("Llevándote al carrito…","success");
     setTimeout(()=> window.location.href = "carrito.html", 600);
   });
+}
+  
+ 
 
   view.scrollIntoView({behavior:"smooth"});
-}
+
 
 // ---------- Cantidad limitada por stock ----------
 function clampQty(q, stock) {

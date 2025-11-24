@@ -76,12 +76,23 @@
           <button class="btn btn-secondary btn-block" id="buy-now">COMPRAR AHORA</button>
         </div>
 
-        <div class="product-guarantee">
-          <div class="pg-item"><i class="fa-solid fa-shield-halved"></i> Autenticidad Garantizada</div>
-          <div class="pg-item"><i class="fa-solid fa-truck-fast"></i> Envío Asegurado</div>
+        <div class="product-guarantee" style="margin-top: 15px; display: grid; gap: 8px;">
+          
+          <a href="/index.html?sec=preguntas&faq=faq-auth" style="text-decoration: none; color: inherit;" title="Ver detalles de autenticidad">
+            <div class="pg-item" style="cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; padding: 8px; background: #f8f8f8; border-radius: 6px;">
+              <i class="fa-solid fa-shield-halved" style="color: var(--accent);"></i> 
+              <span>Autenticidad Garantizada</span>
+            </div>
+          </a>
+
+          <a href="/index.html?sec=preguntas&faq=faq-envio" style="text-decoration: none; color: inherit;" title="Ver tiempos de entrega">
+            <div class="pg-item" style="cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; padding: 8px; background: #f8f8f8; border-radius: 6px;">
+              <i class="fa-solid fa-truck-fast" style="color: var(--accent);"></i> 
+              <span>Envío Asegurado</span>
+            </div>
+          </a>
+
         </div>
-      </aside>
-    </div>
 
     <div id="not-found" class="not-found-state" hidden>
       <h2>Producto no disponible</h2>
