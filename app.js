@@ -234,7 +234,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 });
 
-async function loadProducts() {
+/*async function loadProducts() {
   try {
     const response = await fetch('/api/products?limit=1000'); // Pedir todos
     if (!response.ok) {
@@ -246,6 +246,44 @@ async function loadProducts() {
     console.error(error);
     showToast("Error al cargar productos de la tienda.", "error");
     state.products = []; // Usar array vacío si falla
+  }
+}*/
+
+
+// --- EN app.js ---
+
+async function loadProducts() {
+  try {
+    // 1. Pedir datos al servidor
+    const response = await fetch('/api/products?limit=1000');
+    
+    if (!response.ok) {
+      throw new Error('No se pudieron cargar los productos');
+    }
+    
+    const data = await response.json();
+
+    // 2. Guardar datos (Compatible con lista nueva o formato viejo)
+    if (Array.isArray(data)) {
+      state.products = data;          // Si es una lista directa
+    } else {
+      state.products = data.items || []; // Si viene dentro de un objeto
+    }
+
+    console.log("Productos listos para mostrar:", state.products.length);
+
+    // 3. ¡ESTA ES LA CLAVE QUE FALTABA!
+    // Le dice al HTML: "Dibuja las tarjetas ahora"
+    renderCatalog(); 
+
+  } catch (error) {
+    console.error(error);
+    showToast("Error al conectar con el catálogo.", "error");
+    state.products = [];
+    
+    // Opcional: Mostrar mensaje de vacío si falla
+    const grid = document.querySelector(".grid");
+    if(grid) grid.innerHTML = '<p style="grid-column:1/-1; text-align:center">No hay conexión con el inventario.</p>';
   }
 }
 

@@ -169,6 +169,25 @@ async function loadProducts() {
   }
 }
 
+// --- EN comprador.js ---
+/*async function loadFeaturedProducts() {
+  try {
+    const res = await fetch('/api/products');
+    if (!res.ok) throw new Error("Error API");
+    
+    const data = await res.json();
+    
+    // CORRECCIÓN AQUÍ: Aseguramos que sea un array
+    const products = Array.isArray(data) ? data : (data.items || []);
+    
+    // Tomamos solo los primeros 4 para "Destacados"
+    renderFeatured(products.slice(0, 4));
+    
+  } catch (error) {
+    console.error("Error cargando destacados:", error);
+  }
+}*/
+
 /**
  * API Local (Frontend)
  */

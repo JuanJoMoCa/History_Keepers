@@ -237,7 +237,7 @@ function paginate(total) {
 }
 
 // Función principal: recarga los datos
-async function refresh() {
+/*async function refresh() {
   try {
     const { items, total } = await api.list(state);
     renderRows(items);
@@ -245,7 +245,24 @@ async function refresh() {
   } catch(err) {
     toast(err.message, 'err');
   }
+}*/
+
+// --- 1. Función REFRESH (Arreglada para mostrar datos) ---
+async function refresh() {
+  try {
+    const data = await api.list(state);
+    
+    // CORRECCIÓN: Aceptamos la lista directa (Array) o el formato viejo
+    const items = Array.isArray(data) ? data : (data.items || []);
+    const total = items.length;
+
+    renderRows(items); // Dibuja la tabla
+    paginate(total);   // Actualiza el contador de páginas
+  } catch(err) {
+    toast(err.message, 'err');
+  }
 }
+
 
 // --- NUEVAS FUNCIONES PARA PEDIDOS ---
 /**

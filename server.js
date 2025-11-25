@@ -316,6 +316,19 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+// 1. OBTENER TODOS (GET) - Corregido para Mongoose nuevo
+/*app.get('/api/products', async (req, res) => {
+  try {
+    // Usamos await y quitamos el callback.
+    // Devolvemos SOLO el array de productos.
+    const products = await Product.find({}).sort({ createdAt: -1 });
+    res.json(products); 
+  } catch (error) {
+    console.error("Error al obtener productos:", error);
+    res.status(500).json({ message: error.message });
+  }
+});*/
+
 app.get('/api/products/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -325,6 +338,21 @@ app.get('/api/products/:id', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+// 2. OBTENER UNO POR ID (GET)
+/*app.get('/api/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id); // <--- Así debe ser
+    
+    if (!product) {
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});*/
 
 // 2. CREAR (POST) - (Modificado para Cloudinary)
 app.post('/api/products', upload.array('images', 5), async (req, res) => {
@@ -378,6 +406,26 @@ app.put('/api/products/:id', upload.array('images', 5), async (req, res) => {
     res.json(updatedProduct);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+// --- 4. ACTUALIZAR PRODUCTO (PUT) - NUEVO ---
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    
+    // Busca por ID y actualiza. {new: true} devuelve el dato ya cambiado.
+    const updatedProduct = await Product.findByIdAndUpdate(id, updates, { new: true });
+    
+    if (!updatedProduct) {
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
+    
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error("Error actualizando:", error);
+    res.status(500).json({ message: "Error al actualizar el producto" });
   }
 });
 
