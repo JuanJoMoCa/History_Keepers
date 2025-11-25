@@ -197,11 +197,20 @@ app.post('/api/login', async (req, res) => {
     
     const usuario = await User.findOne({ email });
     if (!usuario) {
-      return res.status(404).json({ success: false, message: "Usuario no encontrado." });
+      
+      return res.status(404).json({
+        success: false,
+        message: "Este correo no está asociado a ninguna cuenta."
+      });
     }
     
+    
     if (usuario.password !== password) {
-      return res.status(401).json({ success: false, message: "Contraseña incorrecta." });
+      
+      return res.status(401).json({
+        success: false,
+        message: "Correo o contraseña incorrectos."
+      });
     }
 
     
@@ -211,6 +220,7 @@ app.post('/api/login', async (req, res) => {
         message: "Debes verificar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada."
       });
     }
+    
     
     res.json({
       success: true,
@@ -222,6 +232,7 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ success: false, message: "Ocurrió un error en el servidor." });
   }
 });
+
 
 
 // --- Verificación de correo  ---

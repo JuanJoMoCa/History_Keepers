@@ -186,7 +186,41 @@
         <a href="#" data-switch="register">REGÍSTRATE AQUÍ</a>
       </p>
     </form>
+    
   </dialog>
+  <!-- Aviso: correo no asociado a ninguna cuenta -->
+  <dialog id="dlg-login-not-found" class="modal">
+    <form method="dialog" class="modal-card-body">
+      <div class="modal-logo logo-text">HK</div>
+      <h2>CORREO NO REGISTRADO</h2>
+      <p class="modal-subtitle">
+        Este correo no está asociado a ninguna cuenta en History Keepers.
+      </p>
+      <p class="modal-subtitle">
+        Revisa que lo hayas escrito correctamente o crea una cuenta nueva desde la opción
+        <strong>"Regístrate aquí"</strong>.
+      </p>
+      <button type="submit" class="btn btn-primary" autofocus>ENTENDIDO</button>
+    </form>
+  </dialog>
+
+  <!-- Aviso: correo o contraseña incorrectos -->
+  <dialog id="dlg-login-bad-creds" class="modal">
+    <form method="dialog" class="modal-card-body">
+      <div class="modal-logo logo-text">HK</div>
+      <h2>INICIO DE SESIÓN FALLIDO</h2>
+      <p class="modal-subtitle">
+        Correo o contraseña incorrectos.
+      </p>
+      <p class="modal-subtitle">
+        Verifica tus datos e inténtalo de nuevo. Si olvidaste tu contraseña, contacta al
+        administrador del sitio para restablecerla.
+      </p>
+      <button type="submit" class="btn btn-primary" autofocus>ENTENDIDO</button>
+    </form>
+  </dialog>
+
+
 
   <!-- Toast  -->
   <div id="toast-notification" class="toast hidden"></div>
