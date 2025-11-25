@@ -298,13 +298,16 @@ app.get('/api/products', async (req, res) => {
   try {
     const { search = "", page = 1, limit = 10 } = req.query;
     const query = {};
+    
+    // MODIFICACIÓN: Agregamos búsqueda exacta por barcode
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
         { category: { $regex: search, $options: 'i' } },
-        { barcode: search }
+        { barcode: search } // <--- ESTO ES LO NUEVO
       ];
     }
+    
     const items = await Product.find(query)
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit))
@@ -413,9 +416,8 @@ app.put('/api/products/:id', upload.array('images', 5), async (req, res) => {
 app.put('/api/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const updates = req.body; // Aquí Express ya lee todo lo que mandemos, incluido 'status'
     
-    // Busca por ID y actualiza. {new: true} devuelve el dato ya cambiado.
     const updatedProduct = await Product.findByIdAndUpdate(id, updates, { new: true });
     
     if (!updatedProduct) {
@@ -481,32 +483,31 @@ app.get('/api/orders', async (req, res) => {
 
 app.post('/api/orders', async (req, res) => {
   try {
-    const { customerDetails, products, subtotal, shippingCost, total, tipoVenta } = req.body;
+    const { customerDetails, products, subtotal, shippingCost, total, tipoVenta, status } = req.body;
     
-    // 1. VALIDACIÓN DE STOCK (CRÍTICO)
-    // Obtenemos los IDs de los productos que el cliente quiere comprar
+    // 1. VALIDACIÓN DE STOCK
     const productIds = products.map(p => p.product);
-    
-    // Buscamos esos productos en la base de datos real
     const dbProducts = await Product.find({ _id: { $in: productIds } });
     
-    // Verificamos si alguno NO está disponible
+    // Verificamos disponibilidad
     const unavailableProduct = dbProducts.find(p => p.status !== 'Disponible');
-    
     if (unavailableProduct) {
-      return res.status(409).json({ // 409 Conflict
+      return res.status(409).json({ 
         success: false,
-        message: `Lo sentimos, el artículo "${unavailableProduct.name}" ya no está disponible (se vendió hace un momento).`
+        message: `El artículo "${unavailableProduct.name}" ya no está disponible.`
       });
     }
 
-    // 2. Si todo está disponible, procedemos
     const orderNumber = `HK-${Date.now().toString().slice(5)}`;
     
-    // Actualizamos el estatus a 'Pendiente de envío' para bloquearlos inmediatamente
+    // 2. DETERMINAR ESTATUS DEL PRODUCTO
+    // Si es venta física ('Vendido'), el producto se marca vendido ya. Si es online, 'Pendiente'.
+    const initialStatus = status || 'Pagado'; // Si no envían status, asumimos Pagado (Online)
+    const newProductStatus = (initialStatus === 'Vendido') ? 'Vendido' : 'Pendiente de envío';
+
     await Product.updateMany(
       { _id: { $in: productIds } },
-      { $set: { status: 'Pendiente de envío' } }
+      { $set: { status: newProductStatus } }
     );
     
     const newOrder = new Order({
@@ -517,7 +518,7 @@ app.post('/api/orders', async (req, res) => {
       shippingCost,
       total,
       tipoVenta,
-      status: initialStatus // <--- Usamos la variable dinámica
+      status: initialStatus
     });
     
     await newOrder.save();
@@ -534,24 +535,26 @@ app.put('/api/orders/:id/status', async (req, res) => {
     const { id } = req.params;
     const { status, trackingNumber } = req.body;
 
-    const order = await Order.findById(id);
+    // IMPORTANTE: No usamos populate aquí para tener los IDs puros
+    const order = await Order.findById(id); 
     if (!order) return res.status(404).json({ message: 'Pedido no encontrado' });
 
     order.status = status;
-    if (trackingNumber) {
-      order.trackingNumber = trackingNumber;
-    }
+    if (trackingNumber) order.trackingNumber = trackingNumber;
     
+    // Extraer IDs de productos correctamente
+    const productIds = order.products.map(p => p.product);
+
     if (status === 'Cancelado') {
-      const productIds = order.products.map(p => p.product);
+      // LIBERAR PRODUCTOS
       await Product.updateMany(
         { _id: { $in: productIds } },
         { $set: { status: 'Disponible' } }
       );
     }
     
-    if (status === 'Entregado') {
-       const productIds = order.products.map(p => p.product);
+    if (status === 'Entregado' || status === 'Vendido') {
+       // MARCAR COMO VENDIDOS
       await Product.updateMany(
         { _id: { $in: productIds } },
         { $set: { status: 'Vendido' } }
@@ -561,6 +564,7 @@ app.put('/api/orders/:id/status', async (req, res) => {
     await order.save();
     res.json(order);
   } catch (error) {
+    console.error("Error actualizando orden:", error);
     res.status(500).json({ message: error.message });
   }
 });

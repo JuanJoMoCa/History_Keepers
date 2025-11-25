@@ -271,7 +271,9 @@ async function refresh() {
 async function loadOrders() {
   try {
     const orders = await api.listOrders();
-    state.orders = orders; // <-- Guarda los pedidos reales en el estado
+    
+    state.orders = orders; // <--- ¡ESTA LÍNEA ES CRUCIAL! Asegúrate de que esté ahí.
+    
     renderOrdersTable(orders);
   } catch(err) {
     toast(err.message, 'err');
@@ -354,7 +356,7 @@ function closeOrderModal() {
  */
 async function saveOrderStatus() {
   const id = $("#order-id-input").value;
-  const status = $("#order-status-select").value;
+  const status = $("#order-status-select").value; // <--- Usa el ID correcto
   const trackingNumber = $("#order-tracking-input").value.trim();
 
   try {
@@ -371,6 +373,10 @@ async function loadSalesDashboard() {
   try {
     const summary = await api.getSalesSummary();
     state.salesData = summary; // Guardar datos
+
+    if (!state.orders || state.orders.length === 0) {
+       state.orders = await api.listOrders();
+    }
 
     // 1. Dibujar gráfica de ventas por mes
     renderSalesByMonthChart(summary.salesByMonth || []);
@@ -740,6 +746,7 @@ function openCreate() {
   $("#description").value = "";
   $("#highlights").value = "";
   $("#barcode").value = "";
+  $("#status").value = "Disponible";
 
   $("#current-images-preview").innerHTML = "";
   $("#current-images-preview").classList.add("hidden");
@@ -787,6 +794,7 @@ function fillForm(p) {
   $("#highlights").value = (p?.highlights || []).join(", ");
   $("#barcode").value = p?.barcode || "N/A";
   $("#images").value = ""; 
+  $("#status").value = p?.status || "Disponible";
   
   const previewContainer = $("#current-images-preview");
   previewContainer.innerHTML = "";
@@ -843,6 +851,7 @@ function collectForm() {
   formData.append('discount', Number($("#discount").value) || 0);
   formData.append('description', $("#description").value.trim());
   formData.append('highlights', $("#highlights").value.trim());
+  formData.append('status', $("#status").value);
   
   const imageFiles = $("#images").files;
   if (imageFiles && imageFiles.length > 0) {
