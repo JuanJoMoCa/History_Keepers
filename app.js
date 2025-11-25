@@ -1004,10 +1004,14 @@ function wireTopbarModals() {
 }
 
 function wireAuthForms() {
-  const loginForm      = document.getElementById("login-form");
-  const registerForm   = document.getElementById("register-form");
-  const dlgRegisterInfo = document.getElementById("dlg-register-info");
-  const dlgUnverified   = document.getElementById("dlg-unverified");
+  const loginForm        = document.getElementById("login-form");
+  const registerForm     = document.getElementById("register-form");
+  const dlgRegisterInfo  = document.getElementById("dlg-register-info");
+  const dlgUnverified    = document.getElementById("dlg-unverified");
+  const dlgLoginNotFound = document.getElementById("dlg-login-not-found");
+  const dlgLoginBadCreds = document.getElementById("dlg-login-bad-creds");
+
+  
 
   // 1. REGISTRO
   registerForm?.addEventListener("submit", async (e) => {
@@ -1054,6 +1058,30 @@ function wireAuthForms() {
     }
   });
 
+  if (registerForm) {
+    const regNombre = document.getElementById("reg-nombre");
+    const regEmail  = document.getElementById("reg-email");
+    const regPass   = document.getElementById("reg-password");
+
+    const handleRegisterEnter = (ev) => {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        // Disparar el mismo submit del formulario
+        if (typeof registerForm.requestSubmit === "function") {
+          registerForm.requestSubmit();
+        } else {
+          registerForm.dispatchEvent(
+            new Event("submit", { bubbles: true, cancelable: true })
+          );
+        }
+      }
+    };
+
+    regNombre?.addEventListener("keydown", handleRegisterEnter);
+    regEmail?.addEventListener("keydown", handleRegisterEnter);
+    regPass?.addEventListener("keydown", handleRegisterEnter);
+  }
+
   // 2. LOGIN 
   const btnLogin = document.getElementById("btn-login-submit");
   
@@ -1085,15 +1113,30 @@ function wireAuthForms() {
         const data = await res.json().catch(() => ({}));
         console.log("Respuesta /api/login:", res.status, data);
 
-        if (!res.ok || !data.success) {
+          if (!res.ok || !data.success) {
           // 403 = comprador no verificado
-          if (res.status === 403) {
-            dlgUnverified?.showModal();
-          } else {
-            showToast(data.message || "Credenciales incorrectas.", "error");
-          }
-          return;
+            if (res.status === 403) {
+              dlgUnverified?.showModal();
+
+            // 404 = correo no asociado a ningún usuario
+            } else if (res.status === 404) {
+              dlgLoginNotFound?.showModal();
+
+            // 401 = correo o contraseña incorrectos
+            } else if (res.status === 401) {
+              dlgLoginBadCreds?.showModal();
+
+            } else {
+              // Otros errores (500, etc.)
+              showToast(
+                data.message || "No se pudo iniciar sesión. Intenta de nuevo.",
+                "error"
+              );
+            }
+            return;
         }
+
+
 
         // Éxito
         state.isAuthenticated = true;
@@ -1113,6 +1156,21 @@ function wireAuthForms() {
         showToast("Error de conexión con el servidor.", "error");
       }
     });
+
+        
+    const loginEmail = document.getElementById("log-email");
+    const loginPass  = document.getElementById("log-password");
+
+    const handleLoginEnter = (ev) => {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        newBtn.click(); 
+      }
+    };
+
+    loginEmail?.addEventListener("keydown", handleLoginEnter);
+    loginPass?.addEventListener("keydown", handleLoginEnter);
+
   }
 }
 
