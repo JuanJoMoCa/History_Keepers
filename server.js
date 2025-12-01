@@ -300,6 +300,70 @@ app.get('/api/my-orders/:userId', async (req, res) => {
 // ================================================================
 // API ADMIN / PERFIL
 // ================================================================
+
+// --- RUTA DE ESTADÍSTICAS (DASHBOARD) ---
+app.get('/api/sales/summary', async (req, res) => {
+  try {
+    // 1. Traemos TODAS las órdenes completadas
+    // Usamos .lean() para que sean objetos JS simples y rápidos
+    const orders = await Order.find({
+      status: { $in: ['Entregado', 'Vendido'] }
+    }).lean();
+
+    // 2. Calcular Ventas por Mes (Lógica manual en JS)
+    const salesByMonthMap = {};
+    
+    orders.forEach(o => {
+      // Si no tiene fecha o es inválida, usamos la fecha de hoy para no romper la gráfica
+      let d = o.createdAt ? new Date(o.createdAt) : new Date();
+      if (isNaN(d.getTime())) d = new Date(); 
+
+      const year = d.getFullYear();
+      const month = d.getMonth() + 1;
+      const key = `${year}-${month}`; // Ej: "2025-12"
+      
+      if (!salesByMonthMap[key]) {
+        salesByMonthMap[key] = {
+          _id: { year, month },
+          totalSales: 0
+        };
+      }
+      salesByMonthMap[key].totalSales += (Number(o.total) || 0);
+    });
+    
+    const salesByMonth = Object.values(salesByMonthMap);
+
+    // 3. Calcular Ventas por Tipo
+    const salesByTypeMap = {};
+    orders.forEach(o => {
+      const type = o.tipoVenta || "No especificado";
+      if (!salesByTypeMap[type]) {
+        salesByTypeMap[type] = { _id: type, totalSales: 0 };
+      }
+      salesByTypeMap[type].totalSales += (Number(o.total) || 0);
+    });
+    const salesByType = Object.values(salesByTypeMap);
+
+    // 4. Contar Estatus
+    const allOrders = await Order.find({}, 'status').lean();
+    const statusMap = {};
+    allOrders.forEach(o => {
+      const s = o.status || "Sin estatus";
+      if (!statusMap[s]) statusMap[s] = { _id: s, count: 0 };
+      statusMap[s].count++;
+    });
+    const ordersByStatus = Object.values(statusMap);
+
+    // Enviar respuesta
+    res.json({ salesByMonth, salesByType, ordersByStatus });
+
+  } catch (error) {
+    console.error("Error Calculando Dashboard:", error);
+    // En caso de error, enviamos arrays vacíos para que no salga el mensaje rojo en el front
+    res.json({ salesByMonth: [], salesByType: [], ordersByStatus: [] });
+  }
+});
+
 app.get('/api/users', async (req, res) => {
   try {
     const users = await User.find({ rol: { $nin: ['usuario comprador', 'administrador'] } }).select('-password');
