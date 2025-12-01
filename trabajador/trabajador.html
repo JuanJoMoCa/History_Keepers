@@ -112,6 +112,44 @@
     </div>
   </dialog>
 
+  <dialog id="modal-payment" class="modal">
+  <div class="modal__dialog" style="width:400px; padding:20px;">
+    <h3 style="text-align:center; margin-bottom:20px;" id="pay-modal-title">COBRAR</h3>
+    
+    <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin-bottom:20px; text-align:center;">
+      <span style="display:block; color:#666; font-size:0.9rem;">Total a Pagar</span>
+      <span id="pay-amount-display" style="font-size:2rem; font-weight:800;">$0.00</span>
+    </div>
+
+    <div id="pay-cash-area" style="display:none;">
+      <label>Monto Recibido</label>
+      <input type="number" id="cash-received" class="input" placeholder="0.00" style="font-size:1.2rem;">
+      
+      <div style="margin-top:15px; text-align:right;">
+        <span style="font-weight:bold;">Cambio: </span>
+        <span id="cash-change" style="font-size:1.2rem; color:green;">$0.00</span>
+      </div>
+    </div>
+
+    <div id="pay-card-area" style="display:none;">
+      <label>Referencia / Últimos 4 dígitos</label>
+      <input type="text" id="card-ref" class="input" placeholder="Ej. 1234">
+      <p style="font-size:0.8rem; color:#666; margin-top:5px;">
+        <i class="fa-solid fa-info-circle"></i> Procesa el cobro en la terminal bancaria e ingresa el folio aquí.
+      </p>
+    </div>
+
+    <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
+    
+    <button id="btn-finish-transaction" class="btn btn--success" style="width:100%; padding:15px; font-size:1.1rem;">
+      FINALIZAR VENTA
+    </button>
+    <button class="btn" style="width:100%; margin-top:10px;" onclick="document.getElementById('modal-payment').close()">
+      Volver
+    </button>
+  </div>
+</dialog>
+
   <div id="toast-notification" class="toast"></div>
 
   <script src="trabajador.js"></script>

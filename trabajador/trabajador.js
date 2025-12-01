@@ -1,5 +1,5 @@
 /* =========================================================
-   History Keepers — trabajador.js (Lógica POS)
+   History Keepers — trabajador.js (Lógica POS - VERSIÓN FINAL CORREGIDA)
    ========================================================= */
 
 // Estado del POS
@@ -7,7 +7,8 @@ const state = {
   products: [],     // Catálogo completo
   cart: [],         // Items en el ticket actual
   currentPaymentMethod: null,
-  customer: null    // Datos del cliente verificado
+  customer: null,   // Datos del cliente verificado
+  finalCustomerData: null // Datos listos para enviar
 };
 
 // Utils
@@ -30,31 +31,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderGrid(e.target.value);
   });
   
-  // Búsqueda por Enter (útil para lector de código de barras)
+  // Búsqueda por Enter
   $("#pos-search").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       const term = e.target.value.trim();
-      // Intentar añadir directo si es código de barras exacto
       const exactMatch = state.products.find(p => p.barcode === term);
       if (exactMatch) {
         addToTicket(exactMatch);
-        e.target.value = ""; // Limpiar para el siguiente escaneo
+        e.target.value = ""; 
         toast("Producto agregado", "success");
       }
     }
   });
 
-  // Botón verificar usuario
+  // Conectar botones principales
   $("#btn-check-user").addEventListener("click", checkUserByEmail);
-  
-  // Botón confirmar venta final
   $("#btn-confirm-sale").addEventListener("click", finalizeSale);
+  $("#btn-finish-transaction").addEventListener("click", completeTransaction);
 });
 
 // --- PESTAÑAS ---
 window.switchTab = function(tabName) {
   document.querySelectorAll('.worker-tab').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active'); // El botón clickeado
+  event.target.classList.add('active'); 
 
   if(tabName === 'pos') {
     $("#view-pos").style.display = 'grid';
@@ -69,11 +68,12 @@ window.switchTab = function(tabName) {
 // --- CATÁLOGO ---
 async function loadCatalog() {
   try {
-    // Traemos TODOS los productos disponibles
     const res = await fetch('/api/products?limit=1000'); 
     const data = await res.json();
-    // Filtramos solo los que están "Disponible" para evitar vender repetidos
-    state.products = (data.items || []).filter(p => p.status === 'Disponible');
+    // Filtro relajado: Disponible o sin estatus definido
+    state.products = (data.items || []).filter(p => 
+      p.status === 'Disponible' || !p.status
+    );
     renderGrid();
   } catch (err) {
     console.error(err);
@@ -114,7 +114,6 @@ function renderGrid(filter = "") {
 
 // --- TICKET (CARRITO) ---
 function addToTicket(product) {
-  // Verificar si ya está en el ticket (Recuerda: son productos únicos)
   const exists = state.cart.find(i => i._id === product._id);
   if (exists) {
     toast("Este producto único ya está en el ticket", "error");
@@ -159,7 +158,7 @@ function renderTicket() {
   totalEl.textContent = fmtMoney(total);
 }
 
-// --- PROCESO DE COBRO ---
+// --- PROCESO DE COBRO: PASO 1 (Abrir Modal Cliente) ---
 window.initCheckout = function(method) {
   if (state.cart.length === 0) {
     toast("El ticket está vacío", "error");
@@ -170,19 +169,32 @@ window.initCheckout = function(method) {
   // Limpiar modal
   $("#cust-email").value = "";
   $("#cust-name").value = "";
+  $("#cust-name").disabled = false;
   $("#user-found-msg").style.display = "none";
   $("#user-not-found-msg").style.display = "none";
-  state.customer = null; // Resetear cliente
+  state.customer = null;
 
   document.getElementById("modal-customer").showModal();
 };
 
+// --- PROCESO DE COBRO: PASO 2 (Verificar Cliente) ---
 async function checkUserByEmail() {
-  const email = $("#cust-email").value.trim();
-  if (!email) return;
+  const emailInput = $("#cust-email");
+  const nameInput = $("#cust-name");
+  const email = emailInput.value.trim().toLowerCase(); // Limpieza clave
+  const btn = $("#btn-check-user");
 
-  $("#btn-check-user").textContent = "...";
-  
+  $("#user-found-msg").style.display = "none";
+  $("#user-not-found-msg").style.display = "none";
+
+  if (!email) {
+    toast("Escribe un correo primero.", "error");
+    return;
+  }
+
+  btn.textContent = "BUSCANDO...";
+  btn.disabled = true;
+
   try {
     const res = await fetch(`/api/users/lookup?email=${encodeURIComponent(email)}`);
     const data = await res.json();
@@ -190,43 +202,122 @@ async function checkUserByEmail() {
     if (data.found) {
       $("#user-found-msg").style.display = "block";
       $("#found-name").textContent = data.name;
-      $("#cust-name").value = data.name; // Autocompletar nombre
-      $("#user-not-found-msg").style.display = "none";
-      state.customer = { email: data.email, name: data.name }; // Guardar ref
+      nameInput.value = data.name;
+      nameInput.disabled = true; // Bloquear para asegurar consistencia
+      
+      state.customer = {
+        email: data.email,
+        name: data.name,
+        userId: data._id
+      };
+      toast("Cliente vinculado", "success");
     } else {
-      $("#user-found-msg").style.display = "none";
       $("#user-not-found-msg").style.display = "block";
-      $("#cust-name").value = ""; // Permitir escribir manual
+      nameInput.value = "";
+      nameInput.disabled = false;
+      nameInput.focus();
       state.customer = null;
     }
   } catch (err) {
     console.error(err);
-    toast("Error verificando usuario", "error");
+    toast("Error de conexión", "error");
+    nameInput.disabled = false;
   } finally {
-    $("#btn-check-user").textContent = "Verificar";
+    btn.textContent = "VERIFICAR";
+    btn.disabled = false;
   }
 }
 
+// --- PROCESO DE COBRO: PASO 3 (Confirmar Datos y Abrir Pago) ---
 async function finalizeSale() {
+  console.log("1. Función finalizeSale iniciada"); // <--- LOG 1
+
   const emailInput = $("#cust-email").value.trim();
   const nameInput = $("#cust-name").value.trim();
 
-  // Definir datos finales del cliente
-  let finalCustomer = {
-    name: nameInput || "Venta de Mostrador",
-    email: state.customer ? state.customer.email : (emailInput || "mostrador@hk.com"),
-    address: "Tienda Física - Sucursal Central" // Dirección fija
-  };
-
-  if (!finalCustomer.name) {
-    toast("Por favor ingresa un nombre para el ticket", "error");
+  if (!nameInput) {
+    console.log("Error: Nombre vacío"); // <--- LOG ERROR
+    toast("El nombre es obligatorio.", "error");
+    $("#cust-name").focus();
     return;
   }
 
+  // Guardar datos validados
+  state.finalCustomerData = {
+    name: state.customer ? state.customer.name : nameInput,
+    email: state.customer ? state.customer.email : (emailInput || "mostrador@hk.com"),
+    address: "Sucursal Física",
+    userId: state.customer ? state.customer.userId : null
+  };
+  
+  console.log("2. Datos de cliente guardados:", state.finalCustomerData); // <--- LOG 2
+
+  // Cambio de modal
+  const modalCustomer = document.getElementById("modal-customer");
+  console.log("3. Intentando cerrar modal cliente:", modalCustomer); // <--- LOG 3
+  modalCustomer.close();
+  
+  console.log("4. Abriendo modal de pago..."); // <--- LOG 4
+  openPaymentModal();
+}
+
+// --- PROCESO DE COBRO: PASO 4 (Modal de Pago) ---
+function openPaymentModal() {
   const total = state.cart.reduce((sum, p) => sum + p.price, 0);
+  
+  $("#pay-amount-display").textContent = fmtMoney(total);
+  $("#pay-modal-title").textContent = `COBRAR (${state.currentPaymentMethod.toUpperCase()})`;
+
+  if (state.currentPaymentMethod === 'Efectivo') {
+    $("#pay-cash-area").style.display = "block";
+    $("#pay-card-area").style.display = "none";
+    
+    const inputCash = $("#cash-received");
+    inputCash.value = "";
+    $("#cash-change").textContent = "$0.00";
+    
+    inputCash.oninput = () => {
+      const received = parseFloat(inputCash.value) || 0;
+      const change = received - total;
+      $("#cash-change").textContent = fmtMoney(change);
+      $("#cash-change").style.color = change >= 0 ? "green" : "red";
+    };
+    setTimeout(() => inputCash.focus(), 100);
+
+  } else {
+    $("#pay-cash-area").style.display = "none";
+    $("#pay-card-area").style.display = "block";
+    $("#card-ref").value = "";
+    setTimeout(() => $("#card-ref").focus(), 100);
+  }
+
+  document.getElementById("modal-payment").showModal();
+}
+
+// --- PROCESO DE COBRO: PASO 5 (Enviar al Servidor) ---
+async function completeTransaction() {
+  const total = state.cart.reduce((sum, p) => sum + p.price, 0);
+  let trackingNote = "";
+
+  if (state.currentPaymentMethod === 'Efectivo') {
+    const received = parseFloat($("#cash-received").value) || 0;
+    if (received < total) {
+      toast("Monto insuficiente.", "error");
+      return;
+    }
+    trackingNote = `Pago en Efectivo (Recibido: ${fmtMoney(received)})`;
+  } else {
+    const ref = $("#card-ref").value.trim();
+    if (!ref) {
+      toast("Ingresa la referencia.", "error");
+      return;
+    }
+    trackingNote = `Pago con Tarjeta (Ref: ${ref})`;
+  }
 
   const orderPayload = {
-    customerDetails: finalCustomer,
+    orderNumber: `POS-${Date.now().toString().slice(-6)}`,
+    customerDetails: state.finalCustomerData,
     products: state.cart.map(p => ({
       product: p._id,
       name: p.name,
@@ -234,12 +325,17 @@ async function finalizeSale() {
       qty: 1
     })),
     subtotal: total,
-    shippingCost: 0, // Venta física no tiene envío
     total: total,
+    shippingCost: 0,
+    status: 'Entregado',
     tipoVenta: 'Física',
-    status: 'Vendido', // <--- Estatus directo para descontar stock
-    trackingNumber: `Pago: ${state.currentPaymentMethod}` // Guardamos el método aquí
+    trackingNumber: trackingNote,
+    createdAt: new Date()
   };
+
+  const btn = $("#btn-finish-transaction");
+  btn.textContent = "PROCESANDO...";
+  btn.disabled = true;
 
   try {
     const res = await fetch("/api/orders", {
@@ -248,19 +344,24 @@ async function finalizeSale() {
       body: JSON.stringify(orderPayload)
     });
 
-    if (!res.ok) throw new Error("Error al procesar la venta");
+    if (!res.ok) throw new Error("Error guardando venta");
 
-    toast("¡Venta realizada con éxito!", "success");
-    document.getElementById("modal-customer").close();
+    toast("¡Venta Exitosa!", "success");
+    document.getElementById("modal-payment").close();
     
-    // Limpiar todo
+    // Limpieza
     state.cart = [];
-    renderTicket();
-    loadCatalog(); // Recargar para quitar los productos vendidos
+    state.customer = null;
+    state.finalCustomerData = null;
+    renderTicket(); 
+    loadCatalog(); 
 
   } catch (err) {
     console.error(err);
     toast("Error en el servidor", "error");
+  } finally {
+    btn.textContent = "FINALIZAR VENTA";
+    btn.disabled = false;
   }
 }
 
@@ -270,15 +371,12 @@ async function loadMyHistory() {
   tbody.innerHTML = '<tr><td colspan="5">Cargando...</td></tr>';
 
   try {
-    const res = await fetch('/api/orders'); // Trae todas
+    const res = await fetch('/api/orders');
     const allOrders = await res.json();
-    
-    // Filtrar solo ventas físicas (asumiendo que el trabajador solo ve lo de tienda)
-    // Idealmente el backend filtraría por usuario, pero por ahora filtramos por tipo
     const mySales = allOrders.filter(o => o.tipoVenta === 'Física');
 
     if (mySales.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5">No hay ventas registradas hoy.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5">No hay ventas registradas.</td></tr>';
       return;
     }
 
@@ -286,13 +384,12 @@ async function loadMyHistory() {
       <tr>
         <td>${o.orderNumber}</td>
         <td>${o.customerDetails.name}</td>
-        <td>${o.trackingNumber || 'Efectivo'}</td>
+        <td>${o.trackingNumber}</td>
         <td>${fmtMoney(o.total)}</td>
         <td>${new Date(o.createdAt).toLocaleTimeString()}</td>
       </tr>
     `).join("");
-
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="5">Error al cargar historial.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5">Error historial.</td></tr>';
   }
 }
