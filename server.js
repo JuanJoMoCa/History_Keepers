@@ -99,11 +99,37 @@ app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const usuario = await User.findOne({ email });
+<<<<<<< HEAD
     if (!usuario) return res.status(404).json({ message: "Usuario no encontrado." });
     if (usuario.password !== password) return res.status(401).json({ message: "Contraseña incorrecta." });
+=======
+    if (!usuario) {
+      
+      return res.status(404).json({
+        success: false,
+        message: "Este correo no está asociado a ninguna cuenta."
+      });
+    }
+    
+    
+    if (usuario.password !== password) {
+      
+      return res.status(401).json({
+        success: false,
+        message: "Correo o contraseña incorrectos."
+      });
+    }
+
+    
+>>>>>>> 8fbed82b4efa294dc22386ea174ede28f2f2989f
     if (!SKIP_EMAIL_VERIFICATION && usuario.rol === 'usuario comprador' && !usuario.isVerified) {
       return res.status(403).json({ message: "Verifica tu correo primero." });
     }
+<<<<<<< HEAD
+=======
+    
+    
+>>>>>>> 8fbed82b4efa294dc22386ea174ede28f2f2989f
     res.json({
       success: true, message: `¡Bienvenido!`,
       user: { _id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
@@ -111,6 +137,12 @@ app.post('/api/login', async (req, res) => {
   } catch (error) { res.status(500).json({ message: error.message }); }
 });
 
+<<<<<<< HEAD
+=======
+
+
+// --- Verificación de correo  ---
+>>>>>>> 8fbed82b4efa294dc22386ea174ede28f2f2989f
 app.get('/auth/verify-email', async (req, res) => {
   try {
     const { token, action } = req.query;
@@ -135,14 +167,24 @@ app.get('/api/products', async (req, res) => {
   try {
     const { search = "", page = 1, limit = 10 } = req.query;
     const query = {};
+    
+    // MODIFICACIÓN: Agregamos búsqueda exacta por barcode
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
         { category: { $regex: search, $options: 'i' } },
-        { barcode: search }
+        { barcode: search } // <--- ESTO ES LO NUEVO
       ];
     }
+<<<<<<< HEAD
     const items = await Product.find(query).skip((page - 1) * limit).limit(Number(limit)).sort({ createdAt: -1 });
+=======
+    
+    const items = await Product.find(query)
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(Number(limit))
+      .sort({ createdAt: -1 });
+>>>>>>> 8fbed82b4efa294dc22386ea174ede28f2f2989f
     const total = await Product.countDocuments(query);
     res.json({ items, total });
   } catch (error) { res.status(500).json({ message: error.message }); }
@@ -186,6 +228,29 @@ app.put('/api/products/:id', upload.array('images', 5), async (req, res) => {
   } catch (error) { res.status(500).json({ message: error.message }); }
 });
 
+<<<<<<< HEAD
+=======
+// --- 4. ACTUALIZAR PRODUCTO (PUT) - NUEVO ---
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body; // Aquí Express ya lee todo lo que mandemos, incluido 'status'
+    
+    const updatedProduct = await Product.findByIdAndUpdate(id, updates, { new: true });
+    
+    if (!updatedProduct) {
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
+    
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error("Error actualizando:", error);
+    res.status(500).json({ message: "Error al actualizar el producto" });
+  }
+});
+
+// 4. ELIMINAR (DELETE) - (Sin cambios)
+>>>>>>> 8fbed82b4efa294dc22386ea174ede28f2f2989f
 app.delete('/api/products/:id', async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
@@ -203,9 +268,231 @@ app.delete('/api/products/:id/image', async (req, res) => {
   } catch (error) { res.status(500).json({ message: error.message }); }
 });
 
+<<<<<<< HEAD
 // ================================================================
 // API DE PEDIDOS Y POS (CORREGIDO Y UNIFICADO)
 // ================================================================
+=======
+// --- API DE PEDIDOS (Sin cambios) ---
+app.get('/api/orders', async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .populate('products.product')
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { customerDetails, products, subtotal, shippingCost, total, tipoVenta, status } = req.body;
+    
+    // 1. VALIDACIÓN DE STOCK
+    const productIds = products.map(p => p.product);
+    const dbProducts = await Product.find({ _id: { $in: productIds } });
+    
+    // Verificamos disponibilidad
+    const unavailableProduct = dbProducts.find(p => p.status !== 'Disponible');
+    if (unavailableProduct) {
+      return res.status(409).json({ 
+        success: false,
+        message: `El artículo "${unavailableProduct.name}" ya no está disponible.`
+      });
+    }
+
+    const orderNumber = `HK-${Date.now().toString().slice(5)}`;
+    
+    // 2. DETERMINAR ESTATUS DEL PRODUCTO
+    // Si es venta física ('Vendido'), el producto se marca vendido ya. Si es online, 'Pendiente'.
+    const initialStatus = status || 'Pagado'; // Si no envían status, asumimos Pagado (Online)
+    const newProductStatus = (initialStatus === 'Vendido') ? 'Vendido' : 'Pendiente de envío';
+
+    await Product.updateMany(
+      { _id: { $in: productIds } },
+      { $set: { status: newProductStatus } }
+    );
+    
+    const newOrder = new Order({
+      orderNumber,
+      customerDetails,
+      products,
+      subtotal,
+      shippingCost,
+      total,
+      tipoVenta,
+      status: initialStatus
+    });
+    
+    await newOrder.save();
+    res.status(201).json(newOrder);
+
+  } catch (error) {
+    console.error("Error al crear orden:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.put('/api/orders/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, trackingNumber } = req.body;
+
+    // IMPORTANTE: No usamos populate aquí para tener los IDs puros
+    const order = await Order.findById(id); 
+    if (!order) return res.status(404).json({ message: 'Pedido no encontrado' });
+
+    order.status = status;
+    if (trackingNumber) order.trackingNumber = trackingNumber;
+    
+    // Extraer IDs de productos correctamente
+    const productIds = order.products.map(p => p.product);
+
+    if (status === 'Cancelado') {
+      // LIBERAR PRODUCTOS
+      await Product.updateMany(
+        { _id: { $in: productIds } },
+        { $set: { status: 'Disponible' } }
+      );
+    }
+    
+    if (status === 'Entregado' || status === 'Vendido') {
+       // MARCAR COMO VENDIDOS
+      await Product.updateMany(
+        { _id: { $in: productIds } },
+        { $set: { status: 'Vendido' } }
+      );
+    }
+
+    await order.save();
+    res.json(order);
+  } catch (error) {
+    console.error("Error actualizando orden:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// --- API DE VENTAS (Sin cambios) ---
+app.get('/api/sales/summary', async (req, res) => {
+  try {
+    const salesByMonth = await Order.aggregate([
+      { $match: { status: { $in: ['Entregado', 'Vendido'] } } },
+      {
+        $group: {
+          _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+          totalSales: { $sum: "$total" }
+        }
+      },
+      { $sort: { "_id.year": -1, "_id.month": -1 } },
+      { $limit: 12 }
+    ]);
+    
+    const salesByType = await Order.aggregate([
+      { $match: { status: { $in: ['Entregado', 'Vendido'] } } },
+      {
+        $group: {
+          _id: "$tipoVenta",
+          totalSales: { $sum: "$total" }
+        }
+      }
+    ]);
+    
+    const ordersByStatus = await Order.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    res.json({ salesByMonth, salesByType, ordersByStatus });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// --- API DE GESTIÓN DE EMPLEADOS (Sin cambios) ---
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await User.find({ 
+      rol: { $nin: ['usuario comprador', 'administrador'] }
+    }).select('-password');
+
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/users', async (req, res) => {
+  try {
+    const { nombre, email, password, rol } = req.body;
+    
+    const validRoles = ['usuario comprador', 'trabajador', 'gerente']; // 'administrador' quitado
+    if (!nombre || !email || !password || !validRoles.includes(rol)) {
+      return res.status(400).json({ message: 'Campos obligatorios o rol no válido.' });
+    }
+
+    const usuarioExistente = await User.findOne({ email });
+    if (usuarioExistente) {
+      return res.status(400).json({ message: 'Este correo ya está registrado.' });
+    }
+    
+    const nuevoUsuario = new User({ nombre, email, password, rol });
+    await nuevoUsuario.save();
+    
+    const userResponse = nuevoUsuario.toObject();
+    delete userResponse.password;
+    
+    res.status(201).json(userResponse);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.put('/api/users/:id/role', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rol } = req.body;
+
+    const validRoles = ['usuario comprador', 'trabajador', 'gerente']; // 'administrador' quitado
+    if (!validRoles.includes(rol)) {
+      return res.status(400).json({ message: 'Rol no válido.' });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { $set: { rol: rol } },
+      { new: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+    
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+    
+    res.json({ success: true, message: 'Usuario eliminado.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+>>>>>>> 8fbed82b4efa294dc22386ea174ede28f2f2989f
 
 // 1. Buscar Usuario (POS)
 app.get('/api/users/lookup', async (req, res) => {
