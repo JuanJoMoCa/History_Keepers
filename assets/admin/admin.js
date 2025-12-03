@@ -469,41 +469,54 @@ function renderSalesByTypeChart(salesData) {
 /**
  * Dibuja la tabla de historial de ventas (usa state.orders)
  */
+/* =========================================================
+   REEMPLAZO EN admin.js (Función renderSalesTable)
+   Corrección: Muestra productos y todas las ventas no canceladas
+   ========================================================= */
+
 function renderSalesTable() {
   const typeFilter = el.salesFilterType.value;
-  const monthFilter = el.salesFilterMonth.value; // Formato "YYYY-MM"
+  const monthFilter = el.salesFilterMonth.value;
   const tbody = $("#sales-tbody");
   if (!tbody) return;
 
-  // Filtrar solo los pedidos completados
-  const completedOrders = (state.orders || []).filter(o => 
-    o.status === 'Entregado' || o.status === 'Vendido' // 'Vendido' es para ventas físicas
-  );
+  // CAMBIO 1: Mostrar todo lo que no sea 'Cancelado'
+  const validOrders = (state.orders || []).filter(o => o.status !== 'Cancelado');
 
-  const filtered = completedOrders.filter(order => {
+  const filtered = validOrders.filter(order => {
     const typeMatch = !typeFilter || order.tipoVenta === typeFilter;
-
     const orderDate = new Date(order.createdAt);
     const orderMonth = `${orderDate.getFullYear()}-${(orderDate.getMonth() + 1).toString().padStart(2, '0')}`;
     const monthMatch = !monthFilter || orderMonth === monthFilter;
-
     return typeMatch && monthMatch;
   });
 
-  tbody.innerHTML = filtered.map(p => `
-    <tr>
-      <td>${escape(p.orderNumber)}</td>
-      <td>${new Date(p.createdAt).toLocaleDateString("es-MX")}</td>
-      <td>${escape(p.customerDetails.name)}</td>
-      <td>${escape(p.tipoVenta)}</td>
-      <td>${fmtMoney(p.total)}</td>
-      <td>
-        <span class="status-badge" data-status="${escape(p.status)}">
-          ${escape(p.status)}
-        </span>
-      </td>
-    </tr>
-  `).join("");
+  // CAMBIO 2: Agregar resumen de productos en la tabla
+  tbody.innerHTML = filtered.map(p => {
+    // Generar resumen de productos (ej. "2x Gorra, 1x Balón")
+    const itemsSummary = p.products.map(prod => 
+      `<div style="font-size:0.85rem;">• ${prod.qty}x ${escape(prod.name)}</div>`
+    ).join("");
+
+    return `
+      <tr>
+        <td style="font-weight:bold;">${escape(p.orderNumber)}</td>
+        <td>${new Date(p.createdAt).toLocaleDateString("es-MX")}</td>
+        <td>
+          <div>${escape(p.customerDetails.name)}</div>
+          <div class="muted" style="font-size:0.8rem;">${escape(p.tipoVenta)}</div>
+        </td>
+        <td>
+          ${itemsSummary} </td>
+        <td style="font-weight:bold;">${fmtMoney(p.total)}</td>
+        <td>
+          <span class="status-badge" data-status="${escape(p.status)}">
+            ${escape(p.status)}
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join("");
 }
 
 /**

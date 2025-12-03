@@ -301,26 +301,28 @@ app.get('/api/my-orders/:userId', async (req, res) => {
 // API ADMIN / PERFIL
 // ================================================================
 
-// --- RUTA DE ESTADÍSTICAS (DASHBOARD) ---
+/* =========================================================
+   REEMPLAZO EN server.js (Ruta de Estadísticas)
+   Corrección: Cuenta todas las ventas activas, no solo las entregadas
+   ========================================================= */
+
 app.get('/api/sales/summary', async (req, res) => {
   try {
-    // 1. Traemos TODAS las órdenes completadas
-    // Usamos .lean() para que sean objetos JS simples y rápidos
+    // 1. Traemos TODAS las órdenes que NO estén canceladas
     const orders = await Order.find({
-      status: { $in: ['Entregado', 'Vendido'] }
+      status: { $ne: 'Cancelado' } // <--- CAMBIO CLAVE: Todo lo que no sea Cancelado cuenta
     }).lean();
 
-    // 2. Calcular Ventas por Mes (Lógica manual en JS)
+    // 2. Calcular Ventas por Mes
     const salesByMonthMap = {};
     
     orders.forEach(o => {
-      // Si no tiene fecha o es inválida, usamos la fecha de hoy para no romper la gráfica
       let d = o.createdAt ? new Date(o.createdAt) : new Date();
       if (isNaN(d.getTime())) d = new Date(); 
 
       const year = d.getFullYear();
       const month = d.getMonth() + 1;
-      const key = `${year}-${month}`; // Ej: "2025-12"
+      const key = `${year}-${month}`;
       
       if (!salesByMonthMap[key]) {
         salesByMonthMap[key] = {
@@ -328,6 +330,7 @@ app.get('/api/sales/summary', async (req, res) => {
           totalSales: 0
         };
       }
+      // Sumamos el total
       salesByMonthMap[key].totalSales += (Number(o.total) || 0);
     });
     
@@ -344,22 +347,20 @@ app.get('/api/sales/summary', async (req, res) => {
     });
     const salesByType = Object.values(salesByTypeMap);
 
-    // 4. Contar Estatus
-    const allOrders = await Order.find({}, 'status').lean();
+    // 4. Contar Estatus (incluyendo cancelados para tener la foto completa)
+    const allOrdersStatus = await Order.find({}, 'status').lean();
     const statusMap = {};
-    allOrders.forEach(o => {
+    allOrdersStatus.forEach(o => {
       const s = o.status || "Sin estatus";
       if (!statusMap[s]) statusMap[s] = { _id: s, count: 0 };
       statusMap[s].count++;
     });
     const ordersByStatus = Object.values(statusMap);
 
-    // Enviar respuesta
     res.json({ salesByMonth, salesByType, ordersByStatus });
 
   } catch (error) {
-    console.error("Error Calculando Dashboard:", error);
-    // En caso de error, enviamos arrays vacíos para que no salga el mensaje rojo en el front
+    console.error("Error Dashboard:", error);
     res.json({ salesByMonth: [], salesByType: [], ordersByStatus: [] });
   }
 });

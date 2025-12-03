@@ -158,18 +158,15 @@
           </div>
           <div class="inv-tablewrap">
             <table class="inv-table" id="sales-table">
-              <thead>
-                <tr>
-                  <th>N° Pedido</th>
-                  <th>Fecha</th>
-                  <th>Cliente</th>
-                  <th>Tipo</th>
-                  <th>Total</th>
-                  <th>Estatus</th>
-                </tr>
-              </thead>
-              <tbody id="sales-tbody">
-                </tbody>
+                <thead>
+                  <tr>
+                    <th>N° Pedido</th>
+                    <th>Fecha</th>
+                    <th>Cliente / Tipo</th> <th>Productos</th>      <th>Total</th>
+                    <th>Estatus</th>
+                  </tr>
+                </thead>
+             <tbody id="sales-tbody"></tbody>
             </table>
           </div>
         </section>
@@ -216,6 +213,7 @@
         
         <div id="form-body" class="grid">
           <input type="hidden" id="id">
+          <input type="hidden" id="status" value="Disponible">
           
           <label class="grid-span-2">Nombre
             <input id="name" name="name" class="input" required placeholder="Ej. Jersey Retro 1998">
@@ -259,8 +257,7 @@
             <input id="images" name="images" type="file" class="input" multiple accept="image/png, image/jpeg, image/webp">
           </label>
 
-          <div id="current-images-preview" class="grid-span-2">
-            </div>
+          <div id="current-images-preview" class="grid-span-2"></div>
           
           <label class="grid-span-2">Descripción
             <textarea id="description" name="description" rows="3" class="input" placeholder="Descripción corta del producto..."></textarea>
